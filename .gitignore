@@ -23,3 +23,5 @@ yarn-debug.log*
 yarn-error.log*
 
 .blend1
+
+public/models/*.blend1
