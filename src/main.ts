@@ -95,7 +95,7 @@ export function main(assets: Assets): void {
   player.position.set(0, 0, 0);
   const playerWalkClip = AnimationClip.findByName(
     assets.azuki.animations,
-    "ArmatureAction"
+    "Walk"
   );
 
   const playerMixer = new AnimationMixer(player);
