@@ -173,14 +173,14 @@ export function main(assets: Assets): void {
 
     player.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
     player.rotateY(-(mousePos.x - 0.5) * Math.PI * 2);
-    player.rotateX((mousePos.y - 0.5) * Math.PI * 2);
 
     playerMixer.update(elapsedTime / 1000);
 
     camera.position.copy(player.position);
     camera.quaternion.copy(player.quaternion);
-    camera.translateY(1);
+    camera.translateY(5);
     camera.translateZ(2);
+    camera.rotateX(-(mousePos.y - 0.5) * Math.PI);
 
     requestAnimationFrame(tick);
   }
