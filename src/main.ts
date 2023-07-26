@@ -28,7 +28,6 @@ export function main(assets: Assets): void {
   });
 
   let lastTime = Date.now();
-  let turnAngle = 0;
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(
@@ -96,12 +95,12 @@ export function main(assets: Assets): void {
 
   // End variable declarations.
 
-  const shovelPlane = assets.shovelPlane.scene.clone(true);
-  shovelPlane.position.set(0, 5, 0);
+  const player = assets.azuki.scene;
+  player.position.set(0, 0, 0);
 
   addSky();
   addEnvironment();
-  scene.add(shovelPlane);
+  scene.add(player);
 
   tick();
 
@@ -159,21 +158,16 @@ export function main(assets: Assets): void {
     const now = Date.now();
     const elapsedTime = now - lastTime;
     lastTime = now;
-    // (windLayer as any).time += (elapsedTime * 0.005) / 10;
     cubeCamera.update(renderer, scene);
     render();
 
-    shovelPlane.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
-    shovelPlane.rotateY(turnAngle);
-    shovelPlane.rotateX((mousePos.y - 0.5) * Math.PI * 2);
-    shovelPlane.rotateZ((mousePos.x - 0.5) * Math.PI * 2);
-    turnAngle += -0.05 * ((mousePos.x - 0.5) * Math.PI * 2);
+    player.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
+    player.rotateY(-(mousePos.x - 0.5) * Math.PI * 2);
+    player.rotateX((mousePos.y - 0.5) * Math.PI * 2);
+    // shovelPlane.rotateZ((mousePos.x - 0.5) * Math.PI * 2);
 
-    shovelPlane.translateZ(0.01 * elapsedTime);
-
-    camera.position.copy(shovelPlane.position);
-    camera.quaternion.copy(shovelPlane.quaternion);
-    camera.rotateY(Math.PI);
+    camera.position.copy(player.position);
+    camera.quaternion.copy(player.quaternion);
     camera.translateY(1);
     camera.translateZ(2);
 

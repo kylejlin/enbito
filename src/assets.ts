@@ -10,7 +10,7 @@ import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 export interface Assets {
   environment: DataTexture;
-  shovelPlane: GLTF;
+  azuki: GLTF;
   grass: Texture;
 }
 
@@ -25,7 +25,7 @@ export function loadAssets(): Promise<Assets> {
         });
     }),
     new Promise<GLTF>((resolve) => {
-      new GLTFLoader().load("./models/shovel.glb", (gltf) => {
+      new GLTFLoader().load("./models/azuki.glb", (gltf) => {
         resolve(gltf);
       });
     }),
@@ -39,7 +39,7 @@ export function loadAssets(): Promise<Assets> {
         resolve(texture);
       }
     }),
-  ]).then(([environment, shovelPlane, grass]): Assets => {
-    return { environment, shovelPlane, grass };
+  ]).then(([environment, azuki, grass]): Assets => {
+    return { environment, azuki, grass };
   });
 }
