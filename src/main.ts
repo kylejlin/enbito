@@ -27,6 +27,20 @@ export function main(assets: Assets): void {
     mousePos.y = e.clientY / window.innerHeight;
   });
 
+  const keys = {
+    w: false,
+  };
+  window.addEventListener("keydown", (e) => {
+    if (e.key === "w") {
+      keys.w = true;
+    }
+  });
+  window.addEventListener("keyup", (e) => {
+    if (e.key === "w") {
+      keys.w = false;
+    }
+  });
+
   let lastTime = Date.now();
 
   const scene = new Scene();
@@ -153,6 +167,13 @@ export function main(assets: Assets): void {
 
     player.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
     player.rotateY(-(mousePos.x - 0.5) * Math.PI * 2);
+
+    if (keys.w) {
+      playerWalkAction.play();
+      player.translateZ(-elapsedTime / 1000);
+    } else {
+      playerWalkAction.stop();
+    }
 
     playerMixer.update(elapsedTime / 1000);
 
