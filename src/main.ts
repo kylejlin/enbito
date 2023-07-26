@@ -18,8 +18,6 @@ import {
   AnimationClip,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
-import { getWindLayer } from "./scene/windLayer";
-import { getGrass } from "./scene/grass";
 import { RepeatWrapping } from "three";
 
 export function main(assets: Assets): void {
@@ -53,22 +51,6 @@ export function main(assets: Assets): void {
   camera.setRotationFromQuaternion(cameraQuat);
 
   camera.position.set(0, 2, 0);
-
-  const grassShape = new Mesh(
-    new PlaneGeometry(),
-    new MeshBasicMaterial({ color: 0x221600 })
-  );
-
-  const windLayer = getWindLayer();
-
-  const grassPrototype = getGrass(grassShape, windLayer);
-
-  for (let i = 0; i < 10; ++i) {
-    const grass = grassPrototype.clone();
-    grass.position.set(i, 0, 0);
-    grass.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
-    scene.add(grass);
-  }
 
   const texture = assets.grass.clone();
   texture.wrapS = RepeatWrapping;
