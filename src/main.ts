@@ -77,8 +77,6 @@ export function main(assets: Assets): void {
 
   const cubeCamera = new CubeCamera(1, 1000, cubeRenderTarget);
 
-  // End variable declarations.
-
   const player = assets.azuki.scene;
   player.position.set(0, 0, 0);
   const playerWalkClip = AnimationClip.findByName(
