@@ -14,6 +14,8 @@ import {
   HalfFloatType,
   CubeCamera,
   PlaneGeometry,
+  AnimationMixer,
+  AnimationClip,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { getWindLayer } from "./scene/windLayer";
@@ -97,6 +99,14 @@ export function main(assets: Assets): void {
 
   const player = assets.azuki.scene;
   player.position.set(0, 0, 0);
+  const playerWalkClip = AnimationClip.findByName(
+    assets.azuki.animations,
+    "ArmatureAction"
+  );
+
+  const playerMixer = new AnimationMixer(player);
+  const playerWalkAction = playerMixer.clipAction(playerWalkClip);
+  playerWalkAction.play();
 
   addSky();
   addEnvironment();
@@ -164,7 +174,8 @@ export function main(assets: Assets): void {
     player.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
     player.rotateY(-(mousePos.x - 0.5) * Math.PI * 2);
     player.rotateX((mousePos.y - 0.5) * Math.PI * 2);
-    // shovelPlane.rotateZ((mousePos.x - 0.5) * Math.PI * 2);
+
+    playerMixer.update(elapsedTime / 1000);
 
     camera.position.copy(player.position);
     camera.quaternion.copy(player.quaternion);

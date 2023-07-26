@@ -40,6 +40,7 @@ export function loadAssets(): Promise<Assets> {
       }
     }),
   ]).then(([environment, azuki, grass]): Assets => {
+    console.log({ azuki });
     return { environment, azuki, grass };
   });
 }
