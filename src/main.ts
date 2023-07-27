@@ -19,6 +19,7 @@ import {
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
+import Perlin from "perlin.js";
 
 export function main(assets: Assets): void {
   const mousePos = { x: 0, y: 0 };
@@ -189,4 +190,14 @@ export function main(assets: Assets): void {
   function addEnvironment(): void {
     scene.environment = assets.environment;
   }
+
+  Perlin.seed(123);
+  let min = Infinity;
+  let max = -Infinity;
+  for (let i = 0; i < 1000; ++i) {
+    const y = Perlin.simplex2(i, 0);
+    min = Math.min(min, y);
+    max = Math.max(max, y);
+  }
+  console.log({ min, max });
 }
