@@ -170,12 +170,12 @@ export function main(assets: Assets): void {
 
     if (keys.w) {
       playerWalkAction.play();
-      player.translateZ(-elapsedTime / 1000);
+      player.translateZ((3 * -elapsedTime) / 1000);
     } else {
       playerWalkAction.stop();
     }
 
-    playerMixer.update(elapsedTime / 1000);
+    playerMixer.update((2 * elapsedTime) / 1000);
 
     camera.position.copy(player.position);
     camera.quaternion.copy(player.quaternion);
