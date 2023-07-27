@@ -244,6 +244,8 @@ function renderChunkIfMissing(world: World, x: number, z: number): void {
 const CHUNK_WIDTH = 16;
 const CHUNK_HEIGHT = 256;
 
+const universalChunkYOffsetScaled = -64 * BLOCK_SIZE;
+
 const BlockTypes = {
   Blank: 0,
   Dirt: 1,
@@ -378,7 +380,7 @@ function getInstancedMeshFromFactory(
       i,
       new Matrix4().makeTranslation(
         chunkXScaled + localX * BLOCK_SIZE,
-        localY * BLOCK_SIZE,
+        universalChunkYOffsetScaled + localY * BLOCK_SIZE,
         chunkZScaled + localZ * BLOCK_SIZE
       )
     );
