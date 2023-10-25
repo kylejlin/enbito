@@ -191,6 +191,28 @@ export function main(assets: Assets): void {
 
     playerMixer.update((2 * elapsedTime) / 1000);
 
+    enemyMixer.update((1 * elapsedTime) / 1000);
+    enemy.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
+    enemy.rotateY(
+      Math.atan2(
+        player.position.x - enemy.position.x,
+        player.position.z - enemy.position.z
+      ) + Math.PI
+    );
+
+    if (
+      (player.position.x - enemy.position.x) *
+        (player.position.x - enemy.position.x) +
+        (player.position.z - enemy.position.z) *
+          (player.position.z - enemy.position.z) >
+      1 * 1
+    ) {
+      enemyWalkAction.play();
+      enemy.translateZ((1.5 * -elapsedTime) / 1000);
+    } else {
+      enemyWalkAction.stop();
+    }
+
     camera.position.copy(player.position);
     camera.quaternion.copy(player.quaternion);
     camera.translateY(5);
