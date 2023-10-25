@@ -19,6 +19,7 @@ import {
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
+import { cloneGltf } from "./cloneGltf";
 
 export function main(assets: Assets): void {
   const mousePos = { x: 0, y: 0 };
@@ -91,10 +92,11 @@ export function main(assets: Assets): void {
 
   const cubeCamera = new CubeCamera(1, 1000, cubeRenderTarget);
 
-  const player = assets.azuki.scene;
+  const playerGltf = cloneGltf(assets.azuki);
+  const player = playerGltf.scene;
   player.position.set(0, 0, 0);
   const playerWalkClip = AnimationClip.findByName(
-    assets.azuki.animations,
+    playerGltf.animations,
     "Walk"
   );
 
@@ -102,9 +104,21 @@ export function main(assets: Assets): void {
   const playerWalkAction = playerMixer.clipAction(playerWalkClip);
   playerWalkAction.play();
 
+  scene.add(player);
+
+  const enemyGltf = cloneGltf(assets.azuki);
+  const enemy = enemyGltf.scene;
+  enemy.position.set(3, 0, 0);
+  const enemyWalkClip = AnimationClip.findByName(enemyGltf.animations, "Walk");
+
+  const enemyMixer = new AnimationMixer(enemy);
+  const enemyWalkAction = enemyMixer.clipAction(enemyWalkClip);
+  enemyWalkAction.play();
+
+  scene.add(enemy);
+
   addSky();
   addEnvironment();
-  scene.add(player);
 
   tick();
 
