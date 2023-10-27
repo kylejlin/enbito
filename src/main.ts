@@ -16,10 +16,12 @@ import {
   PlaneGeometry,
   AnimationMixer,
   AnimationClip,
+  AnimationAction,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
+import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export function main(assets: Assets): void {
   const mousePos = { x: 0, y: 0 };
@@ -116,6 +118,19 @@ export function main(assets: Assets): void {
   const playerStabAction = playerMixer.clipAction(playerStabClip);
 
   scene.add(player);
+
+  const azukiSoldiers = [
+    getAzukiSoldier(6, 0, 0, assets),
+    getAzukiSoldier(8, 0, 0, assets),
+    getAzukiSoldier(10, 0, 0, assets),
+    getAzukiSoldier(12, 0, 0, assets),
+    getAzukiSoldier(14, 0, 0, assets),
+    getAzukiSoldier(16, 0, 0, assets),
+  ];
+
+  for (const soldier of azukiSoldiers) {
+    scene.add(soldier.gltf.scene);
+  }
 
   const enemyGltf = cloneGltf(assets.azuki);
   const enemy = enemyGltf.scene;
@@ -246,4 +261,30 @@ export function main(assets: Assets): void {
   function addEnvironment(): void {
     scene.environment = assets.environment;
   }
+}
+
+interface Soldier {
+  gltf: GLTF;
+  mixer: AnimationMixer;
+  walkAction: AnimationAction;
+  stabAction: AnimationAction;
+}
+
+function getAzukiSoldier(
+  x: number,
+  y: number,
+  z: number,
+  assets: Assets
+): Soldier {
+  const soldierGltf = cloneGltf(assets.azuki);
+  const soldierScene = soldierGltf.scene;
+  soldierScene.position.set(x, y, z);
+  const walkClip = AnimationClip.findByName(soldierGltf.animations, "Walk");
+  const stabClip = AnimationClip.findByName(soldierGltf.animations, "Stab");
+
+  const mixer = new AnimationMixer(soldierScene);
+  const walkAction = mixer.clipAction(walkClip);
+  const stabAction = mixer.clipAction(stabClip);
+
+  return { gltf: soldierGltf, mixer, walkAction, stabAction };
 }
