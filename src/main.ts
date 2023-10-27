@@ -236,6 +236,13 @@ export function main(assets: Assets): void {
       ) + Math.PI
     );
 
+    for (const soldier of azukiSoldiers) {
+      soldier.walkAction.play();
+      soldier.stabAction.stop();
+      soldier.mixer.update((1 * elapsedTime) / 1000);
+      soldier.gltf.scene.translateZ((1.5 * -elapsedTime) / 1000);
+    }
+
     if (
       (player.position.x - enemy.position.x) *
         (player.position.x - enemy.position.x) +
