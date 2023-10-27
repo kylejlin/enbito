@@ -120,12 +120,27 @@ export function main(assets: Assets): void {
   scene.add(player);
 
   const azukiSoldiers = [
-    getAzukiSoldier(6, 0, 0, assets),
+    getAzukiSoldier(4, 0, 0, assets),
     getAzukiSoldier(8, 0, 0, assets),
-    getAzukiSoldier(10, 0, 0, assets),
     getAzukiSoldier(12, 0, 0, assets),
-    getAzukiSoldier(14, 0, 0, assets),
     getAzukiSoldier(16, 0, 0, assets),
+    getAzukiSoldier(20, 0, 0, assets),
+    getAzukiSoldier(24, 0, 0, assets),
+    getAzukiSoldier(28, 0, 0, assets),
+    getAzukiSoldier(32, 0, 0, assets),
+    getAzukiSoldier(36, 0, 0, assets),
+    getAzukiSoldier(40, 0, 0, assets),
+    //
+    getAzukiSoldier(4 + 2, 0, 4, assets),
+    getAzukiSoldier(8 + 2, 0, 4, assets),
+    getAzukiSoldier(12 + 2, 0, 4, assets),
+    getAzukiSoldier(16 + 2, 0, 4, assets),
+    getAzukiSoldier(20 + 2, 0, 4, assets),
+    getAzukiSoldier(24 + 2, 0, 4, assets),
+    getAzukiSoldier(28 + 2, 0, 4, assets),
+    getAzukiSoldier(32 + 2, 0, 4, assets),
+    getAzukiSoldier(36 + 2, 0, 4, assets),
+    getAzukiSoldier(40 + 2, 0, 4, assets),
   ];
 
   for (const soldier of azukiSoldiers) {
