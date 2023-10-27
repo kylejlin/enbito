@@ -55,7 +55,7 @@ export function main(assets: Assets): void {
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(
-    114,
+    57,
     window.innerWidth / window.innerHeight
   );
 
