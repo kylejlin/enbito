@@ -30,15 +30,22 @@ export function main(assets: Assets): void {
 
   const keys = {
     w: false,
+    space: false,
   };
   window.addEventListener("keydown", (e) => {
     if (e.key === "w") {
       keys.w = true;
     }
+    if (e.key === " ") {
+      keys.space = true;
+    }
   });
   window.addEventListener("keyup", (e) => {
     if (e.key === "w") {
       keys.w = false;
+    }
+    if (e.key === " ") {
+      keys.space = false;
     }
   });
 
@@ -99,10 +106,14 @@ export function main(assets: Assets): void {
     playerGltf.animations,
     "Walk"
   );
+  const playerStabClip = AnimationClip.findByName(
+    playerGltf.animations,
+    "Stab"
+  );
 
   const playerMixer = new AnimationMixer(player);
   const playerWalkAction = playerMixer.clipAction(playerWalkClip);
-  playerWalkAction.play();
+  const playerStabAction = playerMixer.clipAction(playerStabClip);
 
   scene.add(player);
 
@@ -184,12 +195,22 @@ export function main(assets: Assets): void {
 
     if (keys.w) {
       playerWalkAction.play();
+
+      playerStabAction.stop();
+
       player.translateZ((3 * -elapsedTime) / 1000);
+
+      playerMixer.update((2 * elapsedTime) / 1000);
+    } else if (keys.space) {
+      playerStabAction.play();
+
+      playerWalkAction.stop();
+
+      playerMixer.update((0.5 * elapsedTime) / 1000);
     } else {
       playerWalkAction.stop();
+      playerStabAction.stop();
     }
-
-    playerMixer.update((2 * elapsedTime) / 1000);
 
     enemyMixer.update((1 * elapsedTime) / 1000);
     enemy.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
