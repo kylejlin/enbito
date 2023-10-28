@@ -119,28 +119,29 @@ export function main(assets: Assets): void {
 
   scene.add(player);
 
+  const rankGap = 8 * (Math.sqrt(3) / 2);
   const azukiSoldiers = [
-    getAzukiSoldier(2 * 4, 0, 0, assets),
-    getAzukiSoldier(2 * 8, 0, 0, assets),
-    getAzukiSoldier(2 * 12, 0, 0, assets),
-    getAzukiSoldier(2 * 16, 0, 0, assets),
-    getAzukiSoldier(2 * 20, 0, 0, assets),
-    getAzukiSoldier(2 * 24, 0, 0, assets),
-    getAzukiSoldier(2 * 28, 0, 0, assets),
-    getAzukiSoldier(2 * 32, 0, 0, assets),
-    getAzukiSoldier(2 * 36, 0, 0, assets),
-    getAzukiSoldier(2 * 40, 0, 0, assets),
+    getAzukiSoldier(8 * 1, 0, 0, assets),
+    getAzukiSoldier(8 * 2, 0, 0, assets),
+    getAzukiSoldier(8 * 3, 0, 0, assets),
+    getAzukiSoldier(8 * 4, 0, 0, assets),
+    getAzukiSoldier(8 * 5, 0, 0, assets),
+    getAzukiSoldier(8 * 6, 0, 0, assets),
+    getAzukiSoldier(8 * 7, 0, 0, assets),
+    getAzukiSoldier(8 * 8, 0, 0, assets),
+    getAzukiSoldier(8 * 9, 0, 0, assets),
+    getAzukiSoldier(8 * 10, 0, 0, assets),
     //
-    getAzukiSoldier(2 * 4 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 8 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 12 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 16 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 20 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 24 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 28 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 32 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 36 + 2 * 2, 0, 4, assets),
-    getAzukiSoldier(2 * 40 + 2 * 2, 0, 4, assets),
+    getAzukiSoldier(8 * 1.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 2.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 3.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 4.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 5.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 6.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 7.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 8.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 9.5, 0, rankGap, assets),
+    getAzukiSoldier(8 * 10.5, 0, rankGap, assets),
   ];
 
   for (const soldier of azukiSoldiers) {
