@@ -142,6 +142,17 @@ export function main(assets: Assets): void {
     getAzukiSoldier(8 * 8.5, 0, rankGap, assets),
     getAzukiSoldier(8 * 9.5, 0, rankGap, assets),
     getAzukiSoldier(8 * 10.5, 0, rankGap, assets),
+
+    getAzukiSoldier(8 * 1, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 2, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 3, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 4, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 5, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 6, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 7, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 8, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 9, 0, 2 * rankGap, assets),
+    getAzukiSoldier(8 * 10, 0, 2 * rankGap, assets),
   ];
 
   for (const soldier of azukiSoldiers) {
