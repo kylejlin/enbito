@@ -113,7 +113,7 @@ export function main(assets: Assets): void {
   flyAction.play();
 
   scene.add(dragonfly);
-  dragonfly.position.set(0, 10, -600);
+  dragonfly.position.set(30, 30, -600);
   dragonfly.rotateY(Math.PI);
   dragonfly.scale.multiplyScalar(0.3);
   // TODO: Delete END
