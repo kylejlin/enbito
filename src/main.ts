@@ -101,6 +101,20 @@ export function main(assets: Assets): void {
 
   const cubeCamera = new CubeCamera(1, 1000, cubeRenderTarget);
 
+  // TODO: Delete START
+  const dragonflyGltf = cloneGltf(assets.dragonfly);
+  const dragonfly = dragonflyGltf.scene;
+  dragonfly.position.set(0, 0, 0);
+  const flyClip = AnimationClip.findByName(dragonflyGltf.animations, "Fly");
+
+  const dragonflyMixer = new AnimationMixer(dragonfly);
+  const flyAction = dragonflyMixer.clipAction(flyClip);
+  flyAction.play();
+
+  scene.add(dragonfly);
+  dragonfly.position.set(0, 5, 0);
+  // TODO: Delete END
+
   const playerGltf = cloneGltf(assets.azuki);
   const player = playerGltf.scene;
   player.position.set(0, 0, 0);
@@ -253,6 +267,8 @@ export function main(assets: Assets): void {
       playerWalkAction.stop();
       playerStabAction.stop();
     }
+
+    dragonflyMixer.update((1 * elapsedTime) / 1000);
 
     enemyMixer.update((1 * elapsedTime) / 1000);
     enemy.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);

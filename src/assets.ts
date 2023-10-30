@@ -11,6 +11,7 @@ import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 export interface Assets {
   environment: DataTexture;
   azuki: GLTF;
+  dragonfly: GLTF;
   grass: Texture;
 }
 
@@ -29,6 +30,11 @@ export function loadAssets(): Promise<Assets> {
         resolve(gltf);
       });
     }),
+    new Promise<GLTF>((resolve) => {
+      new GLTFLoader().load("./models/dragonfly.glb", (gltf) => {
+        resolve(gltf);
+      });
+    }),
     new Promise<Texture>((resolve) => {
       const manager = new LoadingManager();
       manager.onLoad = onLoad;
@@ -39,8 +45,7 @@ export function loadAssets(): Promise<Assets> {
         resolve(texture);
       }
     }),
-  ]).then(([environment, azuki, grass]): Assets => {
-    console.log({ azuki });
-    return { environment, azuki, grass };
+  ]).then(([environment, azuki, dragonfly, grass]): Assets => {
+    return { environment, azuki, dragonfly, grass };
   });
 }
