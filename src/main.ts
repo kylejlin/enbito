@@ -89,12 +89,12 @@ export function main(assets: Assets): void {
   grasslike.position.set(-1, 0, -1);
   scene.add(grasslike);
 
-  const yMarker = new Mesh(
-    new BoxGeometry(),
-    new MeshBasicMaterial({ color: 0x0088bb })
-  );
-  yMarker.position.set(0, 5, 0);
-  scene.add(yMarker);
+  // const yMarker = new Mesh(
+  //   new BoxGeometry(),
+  //   new MeshBasicMaterial({ color: 0x0088bb })
+  // );
+  // yMarker.position.set(0, 5, 0);
+  // scene.add(yMarker);
 
   const cubeRenderTarget = new WebGLCubeRenderTarget(256);
   cubeRenderTarget.texture.type = HalfFloatType;
@@ -109,10 +109,13 @@ export function main(assets: Assets): void {
 
   const dragonflyMixer = new AnimationMixer(dragonfly);
   const flyAction = dragonflyMixer.clipAction(flyClip);
+  flyAction.timeScale = 5;
   flyAction.play();
 
   scene.add(dragonfly);
-  dragonfly.position.set(0, 5, 0);
+  dragonfly.position.set(0, 10, -600);
+  dragonfly.rotateY(Math.PI);
+  dragonfly.scale.multiplyScalar(0.3);
   // TODO: Delete END
 
   const playerGltf = cloneGltf(assets.azuki);
@@ -269,6 +272,7 @@ export function main(assets: Assets): void {
     }
 
     dragonflyMixer.update((1 * elapsedTime) / 1000);
+    dragonfly.translateZ((100 * -elapsedTime) / 1000);
 
     enemyMixer.update((1 * elapsedTime) / 1000);
     enemy.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
