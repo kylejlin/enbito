@@ -46,9 +46,18 @@ export function main(assets: Assets): void {
     }
   });
 
+  const pendingDeployment = {
+    start: new Vector3(0, 0, 0),
+    endWhenMostRecentPreviewWasCreated: new Vector3(0, 0, 0),
+    active: false,
+  };
+
+  let groundCursor: null | Vector3 = null;
+
   const keys = {
     w: false,
     space: false,
+    _1: false,
   };
   window.addEventListener("keydown", (e) => {
     if (e.key === "w") {
@@ -57,6 +66,11 @@ export function main(assets: Assets): void {
     if (e.key === " ") {
       keys.space = true;
     }
+    if (e.key === "1") {
+      const wasKey1Down = keys._1;
+      keys._1 = true;
+      trySetDeploymentStart(wasKey1Down);
+    }
   });
   window.addEventListener("keyup", (e) => {
     if (e.key === "w") {
@@ -64,6 +78,10 @@ export function main(assets: Assets): void {
     }
     if (e.key === " ") {
       keys.space = false;
+    }
+    if (e.key === "1") {
+      keys._1 = false;
+      trySetDeploymentEnd();
     }
   });
 
@@ -331,9 +349,66 @@ export function main(assets: Assets): void {
       new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
     );
     const hits = raycaster.intersectObject(grasslike, true);
-    if (hits.length > 0) {
-      const hit = hits[0];
-      enemy.position.copy(hit.point);
+    if (hits.length === 0) {
+      groundCursor = null;
+    } else {
+      groundCursor = hits[0].point;
+    }
+
+    if (
+      groundCursor === null ||
+      !groundCursor.equals(pendingDeployment.endWhenMostRecentPreviewWasCreated)
+    ) {
+      for (let i = 0; true; ) {
+        if (i >= azukiSoldiers.length) {
+          break;
+        }
+
+        if (azukiSoldiers[i].isGhost) {
+          scene.remove(azukiSoldiers[i].gltf.scene);
+          azukiSoldiers.splice(i, 1);
+        } else {
+          ++i;
+        }
+      }
+    }
+
+    if (groundCursor !== null) {
+      enemy.position.copy(groundCursor);
+
+      if (pendingDeployment.active) {
+        const temp_fromStartToCursor = groundCursor
+          .clone()
+          .sub(pendingDeployment.start);
+        const fromStartToCursorLength = temp_fromStartToCursor.length();
+        const RANK_GAP = 8;
+        temp_fromStartToCursor.normalize().multiplyScalar(RANK_GAP);
+        const rankStep = temp_fromStartToCursor;
+
+        let spawnPoint = pendingDeployment.start.clone();
+
+        for (let i = 0; i < fromStartToCursorLength; ) {
+          const ghostSoldier = getAzukiSoldier(
+            spawnPoint.x,
+            spawnPoint.y,
+            spawnPoint.z,
+            assets
+          );
+          ghostSoldier.isGhost = true;
+          azukiSoldiers.push(ghostSoldier);
+          scene.add(ghostSoldier.gltf.scene);
+
+          i += RANK_GAP;
+          spawnPoint.add(rankStep);
+        }
+
+        console.log(
+          "adding deployment preview",
+          fromStartToCursorLength / RANK_GAP
+        );
+
+        pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
+      }
     }
 
     requestAnimationFrame(tick);
@@ -342,6 +417,29 @@ export function main(assets: Assets): void {
   function addEnvironment(): void {
     scene.environment = assets.environment;
   }
+
+  function trySetDeploymentStart(wasKey1Down: boolean): void {
+    if (groundCursor === null || wasKey1Down) {
+      return;
+    }
+
+    pendingDeployment.start.copy(groundCursor);
+    pendingDeployment.active = true;
+  }
+
+  function trySetDeploymentEnd(): void {
+    if (!pendingDeployment.active) {
+      return;
+    }
+
+    if (groundCursor === null) {
+      return;
+    }
+
+    pendingDeployment.active = false;
+
+    // TODO
+  }
 }
 
 interface Soldier {
@@ -349,6 +447,8 @@ interface Soldier {
   mixer: AnimationMixer;
   walkAction: AnimationAction;
   stabAction: AnimationAction;
+  // TODO: Delete
+  isGhost: boolean;
 }
 
 function getAzukiSoldier(
@@ -367,5 +467,5 @@ function getAzukiSoldier(
   const walkAction = mixer.clipAction(walkClip);
   const stabAction = mixer.clipAction(stabClip);
 
-  return { gltf: soldierGltf, mixer, walkAction, stabAction };
+  return { gltf: soldierGltf, mixer, walkAction, stabAction, isGhost: false };
 }
