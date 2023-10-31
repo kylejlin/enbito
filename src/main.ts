@@ -5,7 +5,6 @@ import {
   Scene,
   Quaternion,
   Vector3,
-  BoxGeometry,
   MeshBasicMaterial,
   Mesh,
   MathUtils,
@@ -24,10 +23,29 @@ import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 export function main(assets: Assets): void {
-  const mousePos = { x: 0, y: 0 };
+  const mouse = { x: 0, y: 0, isLocked: false };
+  document.addEventListener("pointerlockchange", () => {
+    mouse.isLocked = !!document.pointerLockElement;
+  });
+  document.body.addEventListener("click", () => {
+    document.body.requestPointerLock();
+  });
+
   window.addEventListener("mousemove", (e) => {
-    mousePos.x = e.clientX / window.innerWidth;
-    mousePos.y = e.clientY / window.innerHeight;
+    if (mouse.isLocked) {
+      mouse.x += e.movementX / window.innerWidth;
+      mouse.y += e.movementY / window.innerHeight;
+
+      if (mouse.y < 0) {
+        mouse.y = 0;
+      }
+      if (mouse.y > 1) {
+        mouse.y = 1;
+      }
+    } else {
+      mouse.x = e.clientX / window.innerWidth;
+      mouse.y = e.clientY / window.innerHeight;
+    }
   });
 
   const keys = {
@@ -250,7 +268,7 @@ export function main(assets: Assets): void {
     render();
 
     player.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
-    player.rotateY(-(mousePos.x - 0.5) * Math.PI * 2);
+    player.rotateY(-(mouse.x - 0.5) * Math.PI * 2);
 
     if (keys.w) {
       playerWalkAction.play();
@@ -307,7 +325,7 @@ export function main(assets: Assets): void {
     camera.quaternion.copy(player.quaternion);
     camera.translateY(5);
     camera.translateZ(2);
-    camera.rotateX(-(mousePos.y - 0.5) * Math.PI);
+    camera.rotateX(-(mouse.y - 0.5) * Math.PI);
 
     requestAnimationFrame(tick);
   }
