@@ -361,6 +361,7 @@ export function main(assets: Assets): void {
 
     if (
       groundCursor === null ||
+      !pendingDeployment.active ||
       !groundCursor.equals(pendingDeployment.endWhenMostRecentPreviewWasCreated)
     ) {
       for (let i = 0; true; ) {
@@ -380,7 +381,12 @@ export function main(assets: Assets): void {
     if (groundCursor !== null) {
       enemy.position.copy(groundCursor);
 
-      if (pendingDeployment.active) {
+      if (
+        pendingDeployment.active &&
+        !groundCursor.equals(
+          pendingDeployment.endWhenMostRecentPreviewWasCreated
+        )
+      ) {
         const temp_fromStartToCursor = groundCursor
           .clone()
           .sub(pendingDeployment.start);
