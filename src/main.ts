@@ -42,9 +42,6 @@ export function main(assets: Assets): void {
       if (mouse.y > 1) {
         mouse.y = 1;
       }
-    } else {
-      mouse.x = e.clientX / window.innerWidth;
-      mouse.y = e.clientY / window.innerHeight;
     }
   });
 
