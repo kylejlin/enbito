@@ -318,6 +318,10 @@ export function main(assets: Assets): void {
     );
 
     for (const soldier of azukiSoldiers) {
+      if (soldier.isGhost) {
+        continue;
+      }
+
       soldier.walkAction.play();
       soldier.stabAction.stop();
       soldier.mixer.update((1 * elapsedTime) / 1000);
@@ -401,11 +405,6 @@ export function main(assets: Assets): void {
           i += RANK_GAP;
           spawnPoint.add(rankStep);
         }
-
-        console.log(
-          "adding deployment preview",
-          fromStartToCursorLength / RANK_GAP
-        );
 
         pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
       }
