@@ -16,6 +16,7 @@ import {
   AnimationMixer,
   AnimationClip,
   AnimationAction,
+  Raycaster,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
@@ -323,6 +324,23 @@ export function main(assets: Assets): void {
     camera.translateY(5);
     camera.translateZ(2);
     camera.rotateX(-(mouse.y - 0.5) * Math.PI);
+
+    // const raycaster = new Raycaster();
+    // raycaster.set(
+    //   camera.position,
+    //   new Vector3(1, 0, 0).applyQuaternion(camera.quaternion)
+    // );
+    // const hits = raycaster.intersectObject(shootableEnt.ThreeScene.scene, true);
+    // for (const hit of hits) {
+    //   if (hit.distance < closestHit.distance) {
+    //     closestHit = hit;
+    //     closestEnt = shootableEnt;
+    //   }
+    // }
+
+    const x = new Vector3(0, 0, -10).applyQuaternion(camera.quaternion);
+    enemy.position.copy(player.position);
+    enemy.position.add(x);
 
     requestAnimationFrame(tick);
   }
