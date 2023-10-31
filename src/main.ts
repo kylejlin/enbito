@@ -392,15 +392,20 @@ export function main(assets: Assets): void {
         let spawnPoint = pendingDeployment.start.clone();
 
         for (let i = 0; i < fromStartToCursorLength; ) {
-          const ghostSoldier = getAzukiSoldier(
+          const previewSoldier = getAzukiSoldier(
             spawnPoint.x,
             spawnPoint.y,
             spawnPoint.z,
             assets
           );
-          ghostSoldier.isPreview = true;
-          azukiSoldiers.push(ghostSoldier);
-          scene.add(ghostSoldier.gltf.scene);
+          previewSoldier.isPreview = true;
+          previewSoldier.gltf.scene.setRotationFromAxisAngle(
+            new Vector3(0, 1, 0),
+            Math.atan2(rankStep.x, rankStep.z) - Math.PI / 2
+          );
+
+          azukiSoldiers.push(previewSoldier);
+          scene.add(previewSoldier.gltf.scene);
 
           i += RANK_GAP;
           spawnPoint.add(rankStep);
