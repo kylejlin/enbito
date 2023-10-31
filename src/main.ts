@@ -318,7 +318,7 @@ export function main(assets: Assets): void {
     );
 
     for (const soldier of azukiSoldiers) {
-      if (soldier.isGhost) {
+      if (soldier.isPreview) {
         continue;
       }
 
@@ -368,7 +368,7 @@ export function main(assets: Assets): void {
           break;
         }
 
-        if (azukiSoldiers[i].isGhost) {
+        if (azukiSoldiers[i].isPreview) {
           scene.remove(azukiSoldiers[i].gltf.scene);
           azukiSoldiers.splice(i, 1);
         } else {
@@ -398,7 +398,7 @@ export function main(assets: Assets): void {
             spawnPoint.z,
             assets
           );
-          ghostSoldier.isGhost = true;
+          ghostSoldier.isPreview = true;
           azukiSoldiers.push(ghostSoldier);
           scene.add(ghostSoldier.gltf.scene);
 
@@ -447,7 +447,7 @@ interface Soldier {
   walkAction: AnimationAction;
   stabAction: AnimationAction;
   // TODO: Delete
-  isGhost: boolean;
+  isPreview: boolean;
 }
 
 function getAzukiSoldier(
@@ -466,5 +466,5 @@ function getAzukiSoldier(
   const walkAction = mixer.clipAction(walkClip);
   const stabAction = mixer.clipAction(stabClip);
 
-  return { gltf: soldierGltf, mixer, walkAction, stabAction, isGhost: false };
+  return { gltf: soldierGltf, mixer, walkAction, stabAction, isPreview: false };
 }
