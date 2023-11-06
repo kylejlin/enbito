@@ -171,6 +171,14 @@ export function main(assets: Assets): void {
       gap: [8, 8 * (Math.sqrt(3) / 2)],
       assets,
     }),
+
+    getAzukiUnit({
+      start: new Vector3(100, 0, -100),
+      forward: new Vector3(0, 0, -1).normalize(),
+      dimensions: [10, 10],
+      gap: [8, 8 * (Math.sqrt(3) / 2)],
+      assets,
+    }),
   ];
   for (const unit of azukiUnits) {
     for (const soldier of unit.soldiers) {
