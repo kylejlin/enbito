@@ -300,17 +300,92 @@ export function main(assets: Assets): void {
       ) + Math.PI
     );
 
+    const ATTACK_RANGE_SQUARED = 8 ** 2;
+
     for (const unit of units) {
       if (unit.isPreview) {
         continue;
       }
 
       const { soldiers } = unit;
-      for (const soldier of soldiers) {
-        soldier.walkAction.play();
-        soldier.stabAction.stop();
-        soldier.mixer.update(elapsedTime / 1000);
-        soldier.gltf.scene.translateZ((1.5 * -elapsedTime) / 1000);
+      const wasAnySoldierFighting = soldiers.some(
+        (soldier) => soldier.attackTarget !== null
+      );
+      if (!wasAnySoldierFighting) {
+        for (const soldier of soldiers) {
+          soldier.walkAction.play();
+          soldier.stabAction.stop();
+          soldier.mixer.update(elapsedTime / 1000);
+          soldier.gltf.scene.translateZ((1.5 * -elapsedTime) / 1000);
+
+          for (const otherUnit of units) {
+            if (otherUnit.allegiance === unit.allegiance) {
+              continue;
+            }
+
+            for (const enemy of otherUnit.soldiers) {
+              const distanceSquared =
+                soldier.gltf.scene.position.distanceToSquared(
+                  enemy.gltf.scene.position
+                );
+              if (distanceSquared <= ATTACK_RANGE_SQUARED) {
+                // TODO: Choose closest instead of arbitrary one.
+                soldier.attackTarget = enemy;
+                soldier.walkAction.stop();
+                soldier.stabAction.play();
+                const difference = enemy.gltf.scene.position
+                  .clone()
+                  .sub(soldier.gltf.scene.position);
+                soldier.gltf.scene.setRotationFromAxisAngle(
+                  new Vector3(0, 1, 0),
+                  Math.atan2(difference.x, difference.z) + Math.PI + 0.05
+                );
+              }
+            }
+          }
+        }
+      } else {
+        for (const soldier of soldiers) {
+          if (soldier.stabAction.time < soldier.stabClip.duration) {
+            soldier.mixer.update(elapsedTime / 1000);
+            continue;
+          }
+
+          const { attackTarget } = soldier;
+          if (attackTarget === null) {
+            for (const otherUnit of units) {
+              if (otherUnit.allegiance === unit.allegiance) {
+                continue;
+              }
+
+              for (const enemy of otherUnit.soldiers) {
+                const distanceSquared =
+                  soldier.gltf.scene.position.distanceToSquared(
+                    enemy.gltf.scene.position
+                  );
+                if (distanceSquared <= ATTACK_RANGE_SQUARED) {
+                  // TODO: Choose closest instead of arbitrary one.
+                  soldier.attackTarget = enemy;
+                  soldier.walkAction.stop();
+                  soldier.stabAction.play();
+                  const difference = enemy.gltf.scene.position
+                    .clone()
+                    .sub(soldier.gltf.scene.position);
+                  soldier.gltf.scene.setRotationFromAxisAngle(
+                    new Vector3(0, 1, 0),
+                    Math.atan2(difference.x, difference.z) + Math.PI + 0.05
+                  );
+                }
+              }
+            }
+
+            continue;
+          }
+
+          if (soldier.attackTarget !== null) {
+            soldier.attackTarget.health -= 60;
+          }
+        }
       }
     }
 
@@ -445,9 +520,12 @@ interface Unit {
 interface Soldier {
   gltf: GLTF;
   mixer: AnimationMixer;
+  walkClip: AnimationClip;
   walkAction: AnimationAction;
+  stabClip: AnimationClip;
   stabAction: AnimationAction;
-  target: null | Soldier;
+  attackTarget: null | Soldier;
+  health: number;
 }
 
 function getUnit({
@@ -508,12 +586,16 @@ function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
   const mixer = new AnimationMixer(soldierScene);
   const walkAction = mixer.clipAction(walkClip);
   const stabAction = mixer.clipAction(stabClip);
+  stabAction.timeScale = 0.5;
 
   return {
     gltf: soldierGltf,
     mixer,
+    walkClip,
     walkAction,
+    stabClip,
     stabAction,
-    target: null,
+    attackTarget: null,
+    health: 100,
   };
 }
