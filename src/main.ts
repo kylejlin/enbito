@@ -301,12 +301,12 @@ export function main(assets: Assets): void {
     );
 
     for (const unit of azukiUnits) {
+      if (unit.isPreview) {
+        continue;
+      }
+
       const { soldiers } = unit;
       for (const soldier of soldiers) {
-        if (unit.isPreview) {
-          continue;
-        }
-
         soldier.walkAction.play();
         soldier.stabAction.stop();
         soldier.mixer.update(elapsedTime / 1000);
