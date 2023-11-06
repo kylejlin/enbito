@@ -23,6 +23,11 @@ import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+enum Allegiance {
+  Azuki,
+  Edamame,
+}
+
 export function main(assets: Assets): void {
   const mouse = { x: 0, y: 0, isLocked: false };
   document.addEventListener("pointerlockchange", () => {
@@ -170,6 +175,7 @@ export function main(assets: Assets): void {
       dimensions: [10, 10],
       gap: [8, 8 * (Math.sqrt(3) / 2)],
       assets,
+      allegiance: Allegiance.Azuki,
     }),
 
     getAzukiUnit({
@@ -178,6 +184,7 @@ export function main(assets: Assets): void {
       dimensions: [10, 10],
       gap: [8, 8 * (Math.sqrt(3) / 2)],
       assets,
+      allegiance: Allegiance.Edamame,
     }),
   ];
   for (const unit of azukiUnits) {
@@ -386,6 +393,7 @@ export function main(assets: Assets): void {
           dimensions: [width, 1],
           gap: [RANK_GAP, 0],
           assets,
+          allegiance: Allegiance.Azuki,
         });
         previewUnit.isPreview = true;
         azukiUnits.push(previewUnit);
@@ -431,6 +439,7 @@ interface Unit {
   soldiers: Soldier[];
   forward: Vector3;
   isPreview: boolean;
+  allegiance: Allegiance;
 }
 
 interface Soldier {
@@ -438,6 +447,7 @@ interface Soldier {
   mixer: AnimationMixer;
   walkAction: AnimationAction;
   stabAction: AnimationAction;
+  isFighting: boolean;
 }
 
 function getAzukiUnit({
@@ -446,12 +456,14 @@ function getAzukiUnit({
   dimensions: [width, height],
   gap: [rightGap, backGap],
   assets,
+  allegiance,
 }: {
   start: Vector3;
   forward: Vector3;
   dimensions: [number, number];
   gap: [number, number];
   assets: Assets;
+  allegiance: Allegiance;
 }): Unit {
   const rightStep = forward
     .clone()
@@ -482,6 +494,7 @@ function getAzukiUnit({
     soldiers,
     forward,
     isPreview: false,
+    allegiance,
   };
 }
 
@@ -501,5 +514,11 @@ function getAzukiSoldier(
   const walkAction = mixer.clipAction(walkClip);
   const stabAction = mixer.clipAction(stabClip);
 
-  return { gltf: soldierGltf, mixer, walkAction, stabAction };
+  return {
+    gltf: soldierGltf,
+    mixer,
+    walkAction,
+    stabAction,
+    isFighting: false,
+  };
 }
