@@ -168,8 +168,8 @@ export function main(assets: Assets): void {
 
   scene.add(player);
 
-  const azukiUnits = [
-    getAzukiUnit({
+  const units = [
+    getUnit({
       start: new Vector3(0, 0, 100),
       forward: new Vector3(0, 0, 1).normalize(),
       dimensions: [10, 10],
@@ -178,7 +178,7 @@ export function main(assets: Assets): void {
       allegiance: Allegiance.Azuki,
     }),
 
-    getAzukiUnit({
+    getUnit({
       start: new Vector3(100, 0, -100),
       forward: new Vector3(0, 0, -1).normalize(),
       dimensions: [10, 10],
@@ -187,7 +187,7 @@ export function main(assets: Assets): void {
       allegiance: Allegiance.Edamame,
     }),
   ];
-  for (const unit of azukiUnits) {
+  for (const unit of units) {
     for (const soldier of unit.soldiers) {
       scene.add(soldier.gltf.scene);
     }
@@ -300,7 +300,7 @@ export function main(assets: Assets): void {
       ) + Math.PI
     );
 
-    for (const unit of azukiUnits) {
+    for (const unit of units) {
       if (unit.isPreview) {
         continue;
       }
@@ -351,15 +351,15 @@ export function main(assets: Assets): void {
       !groundCursor.equals(pendingDeployment.endWhenMostRecentPreviewWasCreated)
     ) {
       for (let i = 0; true; ) {
-        if (i >= azukiUnits.length) {
+        if (i >= units.length) {
           break;
         }
-        if (azukiUnits[i].isPreview) {
-          for (const soldier of azukiUnits[i].soldiers) {
+        if (units[i].isPreview) {
+          for (const soldier of units[i].soldiers) {
             scene.remove(soldier.gltf.scene);
           }
 
-          azukiUnits.splice(i, 1);
+          units.splice(i, 1);
         } else {
           ++i;
         }
@@ -384,7 +384,7 @@ export function main(assets: Assets): void {
           1,
           Math.floor(fromStartToCursorLength / RANK_GAP)
         );
-        const previewUnit = getAzukiUnit({
+        const previewUnit = getUnit({
           start: pendingDeployment.start,
           forward: temp_fromStartToCursor
             .clone()
@@ -396,7 +396,7 @@ export function main(assets: Assets): void {
           allegiance: Allegiance.Azuki,
         });
         previewUnit.isPreview = true;
-        azukiUnits.push(previewUnit);
+        units.push(previewUnit);
         for (const soldier of previewUnit.soldiers) {
           scene.add(soldier.gltf.scene);
         }
@@ -447,10 +447,10 @@ interface Soldier {
   mixer: AnimationMixer;
   walkAction: AnimationAction;
   stabAction: AnimationAction;
-  isFighting: boolean;
+  target: null | Soldier;
 }
 
-function getAzukiUnit({
+function getUnit({
   start,
   forward,
   dimensions: [width, height],
@@ -480,7 +480,7 @@ function getAzukiUnit({
         .clone()
         .add(rightStep.clone().multiplyScalar(right + 0.5 * (back & 1)))
         .add(backStep.clone().multiplyScalar(back));
-      const soldier = getAzukiSoldier(
+      const soldier = getSoldier(
         soldierPosition.x,
         soldierPosition.y,
         soldierPosition.z,
@@ -498,12 +498,7 @@ function getAzukiUnit({
   };
 }
 
-function getAzukiSoldier(
-  x: number,
-  y: number,
-  z: number,
-  assets: Assets
-): Soldier {
+function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
   const soldierGltf = cloneGltf(assets.azuki);
   const soldierScene = soldierGltf.scene;
   soldierScene.position.set(x, y, z);
@@ -519,6 +514,6 @@ function getAzukiSoldier(
     mixer,
     walkAction,
     stabAction,
-    isFighting: false,
+    target: null,
   };
 }
