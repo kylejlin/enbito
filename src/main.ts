@@ -170,45 +170,61 @@ export function main(assets: Assets): void {
 
   scene.add(player);
 
-  const rankGap = 8 * (Math.sqrt(3) / 2);
-  const azukiSoldiers = [
-    getAzukiSoldier(8 * 1, 0, 0, assets),
-    getAzukiSoldier(8 * 2, 0, 0, assets),
-    getAzukiSoldier(8 * 3, 0, 0, assets),
-    getAzukiSoldier(8 * 4, 0, 0, assets),
-    getAzukiSoldier(8 * 5, 0, 0, assets),
-    getAzukiSoldier(8 * 6, 0, 0, assets),
-    getAzukiSoldier(8 * 7, 0, 0, assets),
-    getAzukiSoldier(8 * 8, 0, 0, assets),
-    getAzukiSoldier(8 * 9, 0, 0, assets),
-    getAzukiSoldier(8 * 10, 0, 0, assets),
-    //
-    getAzukiSoldier(8 * 1.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 2.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 3.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 4.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 5.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 6.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 7.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 8.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 9.5, 0, rankGap, assets),
-    getAzukiSoldier(8 * 10.5, 0, rankGap, assets),
-
-    getAzukiSoldier(8 * 1, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 2, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 3, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 4, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 5, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 6, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 7, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 8, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 9, 0, 2 * rankGap, assets),
-    getAzukiSoldier(8 * 10, 0, 2 * rankGap, assets),
+  const azukiUnits = [
+    getAzukiUnit({
+      start: new Vector3(0, 0, 100),
+      forward: new Vector3(0, 0, -1).normalize(),
+      dimensions: [10, 10],
+      gap: [8, 8 * (Math.sqrt(3) / 2)],
+      assets,
+    }),
   ];
-
-  for (const soldier of azukiSoldiers) {
-    scene.add(soldier.gltf.scene);
+  for (const unit of azukiUnits) {
+    for (const soldier of unit.soldiers) {
+      scene.add(soldier.gltf.scene);
+    }
   }
+
+  // TODO: Delete START
+  // const rankGap = 8 * (Math.sqrt(3) / 2);
+  // const azukiSoldiers = [
+  //   getAzukiSoldier(8 * 1, 0, 0, assets),
+  //   getAzukiSoldier(8 * 2, 0, 0, assets),
+  //   getAzukiSoldier(8 * 3, 0, 0, assets),
+  //   getAzukiSoldier(8 * 4, 0, 0, assets),
+  //   getAzukiSoldier(8 * 5, 0, 0, assets),
+  //   getAzukiSoldier(8 * 6, 0, 0, assets),
+  //   getAzukiSoldier(8 * 7, 0, 0, assets),
+  //   getAzukiSoldier(8 * 8, 0, 0, assets),
+  //   getAzukiSoldier(8 * 9, 0, 0, assets),
+  //   getAzukiSoldier(8 * 10, 0, 0, assets),
+  //   //
+  //   getAzukiSoldier(8 * 1.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 2.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 3.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 4.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 5.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 6.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 7.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 8.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 9.5, 0, rankGap, assets),
+  //   getAzukiSoldier(8 * 10.5, 0, rankGap, assets),
+
+  //   getAzukiSoldier(8 * 1, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 2, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 3, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 4, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 5, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 6, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 7, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 8, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 9, 0, 2 * rankGap, assets),
+  //   getAzukiSoldier(8 * 10, 0, 2 * rankGap, assets),
+  // ];
+  // for (const soldier of azukiSoldiers) {
+  //   scene.add(soldier.gltf.scene);
+  // }
+  // TODO Delete END
 
   const enemyGltf = cloneGltf(assets.azuki);
   const enemy = enemyGltf.scene;
@@ -317,15 +333,18 @@ export function main(assets: Assets): void {
       ) + Math.PI
     );
 
-    for (const soldier of azukiSoldiers) {
-      if (soldier.isPreview) {
-        continue;
-      }
+    for (const unit of azukiUnits) {
+      const { soldiers } = unit;
+      for (const soldier of soldiers) {
+        if (soldier.isPreview) {
+          continue;
+        }
 
-      soldier.walkAction.play();
-      soldier.stabAction.stop();
-      soldier.mixer.update((1 * elapsedTime) / 1000);
-      soldier.gltf.scene.translateZ((1.5 * -elapsedTime) / 1000);
+        soldier.walkAction.play();
+        soldier.stabAction.stop();
+        soldier.mixer.update(elapsedTime / 1000);
+        soldier.gltf.scene.translateZ((1.5 * -elapsedTime) / 1000);
+      }
     }
 
     if (
@@ -364,18 +383,18 @@ export function main(assets: Assets): void {
       !pendingDeployment.active ||
       !groundCursor.equals(pendingDeployment.endWhenMostRecentPreviewWasCreated)
     ) {
-      for (let i = 0; true; ) {
-        if (i >= azukiSoldiers.length) {
-          break;
-        }
-
-        if (azukiSoldiers[i].isPreview) {
-          scene.remove(azukiSoldiers[i].gltf.scene);
-          azukiSoldiers.splice(i, 1);
-        } else {
-          ++i;
-        }
-      }
+      // TODO: Fix
+      // for (let i = 0; true; ) {
+      //   if (i >= azukiSoldiers.length) {
+      //     break;
+      //   }
+      //   if (azukiSoldiers[i].isPreview) {
+      //     scene.remove(azukiSoldiers[i].gltf.scene);
+      //     azukiSoldiers.splice(i, 1);
+      //   } else {
+      //     ++i;
+      //   }
+      // }
     }
 
     if (groundCursor !== null) {
@@ -387,37 +406,33 @@ export function main(assets: Assets): void {
           pendingDeployment.endWhenMostRecentPreviewWasCreated
         )
       ) {
-        const temp_fromStartToCursor = groundCursor
-          .clone()
-          .sub(pendingDeployment.start);
-        const fromStartToCursorLength = temp_fromStartToCursor.length();
-        const RANK_GAP = 8;
-        temp_fromStartToCursor.normalize().multiplyScalar(RANK_GAP);
-        const rankStep = temp_fromStartToCursor;
-
-        let spawnPoint = pendingDeployment.start.clone();
-
-        for (let i = 0; i < fromStartToCursorLength; ) {
-          const previewSoldier = getAzukiSoldier(
-            spawnPoint.x,
-            spawnPoint.y,
-            spawnPoint.z,
-            assets
-          );
-          previewSoldier.isPreview = true;
-          previewSoldier.gltf.scene.setRotationFromAxisAngle(
-            new Vector3(0, 1, 0),
-            Math.atan2(rankStep.x, rankStep.z) - Math.PI / 2
-          );
-
-          azukiSoldiers.push(previewSoldier);
-          scene.add(previewSoldier.gltf.scene);
-
-          i += RANK_GAP;
-          spawnPoint.add(rankStep);
-        }
-
-        pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
+        // TODO: Fix
+        // const temp_fromStartToCursor = groundCursor
+        //   .clone()
+        //   .sub(pendingDeployment.start);
+        // const fromStartToCursorLength = temp_fromStartToCursor.length();
+        // const RANK_GAP = 8;
+        // temp_fromStartToCursor.normalize().multiplyScalar(RANK_GAP);
+        // const rankStep = temp_fromStartToCursor;
+        // let spawnPoint = pendingDeployment.start.clone();
+        // for (let i = 0; i < fromStartToCursorLength; ) {
+        //   const previewSoldier = getAzukiSoldier(
+        //     spawnPoint.x,
+        //     spawnPoint.y,
+        //     spawnPoint.z,
+        //     assets
+        //   );
+        //   previewSoldier.isPreview = true;
+        //   previewSoldier.gltf.scene.setRotationFromAxisAngle(
+        //     new Vector3(0, 1, 0),
+        //     Math.atan2(rankStep.x, rankStep.z) - Math.PI / 2
+        //   );
+        //   azukiSoldiers.push(previewSoldier);
+        //   scene.add(previewSoldier.gltf.scene);
+        //   i += RANK_GAP;
+        //   spawnPoint.add(rankStep);
+        // }
+        // pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
       }
     }
 
@@ -452,6 +467,11 @@ export function main(assets: Assets): void {
   }
 }
 
+interface Unit {
+  soldiers: Soldier[];
+  forward: Vector3;
+}
+
 interface Soldier {
   gltf: GLTF;
   mixer: AnimationMixer;
@@ -459,6 +479,50 @@ interface Soldier {
   stabAction: AnimationAction;
   // TODO: Delete
   isPreview: boolean;
+}
+
+function getAzukiUnit({
+  start,
+  forward,
+  dimensions: [width, height],
+  gap: [rightGap, backGap],
+  assets,
+}: {
+  start: Vector3;
+  forward: Vector3;
+  dimensions: [number, number];
+  gap: [number, number];
+  assets: Assets;
+}): Unit {
+  const rightStep = forward
+    .clone()
+    .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2)
+    .multiplyScalar(rightGap);
+  const backStep = forward
+    .clone()
+    .applyAxisAngle(new Vector3(0, 1, 0), Math.PI)
+    .multiplyScalar(backGap);
+  const soldiers: Soldier[] = [];
+  for (let right = 0; right < width; ++right) {
+    for (let back = 0; back < height; ++back) {
+      const soldierPosition = start
+        .clone()
+        .add(rightStep.clone().multiplyScalar(right + 0.5 * (back & 1)))
+        .add(backStep.clone().multiplyScalar(back));
+      soldiers.push(
+        getAzukiSoldier(
+          soldierPosition.x,
+          soldierPosition.y,
+          soldierPosition.z,
+          assets
+        )
+      );
+    }
+  }
+  return {
+    soldiers,
+    forward,
+  };
 }
 
 function getAzukiSoldier(
