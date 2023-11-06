@@ -166,7 +166,7 @@ export function main(assets: Assets): void {
   const azukiUnits = [
     getAzukiUnit({
       start: new Vector3(0, 0, 100),
-      forward: new Vector3(0, 0, -1).normalize(),
+      forward: new Vector3(0, 0, 1).normalize(),
       dimensions: [10, 10],
       gap: [8, 8 * (Math.sqrt(3) / 2)],
       assets,
@@ -460,14 +460,14 @@ function getAzukiUnit({
         .clone()
         .add(rightStep.clone().multiplyScalar(right + 0.5 * (back & 1)))
         .add(backStep.clone().multiplyScalar(back));
-      soldiers.push(
-        getAzukiSoldier(
-          soldierPosition.x,
-          soldierPosition.y,
-          soldierPosition.z,
-          assets
-        )
+      const soldier = getAzukiSoldier(
+        soldierPosition.x,
+        soldierPosition.y,
+        soldierPosition.z,
+        assets
       );
+      soldier.gltf.scene.rotateY(Math.atan2(forward.x, forward.z));
+      soldiers.push(soldier);
     }
   }
   return {
