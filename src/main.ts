@@ -36,6 +36,10 @@ enum SoldierAnimationKind {
 }
 
 export function main(assets: Assets): void {
+  let worldTime = Date.now();
+  let lastWorldTime = worldTime;
+  const MILLISECS_PER_TICK = 10;
+
   const mouse = { x: 0, y: 0, isLocked: false };
   document.addEventListener("pointerlockchange", () => {
     mouse.isLocked = !!document.pointerLockElement;
@@ -96,8 +100,6 @@ export function main(assets: Assets): void {
       trySetDeploymentEnd();
     }
   });
-
-  let lastTime = Date.now();
 
   const scene = new Scene();
   const camera = new PerspectiveCamera(
@@ -214,7 +216,7 @@ export function main(assets: Assets): void {
   addSky();
   addEnvironment();
 
-  tick();
+  onAnimationFrame();
 
   function resizeCameraAndRerender(): void {
     camera.aspect = window.innerWidth / window.innerHeight;
@@ -266,12 +268,24 @@ export function main(assets: Assets): void {
     onControllerChange();
   }
 
-  function tick(): void {
+  function onAnimationFrame(): void {
     const now = Date.now();
-    const elapsedTime = now - lastTime;
-    lastTime = now;
+    const elapsedTime = now - worldTime;
+    worldTime = now;
+
+    while (lastWorldTime + MILLISECS_PER_TICK <= worldTime) {
+      tick();
+      lastWorldTime += MILLISECS_PER_TICK;
+    }
+
     cubeCamera.update(renderer, scene);
     render();
+
+    requestAnimationFrame(onAnimationFrame);
+  }
+
+  function tick(): void {
+    const elapsedTime = MILLISECS_PER_TICK;
 
     player.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
     player.rotateY(-(mouse.x - 0.5) * Math.PI * 2);
@@ -289,6 +303,8 @@ export function main(assets: Assets): void {
 
       playerWalkAction.stop();
 
+      // TODO: This only needs to happen once per frame,
+      // not once per tick.
       playerMixer.update((0.5 * elapsedTime) / 1000);
     } else {
       playerWalkAction.stop();
@@ -485,8 +501,6 @@ export function main(assets: Assets): void {
         pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
       }
     }
-
-    requestAnimationFrame(tick);
   }
 
   function addEnvironment(): void {
