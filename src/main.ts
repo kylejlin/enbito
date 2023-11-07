@@ -326,6 +326,10 @@ export function main(assets: Assets): void {
           player.walkClip.duration;
       }
     } else {
+      // TODO: Allow stopping mid cycle but not mid stride.
+
+      // TODO: Account for time scaling (currently it's not an issue since timeScale is 1).
+
       // Stop walking
       // or do nothing if already stopped.
       if (player.animation.kind === SoldierAnimationKind.Walk) {
