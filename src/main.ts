@@ -270,7 +270,6 @@ export function main(assets: Assets): void {
 
   function onAnimationFrame(): void {
     const now = Date.now();
-    const elapsedTime = now - worldTime;
     worldTime = now;
 
     while (lastWorldTime + MILLISECS_PER_TICK <= worldTime) {
