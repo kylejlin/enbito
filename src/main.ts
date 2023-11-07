@@ -159,23 +159,39 @@ export function main(assets: Assets): void {
   dragonfly.scale.multiplyScalar(0.3);
   // TODO: Delete END
 
-  const playerGltf = cloneGltf(assets.azuki);
-  const player = playerGltf.scene;
-  player.position.set(0, 0, 0);
-  const playerWalkClip = AnimationClip.findByName(
-    playerGltf.animations,
-    "Walk"
-  );
-  const playerStabClip = AnimationClip.findByName(
-    playerGltf.animations,
-    "Stab"
-  );
+  const player = (function (): Soldier {
+    const playerGltf = cloneGltf(assets.azuki);
+    const playerScene = playerGltf.scene;
+    playerScene.position.set(0, 0, 0);
+    const playerWalkClip = AnimationClip.findByName(
+      playerGltf.animations,
+      "Walk"
+    );
+    const playerStabClip = AnimationClip.findByName(
+      playerGltf.animations,
+      "Stab"
+    );
 
-  const playerMixer = new AnimationMixer(player);
-  const playerWalkAction = playerMixer.clipAction(playerWalkClip);
-  const playerStabAction = playerMixer.clipAction(playerStabClip);
+    const playerMixer = new AnimationMixer(playerScene);
+    const playerWalkAction = playerMixer.clipAction(playerWalkClip);
+    const playerStabAction = playerMixer.clipAction(playerStabClip);
+    return {
+      gltf: playerGltf,
+      animation: {
+        kind: SoldierAnimationKind.Idle,
+        timeInSeconds: 0,
+      },
+      mixer: playerMixer,
+      walkClip: playerWalkClip,
+      walkAction: playerWalkAction,
+      stabClip: playerStabClip,
+      stabAction: playerStabAction,
+      attackTarget: null,
+      health: 100,
+    };
+  })();
 
-  scene.add(player);
+  scene.add(player.gltf.scene);
 
   const units = [
     getUnit({
@@ -272,10 +288,14 @@ export function main(assets: Assets): void {
     const now = Date.now();
     worldTime = now;
 
+    oncePerFrameBeforeTicks();
+
     while (lastWorldTime + MILLISECS_PER_TICK <= worldTime) {
       tick();
       lastWorldTime += MILLISECS_PER_TICK;
     }
+
+    oncePerFrameBeforeRender();
 
     cubeCamera.update(renderer, scene);
     render();
@@ -283,42 +303,55 @@ export function main(assets: Assets): void {
     requestAnimationFrame(onAnimationFrame);
   }
 
-  function tick(): void {
-    const elapsedTime = MILLISECS_PER_TICK;
+  function oncePerFrameBeforeTicks(): void {
+    player.gltf.scene.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
+    player.gltf.scene.rotateY(-(mouse.x - 0.5) * Math.PI * 2);
+  }
 
-    player.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
-    player.rotateY(-(mouse.x - 0.5) * Math.PI * 2);
+  function tick(): void {
+    const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
+    const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
     if (keys.w) {
-      playerWalkAction.play();
-
-      playerStabAction.stop();
-
-      player.translateZ((3 * -elapsedTime) / 1000);
-
-      playerMixer.update((2 * elapsedTime) / 1000);
-    } else if (keys.space) {
-      playerStabAction.play();
-
-      playerWalkAction.stop();
-
-      // TODO: This only needs to happen once per frame,
-      // not once per tick.
-      playerMixer.update((0.5 * elapsedTime) / 1000);
+      // Start walking
+      // or continue walking if already walking.
+      if (player.animation.kind !== SoldierAnimationKind.Walk) {
+        player.animation = {
+          kind: SoldierAnimationKind.Walk,
+          timeInSeconds: 0,
+        };
+      } else {
+        player.animation.timeInSeconds =
+          (player.animation.timeInSeconds + elapsedTimeInSeconds) %
+          player.walkClip.duration;
+      }
     } else {
-      playerWalkAction.stop();
-      playerStabAction.stop();
+      // Stop walking
+      // or do nothing if already stopped.
+      if (player.animation.kind === SoldierAnimationKind.Walk) {
+        player.animation.timeInSeconds += elapsedTimeInSeconds;
+        if (player.animation.timeInSeconds > player.walkClip.duration) {
+          player.animation = {
+            kind: SoldierAnimationKind.Idle,
+            timeInSeconds: 0,
+          };
+        }
+      }
     }
 
-    dragonflyMixer.update((1 * elapsedTime) / 1000);
-    dragonfly.translateZ((100 * -elapsedTime) / 1000);
+    if (player.animation.kind === SoldierAnimationKind.Walk) {
+      player.gltf.scene.translateZ((3 * -elapsedTimeInMillisecs) / 1000);
+    }
 
-    enemyMixer.update((1 * elapsedTime) / 1000);
+    dragonflyMixer.update((1 * elapsedTimeInMillisecs) / 1000);
+    dragonfly.translateZ((100 * -elapsedTimeInMillisecs) / 1000);
+
+    enemyMixer.update((1 * elapsedTimeInMillisecs) / 1000);
     enemy.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
     enemy.rotateY(
       Math.atan2(
-        player.position.x - enemy.position.x,
-        player.position.z - enemy.position.z
+        player.gltf.scene.position.x - enemy.position.x,
+        player.gltf.scene.position.z - enemy.position.z
       ) + Math.PI
     );
 
@@ -337,8 +370,8 @@ export function main(assets: Assets): void {
         for (const soldier of soldiers) {
           soldier.walkAction.play();
           soldier.stabAction.stop();
-          soldier.mixer.update(elapsedTime / 1000);
-          soldier.gltf.scene.translateZ((1.5 * -elapsedTime) / 1000);
+          soldier.mixer.update(elapsedTimeInMillisecs / 1000);
+          soldier.gltf.scene.translateZ((1.5 * -elapsedTimeInMillisecs) / 1000);
 
           for (const otherUnit of units) {
             if (otherUnit.allegiance === unit.allegiance) {
@@ -369,7 +402,7 @@ export function main(assets: Assets): void {
       } else {
         for (const soldier of soldiers) {
           if (soldier.stabAction.time < soldier.stabClip.duration) {
-            soldier.mixer.update(elapsedTime / 1000);
+            soldier.mixer.update(elapsedTimeInMillisecs / 1000);
             continue;
           }
 
@@ -412,20 +445,20 @@ export function main(assets: Assets): void {
     }
 
     if (
-      (player.position.x - enemy.position.x) *
-        (player.position.x - enemy.position.x) +
-        (player.position.z - enemy.position.z) *
-          (player.position.z - enemy.position.z) >
+      (player.gltf.scene.position.x - enemy.position.x) *
+        (player.gltf.scene.position.x - enemy.position.x) +
+        (player.gltf.scene.position.z - enemy.position.z) *
+          (player.gltf.scene.position.z - enemy.position.z) >
       1 * 1
     ) {
       enemyWalkAction.play();
-      enemy.translateZ((1.5 * -elapsedTime) / 1000);
+      enemy.translateZ((1.5 * -elapsedTimeInMillisecs) / 1000);
     } else {
       enemyWalkAction.stop();
     }
 
-    camera.position.copy(player.position);
-    camera.quaternion.copy(player.quaternion);
+    camera.position.copy(player.gltf.scene.position);
+    camera.quaternion.copy(player.gltf.scene.quaternion);
     camera.translateY(5);
     camera.translateZ(2);
     camera.rotateX(-(mouse.y - 0.5) * Math.PI);
@@ -502,6 +535,19 @@ export function main(assets: Assets): void {
     }
   }
 
+  function oncePerFrameBeforeRender(): void {
+    if (player.animation.kind === SoldierAnimationKind.Walk) {
+      player.walkAction.play();
+
+      player.stabAction.stop();
+
+      player.mixer.setTime(player.animation.timeInSeconds);
+    } else {
+      player.walkAction.stop();
+      player.stabAction.stop();
+    }
+  }
+
   function addEnvironment(): void {
     scene.environment = assets.environment;
   }
@@ -551,7 +597,7 @@ interface Soldier {
 
 interface SoldierAnimationState {
   kind: SoldierAnimationKind;
-  time: number;
+  timeInSeconds: number;
 }
 
 function getUnit({
@@ -616,7 +662,7 @@ function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
 
   return {
     gltf: soldierGltf,
-    animation: { kind: SoldierAnimationKind.Idle, time: 0 },
+    animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
     mixer,
     walkClip,
     walkAction,
