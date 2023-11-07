@@ -28,6 +28,13 @@ enum Allegiance {
   Edamame,
 }
 
+enum SoldierAnimationKind {
+  Idle,
+  Walk,
+  Turn,
+  Stab,
+}
+
 export function main(assets: Assets): void {
   const mouse = { x: 0, y: 0, isLocked: false };
   document.addEventListener("pointerlockchange", () => {
@@ -519,6 +526,7 @@ interface Unit {
 
 interface Soldier {
   gltf: GLTF;
+  animation: SoldierAnimationState;
   mixer: AnimationMixer;
   walkClip: AnimationClip;
   walkAction: AnimationAction;
@@ -526,6 +534,11 @@ interface Soldier {
   stabAction: AnimationAction;
   attackTarget: null | Soldier;
   health: number;
+}
+
+interface SoldierAnimationState {
+  kind: SoldierAnimationKind;
+  time: number;
 }
 
 function getUnit({
@@ -590,6 +603,7 @@ function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
 
   return {
     gltf: soldierGltf,
+    animation: { kind: SoldierAnimationKind.Idle, time: 0 },
     mixer,
     walkClip,
     walkAction,
