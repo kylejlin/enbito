@@ -1,4 +1,5 @@
 import {
+  AnimationClip,
   DataTexture,
   EquirectangularReflectionMapping,
   LoadingManager,
@@ -11,6 +12,7 @@ import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 export interface Assets {
   environment: DataTexture;
   azuki: GLTF;
+  azukiWalkClip: AnimationClip;
   dragonfly: GLTF;
   grass: Texture;
 }
@@ -46,6 +48,7 @@ export function loadAssets(): Promise<Assets> {
       }
     }),
   ]).then(([environment, azuki, dragonfly, grass]): Assets => {
-    return { environment, azuki, dragonfly, grass };
+    const azukiWalkClip = AnimationClip.findByName(azuki.animations, "Walk");
+    return { environment, azuki, azukiWalkClip, dragonfly, grass };
   });
 }

@@ -329,26 +329,12 @@ export function main(assets: Assets): void {
           scaledPlayerWalkClipDuration;
       }
     } else {
-      // Stop walking
-      // or do nothing if already stopped.
-      if (player.animation.kind === SoldierAnimationKind.Walk) {
-        const halfwayPoint = 0.5 * scaledPlayerWalkClipDuration;
-        const reachesHalfwayPointThisTick =
-          player.animation.timeInSeconds < halfwayPoint &&
-          player.animation.timeInSeconds + elapsedTimeInSeconds >= halfwayPoint;
-        const reachesEndThisTick =
-          player.animation.timeInSeconds + elapsedTimeInSeconds >=
-          scaledPlayerWalkClipDuration;
-
-        if (reachesHalfwayPointThisTick || reachesEndThisTick) {
-          player.animation = {
-            kind: SoldierAnimationKind.Idle,
-            timeInSeconds: 0,
-          };
-        } else {
-          player.animation.timeInSeconds += elapsedTimeInSeconds;
-        }
-      }
+      stopWalking(
+        elapsedTimeInSeconds,
+        player.animation,
+        player.walkAction.timeScale,
+        assets
+      );
     }
 
     if (player.animation.kind === SoldierAnimationKind.Walk) {
@@ -683,4 +669,30 @@ function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
     attackTarget: null,
     health: 100,
   };
+}
+
+function stopWalking(
+  elapsedTimeInSeconds: number,
+  animation: SoldierAnimationState,
+  timeScale: number,
+  assets: Assets
+): void {
+  const scaledPlayerWalkClipDuration =
+    assets.azukiWalkClip.duration / timeScale;
+  if (animation.kind === SoldierAnimationKind.Walk) {
+    const halfwayPoint = 0.5 * scaledPlayerWalkClipDuration;
+    const reachesHalfwayPointThisTick =
+      animation.timeInSeconds < halfwayPoint &&
+      animation.timeInSeconds + elapsedTimeInSeconds >= halfwayPoint;
+    const reachesEndThisTick =
+      animation.timeInSeconds + elapsedTimeInSeconds >=
+      scaledPlayerWalkClipDuration;
+
+    if (reachesHalfwayPointThisTick || reachesEndThisTick) {
+      animation.kind = SoldierAnimationKind.Idle;
+      animation.timeInSeconds = 0;
+    } else {
+      animation.timeInSeconds += elapsedTimeInSeconds;
+    }
+  }
 }
