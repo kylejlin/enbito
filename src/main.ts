@@ -189,6 +189,7 @@ export function main(assets: Assets): void {
       stabAction: playerStabAction,
       attackTarget: null,
       health: 100,
+      yRot: 0,
     };
   })();
 
@@ -219,16 +220,19 @@ export function main(assets: Assets): void {
     }
   }
 
-  const enemyGltf = cloneGltf(assets.azuki);
-  const enemy = enemyGltf.scene;
-  enemy.position.set(3, 0, 0);
-  const enemyWalkClip = AnimationClip.findByName(enemyGltf.animations, "Walk");
+  const cursorGltf = cloneGltf(assets.azuki);
+  const cursor = cursorGltf.scene;
+  cursor.position.set(3, 0, 0);
+  const cursorWalkClip = AnimationClip.findByName(
+    cursorGltf.animations,
+    "Walk"
+  );
 
-  const enemyMixer = new AnimationMixer(enemy);
-  const enemyWalkAction = enemyMixer.clipAction(enemyWalkClip);
-  enemyWalkAction.play();
+  const cursorMixer = new AnimationMixer(cursor);
+  const cursorWalkAction = cursorMixer.clipAction(cursorWalkClip);
+  cursorWalkAction.play();
 
-  scene.add(enemy);
+  scene.add(cursor);
 
   addSky();
   addEnvironment();
@@ -305,8 +309,7 @@ export function main(assets: Assets): void {
   }
 
   function oncePerFrameBeforeTicks(): void {
-    player.gltf.scene.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
-    player.gltf.scene.rotateY(-(mouse.x - 0.5) * Math.PI * 2);
+    player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
   }
 
   function tick(): void {
@@ -336,28 +339,38 @@ export function main(assets: Assets): void {
     dragonflyMixer.update((1 * elapsedTimeInMillisecs) / 1000);
     dragonfly.translateZ((100 * -elapsedTimeInMillisecs) / 1000);
 
-    enemyMixer.update((1 * elapsedTimeInMillisecs) / 1000);
-    enemy.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
-    enemy.rotateY(
+    cursorMixer.update((1 * elapsedTimeInMillisecs) / 1000);
+    cursor.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
+    cursor.rotateY(
       Math.atan2(
-        player.gltf.scene.position.x - enemy.position.x,
-        player.gltf.scene.position.z - enemy.position.z
+        player.gltf.scene.position.x - cursor.position.x,
+        player.gltf.scene.position.z - cursor.position.z
       ) + Math.PI
     );
 
     tickUnits(elapsedTimeInSeconds, units, assets);
 
     if (
-      (player.gltf.scene.position.x - enemy.position.x) *
-        (player.gltf.scene.position.x - enemy.position.x) +
-        (player.gltf.scene.position.z - enemy.position.z) *
-          (player.gltf.scene.position.z - enemy.position.z) >
+      (player.gltf.scene.position.x - cursor.position.x) *
+        (player.gltf.scene.position.x - cursor.position.x) +
+        (player.gltf.scene.position.z - cursor.position.z) *
+          (player.gltf.scene.position.z - cursor.position.z) >
       1 * 1
     ) {
-      enemyWalkAction.play();
-      enemy.translateZ((1.5 * -elapsedTimeInMillisecs) / 1000);
+      cursorWalkAction.play();
+      cursor.translateZ((1.5 * -elapsedTimeInMillisecs) / 1000);
     } else {
-      enemyWalkAction.stop();
+      cursorWalkAction.stop();
+    }
+  }
+
+  function oncePerFrameBeforeRender(): void {
+    updateThreeJsProperties(player);
+
+    for (const unit of units) {
+      for (const soldier of unit.soldiers) {
+        updateThreeJsProperties(soldier);
+      }
     }
 
     camera.position.copy(player.gltf.scene.position);
@@ -400,7 +413,7 @@ export function main(assets: Assets): void {
     }
 
     if (groundCursor !== null) {
-      enemy.position.copy(groundCursor);
+      cursor.position.copy(groundCursor);
 
       if (
         pendingDeployment.active &&
@@ -438,17 +451,7 @@ export function main(assets: Assets): void {
     }
   }
 
-  function oncePerFrameBeforeRender(): void {
-    updateThreeJsAnimation(player);
-
-    for (const unit of units) {
-      for (const soldier of unit.soldiers) {
-        updateThreeJsAnimation(soldier);
-      }
-    }
-  }
-
-  function updateThreeJsAnimation(soldier: Soldier): void {
+  function updateThreeJsProperties(soldier: Soldier): void {
     if (soldier.animation.kind === SoldierAnimationKind.Walk) {
       soldier.walkAction.play();
 
@@ -465,6 +468,11 @@ export function main(assets: Assets): void {
       soldier.walkAction.stop();
       soldier.stabAction.stop();
     }
+
+    soldier.gltf.scene.quaternion.setFromAxisAngle(
+      new Vector3(0, 1, 0),
+      soldier.yRot
+    );
   }
 
   function addEnvironment(): void {
@@ -512,6 +520,7 @@ interface Soldier {
   stabAction: AnimationAction;
   attackTarget: null | Soldier;
   health: number;
+  yRot: number;
 }
 
 interface SoldierAnimationState {
@@ -555,7 +564,7 @@ function getUnit({
         soldierPosition.z,
         assets
       );
-      soldier.gltf.scene.rotateY(Math.atan2(forward.x, forward.z));
+      soldier.yRot = Math.atan2(forward.x, forward.z);
       soldiers.push(soldier);
     }
   }
@@ -589,6 +598,7 @@ function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
     stabAction,
     attackTarget: null,
     health: 100,
+    yRot: 0,
   };
 }
 
@@ -708,10 +718,8 @@ function tickUnits(
           const difference = soldier.attackTarget.gltf.scene.position
             .clone()
             .sub(soldier.gltf.scene.position);
-          soldier.gltf.scene.setRotationFromAxisAngle(
-            new Vector3(0, 1, 0),
-            Math.atan2(difference.x, difference.z) + Math.PI + 0.05
-          );
+          soldier.yRot =
+            Math.atan2(difference.x, difference.z) + Math.PI + 0.05;
         }
       }
     }
