@@ -313,6 +313,8 @@ export function main(assets: Assets): void {
     const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
+    const scaledPlayerWalkClipDuration =
+      player.walkClip.duration / player.walkAction.timeScale;
     if (keys.w) {
       // Start walking
       // or continue walking if already walking.
@@ -324,7 +326,7 @@ export function main(assets: Assets): void {
       } else {
         player.animation.timeInSeconds =
           (player.animation.timeInSeconds + elapsedTimeInSeconds) %
-          (player.walkClip.duration / player.walkAction.timeScale);
+          scaledPlayerWalkClipDuration;
       }
     } else {
       // TODO: Allow stopping mid cycle but not mid stride.
@@ -334,15 +336,21 @@ export function main(assets: Assets): void {
       // Stop walking
       // or do nothing if already stopped.
       if (player.animation.kind === SoldierAnimationKind.Walk) {
-        player.animation.timeInSeconds += elapsedTimeInSeconds;
-        if (
-          player.animation.timeInSeconds >
-          player.walkClip.duration / player.walkAction.timeScale
-        ) {
+        const halfwayPoint = 0.5 * scaledPlayerWalkClipDuration;
+        const reachesHalfwayPointThisTick =
+          player.animation.timeInSeconds < halfwayPoint &&
+          player.animation.timeInSeconds + elapsedTimeInSeconds >= halfwayPoint;
+        const reachesEndThisTick =
+          player.animation.timeInSeconds + elapsedTimeInSeconds >=
+          scaledPlayerWalkClipDuration;
+
+        if (reachesHalfwayPointThisTick || reachesEndThisTick) {
           player.animation = {
             kind: SoldierAnimationKind.Idle,
             timeInSeconds: 0,
           };
+        } else {
+          player.animation.timeInSeconds += elapsedTimeInSeconds;
         }
       }
     }
