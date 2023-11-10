@@ -761,26 +761,25 @@ function tickUnits(
         }
 
         if (soldier.attackTarget === null) {
-          for (const otherUnit of units) {
-            if (otherUnit.allegiance === unit.allegiance) {
-              continue;
-            }
-
-            const nearestEnemy = getNearestEnemy(
-              soldier,
-              unit,
-              units,
-              SPEAR_ATTACK_RANGE_SQUARED
-            );
-            if (nearestEnemy !== null) {
-              soldier.attackTarget = nearestEnemy;
-            }
+          const nearestEnemy = getNearestEnemy(
+            soldier,
+            unit,
+            units,
+            SPEAR_ATTACK_RANGE_SQUARED
+          );
+          if (nearestEnemy !== null) {
+            soldier.attackTarget = nearestEnemy;
           }
-
-          continue;
         }
 
-        if (soldier.attackTarget !== null) {
+        if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+          stopWalkingAndStartStabAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            1,
+            assets
+          );
+        } else if (soldier.attackTarget !== null) {
           const difference = soldier.attackTarget.gltf.scene.position
             .clone()
             .sub(soldier.gltf.scene.position);
@@ -789,14 +788,7 @@ function tickUnits(
           const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
           soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
 
-          if (soldier.animation.kind === SoldierAnimationKind.Walk) {
-            stopWalkingAndStartStabAnimation(
-              elapsedTimeInSeconds,
-              soldier.animation,
-              1,
-              assets
-            );
-          } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+          if (soldier.animation.kind === SoldierAnimationKind.Stab) {
             continueStabThenIdleAnimation(
               elapsedTimeInSeconds,
               soldier.animation,
