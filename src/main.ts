@@ -781,7 +781,9 @@ function tickUnits(
             1,
             assets
           );
-        } else if (soldier.attackTarget !== null) {
+        }
+
+        if (soldier.attackTarget !== null) {
           const difference = soldier.attackTarget.gltf.scene.position
             .clone()
             .sub(soldier.gltf.scene.position);
