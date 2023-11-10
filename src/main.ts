@@ -709,12 +709,7 @@ function tickUnits(
   { assets, scene }: Resources
 ): void {
   for (const unit of units) {
-    if (unit.isPreview) {
-      continue;
-    }
-
     const { soldiers } = unit;
-
     for (let i = 0; i < soldiers.length; ++i) {
       const soldier = soldiers[i];
       if (soldier.health <= 0) {
@@ -724,6 +719,14 @@ function tickUnits(
         continue;
       }
     }
+  }
+
+  for (const unit of units) {
+    if (unit.isPreview) {
+      continue;
+    }
+
+    const { soldiers } = unit;
 
     const wasAnySoldierFighting = soldiers.some(
       (soldier) => soldier.attackTarget !== null
