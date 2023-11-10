@@ -671,36 +671,12 @@ function tickUnits(
           );
           if (nearestEnemy !== null) {
             soldier.attackTarget = nearestEnemy;
-            stopWalkingAnimation(
-              elapsedTimeInSeconds,
-              soldier.animation,
-              1,
-              assets
-            );
-            const difference = nearestEnemy.gltf.scene.position
-              .clone()
-              .sub(soldier.gltf.scene.position);
-            soldier.gltf.scene.setRotationFromAxisAngle(
-              new Vector3(0, 1, 0),
-              Math.atan2(difference.x, difference.z) + Math.PI + 0.05
-            );
           }
         }
       }
     } else {
       for (const soldier of soldiers) {
-        // TODO: Delete
-        // const scaledStabClipDuration =
-        //   soldier.stabClip.duration / soldier.stabAction.timeScale;
-        // if (soldier.animation.timeInSeconds < scaledStabClipDuration) {
-        //   soldier.animation.timeInSeconds =
-        //     (soldier.animation.timeInSeconds + elapsedTimeInSeconds) %
-        //     scaledStabClipDuration;
-        //   continue;
-        // }
-
-        const { attackTarget } = soldier;
-        if (attackTarget === null) {
+        if (soldier.attackTarget === null) {
           for (const otherUnit of units) {
             if (otherUnit.allegiance === unit.allegiance) {
               continue;
@@ -714,19 +690,6 @@ function tickUnits(
             );
             if (nearestEnemy !== null) {
               soldier.attackTarget = nearestEnemy;
-              stopWalkingAnimation(
-                elapsedTimeInSeconds,
-                soldier.animation,
-                1,
-                assets
-              );
-              const difference = nearestEnemy.gltf.scene.position
-                .clone()
-                .sub(soldier.gltf.scene.position);
-              soldier.gltf.scene.setRotationFromAxisAngle(
-                new Vector3(0, 1, 0),
-                Math.atan2(difference.x, difference.z) + Math.PI + 0.05
-              );
             }
           }
 
@@ -735,6 +698,20 @@ function tickUnits(
 
         if (soldier.attackTarget !== null) {
           soldier.attackTarget.health -= 60;
+
+          stopWalkingAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            1,
+            assets
+          );
+          const difference = soldier.attackTarget.gltf.scene.position
+            .clone()
+            .sub(soldier.gltf.scene.position);
+          soldier.gltf.scene.setRotationFromAxisAngle(
+            new Vector3(0, 1, 0),
+            Math.atan2(difference.x, difference.z) + Math.PI + 0.05
+          );
         }
       }
     }
