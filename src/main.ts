@@ -165,7 +165,7 @@ export function main(assets: Assets): void {
   scene.add(dragonfly);
   dragonfly.position.set(30, 30, -600);
   dragonfly.rotateY(Math.PI);
-  dragonfly.scale.multiplyScalar(0.3);
+  dragonfly.scale.multiplyScalar(0.6);
   // TODO: Delete END
 
   const playerDragonflyGltf = cloneGltf(assets.dragonfly);
@@ -173,12 +173,19 @@ export function main(assets: Assets): void {
   playerDragonfly.position.set(0, 0, 0);
   scene.add(playerDragonfly);
   playerDragonfly.position.set(0, 5, 0);
-  playerDragonfly.scale.multiplyScalar(0.3);
+  playerDragonfly.scale.multiplyScalar(0.6);
 
   const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
   const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(flyClip);
   playerDragonflyFlyAction.timeScale = 5;
   playerDragonflyFlyAction.play();
+
+  const dummyRiderGltf = cloneGltf(assets.azuki);
+  const dummyRider = dummyRiderGltf.scene;
+  scene.add(dummyRider);
+  dummyRider.position.copy(playerDragonfly.position);
+  dummyRider.quaternion.copy(playerDragonfly.quaternion);
+  dummyRider.translateZ(-0.3);
 
   const player = (function (): Soldier {
     const playerGltf = cloneGltf(assets.azuki);
