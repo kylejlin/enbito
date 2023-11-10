@@ -34,6 +34,11 @@ enum SoldierAnimationKind {
   Stab,
 }
 
+interface Resources {
+  assets: Assets;
+  scene: Scene;
+}
+
 const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
 const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
 const STAB_DAMAGE = 60;
@@ -238,6 +243,8 @@ export function main(assets: Assets): void {
 
   scene.add(cursor);
 
+  const resources: Resources = { assets, scene };
+
   addSky();
   addEnvironment();
 
@@ -352,7 +359,7 @@ export function main(assets: Assets): void {
       ) + Math.PI
     );
 
-    tickUnits(elapsedTimeInSeconds, units, assets);
+    tickUnits(elapsedTimeInSeconds, units, resources);
 
     if (
       (player.gltf.scene.position.x - cursor.position.x) *
@@ -699,7 +706,7 @@ function continueIdleThenStabAnimation(
 function tickUnits(
   elapsedTimeInSeconds: number,
   units: Unit[],
-  assets: Assets
+  { assets, scene }: Resources
 ): void {
   for (const unit of units) {
     if (unit.isPreview) {
@@ -707,6 +714,17 @@ function tickUnits(
     }
 
     const { soldiers } = unit;
+
+    for (let i = 0; i < soldiers.length; ++i) {
+      const soldier = soldiers[i];
+      if (soldier.health <= 0) {
+        scene.remove(soldier.gltf.scene);
+        soldiers.splice(i, 1);
+        --i;
+        continue;
+      }
+    }
+
     const wasAnySoldierFighting = soldiers.some(
       (soldier) => soldier.attackTarget !== null
     );
@@ -738,6 +756,10 @@ function tickUnits(
       }
     } else {
       for (const soldier of soldiers) {
+        if (soldier.attackTarget !== null && soldier.attackTarget.health <= 0) {
+          soldier.attackTarget = null;
+        }
+
         if (soldier.attackTarget === null) {
           for (const otherUnit of units) {
             if (otherUnit.allegiance === unit.allegiance) {
