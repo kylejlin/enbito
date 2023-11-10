@@ -158,15 +158,27 @@ export function main(assets: Assets): void {
   const flyClip = AnimationClip.findByName(dragonflyGltf.animations, "Fly");
 
   const dragonflyMixer = new AnimationMixer(dragonfly);
-  const flyAction = dragonflyMixer.clipAction(flyClip);
-  flyAction.timeScale = 5;
-  flyAction.play();
+  const dragonflyFlyAction = dragonflyMixer.clipAction(flyClip);
+  dragonflyFlyAction.timeScale = 5;
+  dragonflyFlyAction.play();
 
   scene.add(dragonfly);
   dragonfly.position.set(30, 30, -600);
   dragonfly.rotateY(Math.PI);
   dragonfly.scale.multiplyScalar(0.3);
   // TODO: Delete END
+
+  const playerDragonflyGltf = cloneGltf(assets.dragonfly);
+  const playerDragonfly = playerDragonflyGltf.scene;
+  playerDragonfly.position.set(0, 0, 0);
+  scene.add(playerDragonfly);
+  playerDragonfly.position.set(0, 5, 0);
+  playerDragonfly.scale.multiplyScalar(0.3);
+
+  const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
+  const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(flyClip);
+  playerDragonflyFlyAction.timeScale = 5;
+  playerDragonflyFlyAction.play();
 
   const player = (function (): Soldier {
     const playerGltf = cloneGltf(assets.azuki);
@@ -356,8 +368,10 @@ export function main(assets: Assets): void {
       }
     }
 
-    dragonflyMixer.update((1 * elapsedTimeInMillisecs) / 1000);
-    dragonfly.translateZ((100 * -elapsedTimeInMillisecs) / 1000);
+    dragonflyMixer.update(elapsedTimeInSeconds);
+    dragonfly.translateZ(-100 * elapsedTimeInSeconds);
+
+    playerDragonflyMixer.update(elapsedTimeInSeconds);
 
     cursorMixer.update((1 * elapsedTimeInMillisecs) / 1000);
     cursor.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
