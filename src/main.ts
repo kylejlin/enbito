@@ -439,15 +439,31 @@ export function main(assets: Assets): void {
   }
 
   function oncePerFrameBeforeRender(): void {
-    if (player.animation.kind === SoldierAnimationKind.Walk) {
-      player.walkAction.play();
+    updateThreeJsAnimation(player);
 
-      player.stabAction.stop();
+    for (const unit of units) {
+      for (const soldier of unit.soldiers) {
+        updateThreeJsAnimation(soldier);
+      }
+    }
+  }
 
-      player.mixer.setTime(player.animation.timeInSeconds);
+  function updateThreeJsAnimation(soldier: Soldier): void {
+    if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+      soldier.walkAction.play();
+
+      soldier.stabAction.stop();
+
+      soldier.mixer.setTime(soldier.animation.timeInSeconds);
+    } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+      soldier.stabAction.play();
+
+      soldier.walkAction.stop();
+
+      soldier.mixer.setTime(soldier.animation.timeInSeconds);
     } else {
-      player.walkAction.stop();
-      player.stabAction.stop();
+      soldier.walkAction.stop();
+      soldier.stabAction.stop();
     }
   }
 
@@ -634,9 +650,12 @@ function tickUnits(
     );
     if (!wasAnySoldierFighting) {
       for (const soldier of soldiers) {
-        soldier.walkAction.play();
-        soldier.stabAction.stop();
-        soldier.mixer.update(elapsedTimeInSeconds);
+        startOrContinueWalkingAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          1,
+          assets
+        );
         soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
 
         for (const otherUnit of units) {
@@ -652,8 +671,12 @@ function tickUnits(
             if (distanceSquared <= SPEAR_ATTACK_RANGE_SQUARED) {
               // TODO: Choose closest instead of arbitrary one.
               soldier.attackTarget = enemy;
-              soldier.walkAction.stop();
-              soldier.stabAction.play();
+              stopWalkingAnimation(
+                elapsedTimeInSeconds,
+                soldier.animation,
+                1,
+                assets
+              );
               const difference = enemy.gltf.scene.position
                 .clone()
                 .sub(soldier.gltf.scene.position);
