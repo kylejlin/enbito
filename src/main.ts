@@ -345,94 +345,7 @@ export function main(assets: Assets): void {
       ) + Math.PI
     );
 
-    const ATTACK_RANGE_SQUARED = 8 ** 2;
-
-    for (const unit of units) {
-      if (unit.isPreview) {
-        continue;
-      }
-
-      const { soldiers } = unit;
-      const wasAnySoldierFighting = soldiers.some(
-        (soldier) => soldier.attackTarget !== null
-      );
-      if (!wasAnySoldierFighting) {
-        for (const soldier of soldiers) {
-          soldier.walkAction.play();
-          soldier.stabAction.stop();
-          soldier.mixer.update(elapsedTimeInMillisecs / 1000);
-          soldier.gltf.scene.translateZ((1.5 * -elapsedTimeInMillisecs) / 1000);
-
-          for (const otherUnit of units) {
-            if (otherUnit.allegiance === unit.allegiance) {
-              continue;
-            }
-
-            for (const enemy of otherUnit.soldiers) {
-              const distanceSquared =
-                soldier.gltf.scene.position.distanceToSquared(
-                  enemy.gltf.scene.position
-                );
-              if (distanceSquared <= ATTACK_RANGE_SQUARED) {
-                // TODO: Choose closest instead of arbitrary one.
-                soldier.attackTarget = enemy;
-                soldier.walkAction.stop();
-                soldier.stabAction.play();
-                const difference = enemy.gltf.scene.position
-                  .clone()
-                  .sub(soldier.gltf.scene.position);
-                soldier.gltf.scene.setRotationFromAxisAngle(
-                  new Vector3(0, 1, 0),
-                  Math.atan2(difference.x, difference.z) + Math.PI + 0.05
-                );
-              }
-            }
-          }
-        }
-      } else {
-        for (const soldier of soldiers) {
-          if (soldier.stabAction.time < soldier.stabClip.duration) {
-            soldier.mixer.update(elapsedTimeInMillisecs / 1000);
-            continue;
-          }
-
-          const { attackTarget } = soldier;
-          if (attackTarget === null) {
-            for (const otherUnit of units) {
-              if (otherUnit.allegiance === unit.allegiance) {
-                continue;
-              }
-
-              for (const enemy of otherUnit.soldiers) {
-                const distanceSquared =
-                  soldier.gltf.scene.position.distanceToSquared(
-                    enemy.gltf.scene.position
-                  );
-                if (distanceSquared <= ATTACK_RANGE_SQUARED) {
-                  // TODO: Choose closest instead of arbitrary one.
-                  soldier.attackTarget = enemy;
-                  soldier.walkAction.stop();
-                  soldier.stabAction.play();
-                  const difference = enemy.gltf.scene.position
-                    .clone()
-                    .sub(soldier.gltf.scene.position);
-                  soldier.gltf.scene.setRotationFromAxisAngle(
-                    new Vector3(0, 1, 0),
-                    Math.atan2(difference.x, difference.z) + Math.PI + 0.05
-                  );
-                }
-              }
-            }
-
-            continue;
-          }
-
-          if (soldier.attackTarget !== null) {
-            soldier.attackTarget.health -= 60;
-          }
-        }
-      }
-    }
+    tickUnits(elapsedTimeInSeconds, units, assets);
 
     if (
       (player.gltf.scene.position.x - enemy.position.x) *
@@ -699,6 +612,101 @@ function stopWalkingAnimation(
       animation.timeInSeconds = 0;
     } else {
       animation.timeInSeconds += elapsedTimeInSeconds;
+    }
+  }
+}
+
+const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
+
+function tickUnits(
+  elapsedTimeInSeconds: number,
+  units: Unit[],
+  assets: Assets
+): void {
+  for (const unit of units) {
+    if (unit.isPreview) {
+      continue;
+    }
+
+    const { soldiers } = unit;
+    const wasAnySoldierFighting = soldiers.some(
+      (soldier) => soldier.attackTarget !== null
+    );
+    if (!wasAnySoldierFighting) {
+      for (const soldier of soldiers) {
+        soldier.walkAction.play();
+        soldier.stabAction.stop();
+        soldier.mixer.update(elapsedTimeInSeconds);
+        soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
+
+        for (const otherUnit of units) {
+          if (otherUnit.allegiance === unit.allegiance) {
+            continue;
+          }
+
+          for (const enemy of otherUnit.soldiers) {
+            const distanceSquared =
+              soldier.gltf.scene.position.distanceToSquared(
+                enemy.gltf.scene.position
+              );
+            if (distanceSquared <= SPEAR_ATTACK_RANGE_SQUARED) {
+              // TODO: Choose closest instead of arbitrary one.
+              soldier.attackTarget = enemy;
+              soldier.walkAction.stop();
+              soldier.stabAction.play();
+              const difference = enemy.gltf.scene.position
+                .clone()
+                .sub(soldier.gltf.scene.position);
+              soldier.gltf.scene.setRotationFromAxisAngle(
+                new Vector3(0, 1, 0),
+                Math.atan2(difference.x, difference.z) + Math.PI + 0.05
+              );
+            }
+          }
+        }
+      }
+    } else {
+      for (const soldier of soldiers) {
+        if (soldier.stabAction.time < soldier.stabClip.duration) {
+          soldier.mixer.update(elapsedTimeInSeconds);
+          continue;
+        }
+
+        const { attackTarget } = soldier;
+        if (attackTarget === null) {
+          for (const otherUnit of units) {
+            if (otherUnit.allegiance === unit.allegiance) {
+              continue;
+            }
+
+            for (const enemy of otherUnit.soldiers) {
+              const distanceSquared =
+                soldier.gltf.scene.position.distanceToSquared(
+                  enemy.gltf.scene.position
+                );
+              if (distanceSquared <= SPEAR_ATTACK_RANGE_SQUARED) {
+                // TODO: Choose closest instead of arbitrary one.
+                soldier.attackTarget = enemy;
+                soldier.walkAction.stop();
+                soldier.stabAction.play();
+                const difference = enemy.gltf.scene.position
+                  .clone()
+                  .sub(soldier.gltf.scene.position);
+                soldier.gltf.scene.setRotationFromAxisAngle(
+                  new Vector3(0, 1, 0),
+                  Math.atan2(difference.x, difference.z) + Math.PI + 0.05
+                );
+              }
+            }
+          }
+
+          continue;
+        }
+
+        if (soldier.attackTarget !== null) {
+          soldier.attackTarget.health -= 60;
+        }
+      }
     }
   }
 }
