@@ -663,37 +663,41 @@ function tickUnits(
             continue;
           }
 
-          for (const enemy of otherUnit.soldiers) {
-            const distanceSquared =
-              soldier.gltf.scene.position.distanceToSquared(
-                enemy.gltf.scene.position
-              );
-            if (distanceSquared <= SPEAR_ATTACK_RANGE_SQUARED) {
-              // TODO: Choose closest instead of arbitrary one.
-              soldier.attackTarget = enemy;
-              stopWalkingAnimation(
-                elapsedTimeInSeconds,
-                soldier.animation,
-                1,
-                assets
-              );
-              const difference = enemy.gltf.scene.position
-                .clone()
-                .sub(soldier.gltf.scene.position);
-              soldier.gltf.scene.setRotationFromAxisAngle(
-                new Vector3(0, 1, 0),
-                Math.atan2(difference.x, difference.z) + Math.PI + 0.05
-              );
-            }
+          const nearestEnemy = getNearestEnemy(
+            soldier,
+            unit,
+            units,
+            SPEAR_ATTACK_RANGE_SQUARED
+          );
+          if (nearestEnemy !== null) {
+            soldier.attackTarget = nearestEnemy;
+            stopWalkingAnimation(
+              elapsedTimeInSeconds,
+              soldier.animation,
+              1,
+              assets
+            );
+            const difference = nearestEnemy.gltf.scene.position
+              .clone()
+              .sub(soldier.gltf.scene.position);
+            soldier.gltf.scene.setRotationFromAxisAngle(
+              new Vector3(0, 1, 0),
+              Math.atan2(difference.x, difference.z) + Math.PI + 0.05
+            );
           }
         }
       }
     } else {
       for (const soldier of soldiers) {
-        if (soldier.stabAction.time < soldier.stabClip.duration) {
-          soldier.mixer.update(elapsedTimeInSeconds);
-          continue;
-        }
+        // TODO: Delete
+        // const scaledStabClipDuration =
+        //   soldier.stabClip.duration / soldier.stabAction.timeScale;
+        // if (soldier.animation.timeInSeconds < scaledStabClipDuration) {
+        //   soldier.animation.timeInSeconds =
+        //     (soldier.animation.timeInSeconds + elapsedTimeInSeconds) %
+        //     scaledStabClipDuration;
+        //   continue;
+        // }
 
         const { attackTarget } = soldier;
         if (attackTarget === null) {
@@ -702,24 +706,27 @@ function tickUnits(
               continue;
             }
 
-            for (const enemy of otherUnit.soldiers) {
-              const distanceSquared =
-                soldier.gltf.scene.position.distanceToSquared(
-                  enemy.gltf.scene.position
-                );
-              if (distanceSquared <= SPEAR_ATTACK_RANGE_SQUARED) {
-                // TODO: Choose closest instead of arbitrary one.
-                soldier.attackTarget = enemy;
-                soldier.walkAction.stop();
-                soldier.stabAction.play();
-                const difference = enemy.gltf.scene.position
-                  .clone()
-                  .sub(soldier.gltf.scene.position);
-                soldier.gltf.scene.setRotationFromAxisAngle(
-                  new Vector3(0, 1, 0),
-                  Math.atan2(difference.x, difference.z) + Math.PI + 0.05
-                );
-              }
+            const nearestEnemy = getNearestEnemy(
+              soldier,
+              unit,
+              units,
+              SPEAR_ATTACK_RANGE_SQUARED
+            );
+            if (nearestEnemy !== null) {
+              soldier.attackTarget = nearestEnemy;
+              stopWalkingAnimation(
+                elapsedTimeInSeconds,
+                soldier.animation,
+                1,
+                assets
+              );
+              const difference = nearestEnemy.gltf.scene.position
+                .clone()
+                .sub(soldier.gltf.scene.position);
+              soldier.gltf.scene.setRotationFromAxisAngle(
+                new Vector3(0, 1, 0),
+                Math.atan2(difference.x, difference.z) + Math.PI + 0.05
+              );
             }
           }
 
@@ -732,4 +739,35 @@ function tickUnits(
       }
     }
   }
+}
+
+function getNearestEnemy(
+  soldier: Soldier,
+  soldierUnit: Unit,
+  units: Unit[],
+  rangeSquared: number
+): null | Soldier {
+  let nearestEnemy: Soldier | null = null;
+  let nearestDistanceSquared = Infinity;
+  for (const unit of units) {
+    if (unit.allegiance === soldierUnit.allegiance) {
+      continue;
+    }
+
+    for (const enemy of unit.soldiers) {
+      const distSq = soldier.gltf.scene.position.distanceToSquared(
+        enemy.gltf.scene.position
+      );
+      if (distSq < nearestDistanceSquared) {
+        nearestEnemy = enemy;
+        nearestDistanceSquared = distSq;
+      }
+    }
+  }
+
+  if (nearestDistanceSquared > rangeSquared) {
+    return null;
+  }
+
+  return nearestEnemy;
 }
