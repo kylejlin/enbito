@@ -313,23 +313,15 @@ export function main(assets: Assets): void {
     const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
-    const scaledPlayerWalkClipDuration =
-      player.walkClip.duration / player.walkAction.timeScale;
     if (keys.w) {
-      // Start walking
-      // or continue walking if already walking.
-      if (player.animation.kind !== SoldierAnimationKind.Walk) {
-        player.animation = {
-          kind: SoldierAnimationKind.Walk,
-          timeInSeconds: 0,
-        };
-      } else {
-        player.animation.timeInSeconds =
-          (player.animation.timeInSeconds + elapsedTimeInSeconds) %
-          scaledPlayerWalkClipDuration;
-      }
+      startOrContinueWalkingAnimation(
+        elapsedTimeInSeconds,
+        player.animation,
+        player.walkAction.timeScale,
+        assets
+      );
     } else {
-      stopWalking(
+      stopWalkingAnimation(
         elapsedTimeInSeconds,
         player.animation,
         player.walkAction.timeScale,
@@ -671,22 +663,36 @@ function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
   };
 }
 
-function stopWalking(
+function startOrContinueWalkingAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
   timeScale: number,
   assets: Assets
 ): void {
-  const scaledPlayerWalkClipDuration =
-    assets.azukiWalkClip.duration / timeScale;
+  const scaledWalkClipDuration = assets.azukiWalkClip.duration / timeScale;
+  if (animation.kind !== SoldierAnimationKind.Walk) {
+    animation.kind = SoldierAnimationKind.Walk;
+    animation.timeInSeconds = 0;
+  } else {
+    animation.timeInSeconds =
+      (animation.timeInSeconds + elapsedTimeInSeconds) % scaledWalkClipDuration;
+  }
+}
+
+function stopWalkingAnimation(
+  elapsedTimeInSeconds: number,
+  animation: SoldierAnimationState,
+  timeScale: number,
+  assets: Assets
+): void {
+  const scaledWalkClipDuration = assets.azukiWalkClip.duration / timeScale;
   if (animation.kind === SoldierAnimationKind.Walk) {
-    const halfwayPoint = 0.5 * scaledPlayerWalkClipDuration;
+    const halfwayPoint = 0.5 * scaledWalkClipDuration;
     const reachesHalfwayPointThisTick =
       animation.timeInSeconds < halfwayPoint &&
       animation.timeInSeconds + elapsedTimeInSeconds >= halfwayPoint;
     const reachesEndThisTick =
-      animation.timeInSeconds + elapsedTimeInSeconds >=
-      scaledPlayerWalkClipDuration;
+      animation.timeInSeconds + elapsedTimeInSeconds >= scaledWalkClipDuration;
 
     if (reachesHalfwayPointThisTick || reachesEndThisTick) {
       animation.kind = SoldierAnimationKind.Idle;
