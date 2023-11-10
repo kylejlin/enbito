@@ -201,6 +201,7 @@ export function main(assets: Assets): void {
       yRot: 0,
     };
   })();
+  let isPlayerRidingDragonfly = false;
 
   scene.add(player.gltf.scene);
 
@@ -320,31 +321,39 @@ export function main(assets: Assets): void {
   }
 
   function oncePerFrameBeforeTicks(): void {
-    player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
+    if (isPlayerRidingDragonfly) {
+      // TODO
+    } else {
+      player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
+    }
   }
 
   function tick(): void {
     const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
-    if (keys.w) {
-      startOrContinueWalkingAnimation(
-        elapsedTimeInSeconds,
-        player.animation,
-        player.walkAction.timeScale,
-        assets
-      );
+    if (isPlayerRidingDragonfly) {
+      // TODO
     } else {
-      stopWalkingAnimation(
-        elapsedTimeInSeconds,
-        player.animation,
-        player.walkAction.timeScale,
-        assets
-      );
-    }
+      if (keys.w) {
+        startOrContinueWalkingAnimation(
+          elapsedTimeInSeconds,
+          player.animation,
+          player.walkAction.timeScale,
+          assets
+        );
+      } else {
+        stopWalkingAnimation(
+          elapsedTimeInSeconds,
+          player.animation,
+          player.walkAction.timeScale,
+          assets
+        );
+      }
 
-    if (player.animation.kind === SoldierAnimationKind.Walk) {
-      player.gltf.scene.translateZ(-3 * elapsedTimeInSeconds);
+      if (player.animation.kind === SoldierAnimationKind.Walk) {
+        player.gltf.scene.translateZ(-3 * elapsedTimeInSeconds);
+      }
     }
 
     dragonflyMixer.update((1 * elapsedTimeInMillisecs) / 1000);
@@ -356,23 +365,10 @@ export function main(assets: Assets): void {
       Math.atan2(
         player.gltf.scene.position.x - cursor.position.x,
         player.gltf.scene.position.z - cursor.position.z
-      ) + Math.PI
+      )
     );
 
     tickUnits(elapsedTimeInSeconds, units, resources);
-
-    if (
-      (player.gltf.scene.position.x - cursor.position.x) *
-        (player.gltf.scene.position.x - cursor.position.x) +
-        (player.gltf.scene.position.z - cursor.position.z) *
-          (player.gltf.scene.position.z - cursor.position.z) >
-      1 * 1
-    ) {
-      cursorWalkAction.play();
-      cursor.translateZ((1.5 * -elapsedTimeInMillisecs) / 1000);
-    } else {
-      cursorWalkAction.stop();
-    }
   }
 
   function oncePerFrameBeforeRender(): void {
@@ -386,9 +382,13 @@ export function main(assets: Assets): void {
 
     camera.position.copy(player.gltf.scene.position);
     camera.quaternion.copy(player.gltf.scene.quaternion);
-    camera.translateY(5);
-    camera.translateZ(2);
-    camera.rotateX(-(mouse.y - 0.5) * Math.PI);
+    if (isPlayerRidingDragonfly) {
+      // TODO
+    } else {
+      camera.translateY(5);
+      camera.translateZ(2);
+      camera.rotateX(-(mouse.y - 0.5) * Math.PI);
+    }
 
     const raycaster = new Raycaster();
     raycaster.set(
@@ -456,6 +456,7 @@ export function main(assets: Assets): void {
         units.push(previewUnit);
         for (const soldier of previewUnit.soldiers) {
           scene.add(soldier.gltf.scene);
+          updateThreeJsProperties(soldier);
         }
         pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
       }
@@ -827,7 +828,7 @@ function getNearestEnemy(
   let nearestEnemy: Soldier | null = null;
   let nearestDistanceSquared = Infinity;
   for (const unit of units) {
-    if (unit.allegiance === soldierUnit.allegiance) {
+    if (unit.allegiance === soldierUnit.allegiance || unit.isPreview) {
       continue;
     }
 
