@@ -175,6 +175,7 @@ export function main(assets: Assets): void {
     const playerMixer = new AnimationMixer(playerScene);
     const playerWalkAction = playerMixer.clipAction(playerWalkClip);
     const playerStabAction = playerMixer.clipAction(playerStabClip);
+    playerWalkAction.timeScale = 2;
     return {
       gltf: playerGltf,
       animation: {
@@ -323,7 +324,7 @@ export function main(assets: Assets): void {
       } else {
         player.animation.timeInSeconds =
           (player.animation.timeInSeconds + elapsedTimeInSeconds) %
-          player.walkClip.duration;
+          (player.walkClip.duration / player.walkAction.timeScale);
       }
     } else {
       // TODO: Allow stopping mid cycle but not mid stride.
@@ -334,7 +335,10 @@ export function main(assets: Assets): void {
       // or do nothing if already stopped.
       if (player.animation.kind === SoldierAnimationKind.Walk) {
         player.animation.timeInSeconds += elapsedTimeInSeconds;
-        if (player.animation.timeInSeconds > player.walkClip.duration) {
+        if (
+          player.animation.timeInSeconds >
+          player.walkClip.duration / player.walkAction.timeScale
+        ) {
           player.animation = {
             kind: SoldierAnimationKind.Idle,
             timeInSeconds: 0,
