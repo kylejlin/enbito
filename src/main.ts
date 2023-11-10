@@ -729,28 +729,27 @@ function tickUnits(
       (soldier) => soldier.attackTarget !== null
     );
     if (!wasAnySoldierFighting) {
+      const forwardAngle = Math.atan2(unit.forward.x, unit.forward.z);
       for (const soldier of soldiers) {
-        startOrContinueWalkingAnimation(
-          elapsedTimeInSeconds,
-          soldier.animation,
-          1,
-          assets
+        const nearestEnemy = getNearestEnemy(
+          soldier,
+          unit,
+          units,
+          SPEAR_ATTACK_RANGE_SQUARED
         );
-        soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
-
-        for (const otherUnit of units) {
-          if (otherUnit.allegiance === unit.allegiance) {
-            continue;
-          }
-
-          const nearestEnemy = getNearestEnemy(
-            soldier,
-            unit,
-            units,
-            SPEAR_ATTACK_RANGE_SQUARED
-          );
-          if (nearestEnemy !== null) {
-            soldier.attackTarget = nearestEnemy;
+        if (nearestEnemy !== null) {
+          soldier.attackTarget = nearestEnemy;
+        } else {
+          const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+          soldier.yRot = limitTurn(soldier.yRot, forwardAngle, radiansPerTick);
+          if (soldier.yRot === forwardAngle) {
+            startOrContinueWalkingAnimation(
+              elapsedTimeInSeconds,
+              soldier.animation,
+              1,
+              assets
+            );
+            soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
           }
         }
       }
