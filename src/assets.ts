@@ -13,6 +13,7 @@ export interface Assets {
   environment: DataTexture;
   azuki: GLTF;
   azukiWalkClip: AnimationClip;
+  azukiStabClip: AnimationClip;
   dragonfly: GLTF;
   grass: Texture;
 }
@@ -49,6 +50,14 @@ export function loadAssets(): Promise<Assets> {
     }),
   ]).then(([environment, azuki, dragonfly, grass]): Assets => {
     const azukiWalkClip = AnimationClip.findByName(azuki.animations, "Walk");
-    return { environment, azuki, azukiWalkClip, dragonfly, grass };
+    const azukiStabClip = AnimationClip.findByName(azuki.animations, "Stab");
+    return {
+      environment,
+      azuki,
+      azukiWalkClip,
+      azukiStabClip,
+      dragonfly,
+      grass,
+    };
   });
 }

@@ -31,11 +31,13 @@ enum Allegiance {
 enum SoldierAnimationKind {
   Idle,
   Walk,
-  Turn,
   Stab,
 }
 
 const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
+const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
+const STAB_DAMAGE = 60;
+const STAB_COOLDOWN = 1;
 
 export function main(assets: Assets): void {
   let worldTime = Date.now();
@@ -644,7 +646,55 @@ function stopWalkingAnimation(
   }
 }
 
-const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
+function stopWalkingAndStartStabAnimation(
+  elapsedTimeInSeconds: number,
+  animation: SoldierAnimationState,
+  timeScale: number,
+  assets: Assets
+): void {
+  const scaledWalkClipDuration = assets.azukiWalkClip.duration / timeScale;
+  if (animation.kind === SoldierAnimationKind.Walk) {
+    const halfwayPoint = 0.5 * scaledWalkClipDuration;
+    const reachesHalfwayPointThisTick =
+      animation.timeInSeconds < halfwayPoint &&
+      animation.timeInSeconds + elapsedTimeInSeconds >= halfwayPoint;
+    const reachesEndThisTick =
+      animation.timeInSeconds + elapsedTimeInSeconds >= scaledWalkClipDuration;
+
+    if (reachesHalfwayPointThisTick || reachesEndThisTick) {
+      animation.kind = SoldierAnimationKind.Stab;
+      animation.timeInSeconds = 0;
+    } else {
+      animation.timeInSeconds += elapsedTimeInSeconds;
+    }
+  }
+}
+
+function continueStabThenIdleAnimation(
+  elapsedTimeInSeconds: number,
+  animation: SoldierAnimationState,
+  timeScale: number,
+  assets: Assets
+): void {
+  animation.timeInSeconds = animation.timeInSeconds + elapsedTimeInSeconds;
+  const scaledStabClipDuration = assets.azukiStabClip.duration / timeScale;
+  if (animation.timeInSeconds >= scaledStabClipDuration) {
+    animation.kind = SoldierAnimationKind.Idle;
+    animation.timeInSeconds = animation.timeInSeconds - scaledStabClipDuration;
+  }
+}
+
+function continueIdleThenStabAnimation(
+  elapsedTimeInSeconds: number,
+  animation: SoldierAnimationState,
+  assets: Assets
+): void {
+  animation.timeInSeconds += elapsedTimeInSeconds;
+  if (animation.timeInSeconds >= STAB_COOLDOWN) {
+    animation.kind = SoldierAnimationKind.Stab;
+    animation.timeInSeconds = animation.timeInSeconds - STAB_COOLDOWN;
+  }
+}
 
 function tickUnits(
   elapsedTimeInSeconds: number,
@@ -709,22 +759,41 @@ function tickUnits(
         }
 
         if (soldier.attackTarget !== null) {
-          soldier.attackTarget.health -= 60;
-
-          stopWalkingAnimation(
-            elapsedTimeInSeconds,
-            soldier.animation,
-            1,
-            assets
-          );
           const difference = soldier.attackTarget.gltf.scene.position
             .clone()
             .sub(soldier.gltf.scene.position);
-
           const desiredYRot =
             Math.atan2(difference.x, difference.z) + Math.PI + 0.05;
           const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
           soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+
+          if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+            stopWalkingAndStartStabAnimation(
+              elapsedTimeInSeconds,
+              soldier.animation,
+              1,
+              assets
+            );
+          } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+            continueStabThenIdleAnimation(
+              elapsedTimeInSeconds,
+              soldier.animation,
+              soldier.stabAction.timeScale,
+              assets
+            );
+            if (
+              (soldier.animation.kind as SoldierAnimationKind) ===
+              SoldierAnimationKind.Idle
+            ) {
+              soldier.attackTarget.health -= STAB_DAMAGE;
+            }
+          } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
+            continueIdleThenStabAnimation(
+              elapsedTimeInSeconds,
+              soldier.animation,
+              assets
+            );
+          }
         }
       }
     }
