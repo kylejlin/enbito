@@ -35,6 +35,8 @@ enum SoldierAnimationKind {
   Stab,
 }
 
+const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
+
 export function main(assets: Assets): void {
   let worldTime = Date.now();
   let lastWorldTime = worldTime;
@@ -718,8 +720,11 @@ function tickUnits(
           const difference = soldier.attackTarget.gltf.scene.position
             .clone()
             .sub(soldier.gltf.scene.position);
-          soldier.yRot =
+
+          const desiredYRot =
             Math.atan2(difference.x, difference.z) + Math.PI + 0.05;
+          const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+          soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
         }
       }
     }
@@ -755,4 +760,24 @@ function getNearestEnemy(
   }
 
   return nearestEnemy;
+}
+
+function limitTurn(
+  currentAngle: number,
+  desiredAngle: number,
+  maxChange: number
+): number {
+  let difference = desiredAngle - currentAngle;
+  while (difference > Math.PI) {
+    difference -= Math.PI * 2;
+  }
+  while (difference < -Math.PI) {
+    difference += Math.PI * 2;
+  }
+
+  const absDifference = Math.abs(difference);
+  if (absDifference <= maxChange) {
+    return desiredAngle;
+  }
+  return currentAngle + maxChange * Math.sign(difference);
 }
