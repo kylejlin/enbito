@@ -356,30 +356,28 @@ export function main(assets: Assets): void {
 
     if (isPlayerRidingDragonfly) {
       // TODO
-      if (keys.w) {
-        let wrappedMouseX = mouse.x;
-        while (wrappedMouseX > 1) {
-          wrappedMouseX -= 1;
-        }
-        while (wrappedMouseX < -1) {
-          wrappedMouseX += 1;
-        }
-
-        player.yRot +=
-          0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
-
-        playerDragonfly.quaternion.setFromAxisAngle(
-          new Vector3(0, 1, 0),
-          player.yRot
-        );
-        playerDragonfly.rotateZ(-(mouse.x - 0.5) * Math.PI);
-
-        playerDragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
-
-        player.gltf.scene.position.copy(playerDragonfly.position);
-        player.gltf.scene.quaternion.copy(playerDragonfly.quaternion);
-        player.gltf.scene.translateZ(-0.3);
+      let wrappedMouseX = mouse.x;
+      while (wrappedMouseX > 1) {
+        wrappedMouseX -= 1;
       }
+      while (wrappedMouseX < -1) {
+        wrappedMouseX += 1;
+      }
+
+      player.yRot +=
+        0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
+
+      playerDragonfly.quaternion.setFromAxisAngle(
+        new Vector3(0, 1, 0),
+        player.yRot
+      );
+      playerDragonfly.rotateZ(-(mouse.x - 0.5) * Math.PI);
+
+      playerDragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
+
+      player.gltf.scene.position.copy(playerDragonfly.position);
+      player.gltf.scene.quaternion.copy(playerDragonfly.quaternion);
+      player.gltf.scene.translateZ(-0.3);
     } else {
       if (keys.w) {
         startOrContinueWalkingAnimation(
