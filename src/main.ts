@@ -223,7 +223,7 @@ export function main(assets: Assets): void {
       yRot: 0,
     };
   })();
-  let isPlayerRidingDragonfly = true;
+  let isPlayerRidingDragonfly = false;
 
   scene.add(player.gltf.scene);
 
