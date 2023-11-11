@@ -220,7 +220,7 @@ export function main(assets: Assets): void {
       yRot: 0,
     };
   })();
-  let isPlayerRidingDragonfly = false;
+  let isPlayerRidingDragonfly = true;
 
   scene.add(player.gltf.scene);
 
@@ -342,6 +342,7 @@ export function main(assets: Assets): void {
   function oncePerFrameBeforeTicks(): void {
     if (isPlayerRidingDragonfly) {
       // TODO
+      player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
     } else {
       player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
     }
@@ -353,6 +354,25 @@ export function main(assets: Assets): void {
 
     if (isPlayerRidingDragonfly) {
       // TODO
+      if (keys.w) {
+        startOrContinueWalkingAnimation(
+          elapsedTimeInSeconds,
+          player.animation,
+          player.walkAction.timeScale,
+          assets
+        );
+      } else {
+        stopWalkingAnimation(
+          elapsedTimeInSeconds,
+          player.animation,
+          player.walkAction.timeScale,
+          assets
+        );
+      }
+
+      if (player.animation.kind === SoldierAnimationKind.Walk) {
+        player.gltf.scene.translateZ(-3 * elapsedTimeInSeconds);
+      }
     } else {
       if (keys.w) {
         startOrContinueWalkingAnimation(
@@ -405,6 +425,9 @@ export function main(assets: Assets): void {
     camera.quaternion.copy(player.gltf.scene.quaternion);
     if (isPlayerRidingDragonfly) {
       // TODO
+      camera.translateY(5);
+      camera.translateZ(2);
+      camera.rotateX(-(mouse.y - 0.5) * Math.PI);
     } else {
       camera.translateY(5);
       camera.translateZ(2);
