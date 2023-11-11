@@ -43,13 +43,14 @@ const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
 const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
 const STAB_DAMAGE = 60;
 const STAB_COOLDOWN = 1;
+const DRAGONFLY_SPEED = 30;
 
 export function main(assets: Assets): void {
   let worldTime = Date.now();
   let lastWorldTime = worldTime;
   const MILLISECS_PER_TICK = 10;
 
-  const mouse = { x: 0, y: 0, isLocked: false };
+  const mouse = { x: 0.5, y: 0.5, isLocked: false };
   document.addEventListener("pointerlockchange", () => {
     mouse.isLocked = !!document.pointerLockElement;
   });
@@ -67,6 +68,15 @@ export function main(assets: Assets): void {
       }
       if (mouse.y > 1) {
         mouse.y = 1;
+      }
+
+      if (isPlayerRidingDragonfly) {
+        if (mouse.x < 0) {
+          mouse.x = 0;
+        }
+        if (mouse.x > 1) {
+          mouse.x = 1;
+        }
       }
     }
   });
@@ -172,20 +182,13 @@ export function main(assets: Assets): void {
   const playerDragonfly = playerDragonflyGltf.scene;
   playerDragonfly.position.set(0, 0, 0);
   scene.add(playerDragonfly);
-  playerDragonfly.position.set(0, 5, 0);
+  playerDragonfly.position.set(0, 30, 0);
   playerDragonfly.scale.multiplyScalar(0.6);
 
   const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
   const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(flyClip);
   playerDragonflyFlyAction.timeScale = 5;
   playerDragonflyFlyAction.play();
-
-  const dummyRiderGltf = cloneGltf(assets.azuki);
-  const dummyRider = dummyRiderGltf.scene;
-  scene.add(dummyRider);
-  dummyRider.position.copy(playerDragonfly.position);
-  dummyRider.quaternion.copy(playerDragonfly.quaternion);
-  dummyRider.translateZ(-0.3);
 
   const player = (function (): Soldier {
     const playerGltf = cloneGltf(assets.azuki);
@@ -342,7 +345,6 @@ export function main(assets: Assets): void {
   function oncePerFrameBeforeTicks(): void {
     if (isPlayerRidingDragonfly) {
       // TODO
-      player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
     } else {
       player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
     }
@@ -355,23 +357,28 @@ export function main(assets: Assets): void {
     if (isPlayerRidingDragonfly) {
       // TODO
       if (keys.w) {
-        startOrContinueWalkingAnimation(
-          elapsedTimeInSeconds,
-          player.animation,
-          player.walkAction.timeScale,
-          assets
-        );
-      } else {
-        stopWalkingAnimation(
-          elapsedTimeInSeconds,
-          player.animation,
-          player.walkAction.timeScale,
-          assets
-        );
-      }
+        let wrappedMouseX = mouse.x;
+        while (wrappedMouseX > 1) {
+          wrappedMouseX -= 1;
+        }
+        while (wrappedMouseX < -1) {
+          wrappedMouseX += 1;
+        }
 
-      if (player.animation.kind === SoldierAnimationKind.Walk) {
-        player.gltf.scene.translateZ(-3 * elapsedTimeInSeconds);
+        player.yRot +=
+          0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
+
+        playerDragonfly.quaternion.setFromAxisAngle(
+          new Vector3(0, 1, 0),
+          player.yRot
+        );
+        playerDragonfly.rotateZ(-(mouse.x - 0.5) * Math.PI);
+
+        playerDragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
+
+        player.gltf.scene.position.copy(playerDragonfly.position);
+        player.gltf.scene.quaternion.copy(playerDragonfly.quaternion);
+        player.gltf.scene.translateZ(-0.3);
       }
     } else {
       if (keys.w) {
@@ -396,7 +403,7 @@ export function main(assets: Assets): void {
     }
 
     dragonflyMixer.update(elapsedTimeInSeconds);
-    dragonfly.translateZ(-100 * elapsedTimeInSeconds);
+    dragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
 
     playerDragonflyMixer.update(elapsedTimeInSeconds);
 
@@ -421,14 +428,16 @@ export function main(assets: Assets): void {
       }
     }
 
-    camera.position.copy(player.gltf.scene.position);
-    camera.quaternion.copy(player.gltf.scene.quaternion);
     if (isPlayerRidingDragonfly) {
       // TODO
+      camera.position.copy(player.gltf.scene.position);
+      camera.quaternion.copy(player.gltf.scene.quaternion);
       camera.translateY(5);
-      camera.translateZ(2);
+      camera.translateZ(10);
       camera.rotateX(-(mouse.y - 0.5) * Math.PI);
     } else {
+      camera.position.copy(player.gltf.scene.position);
+      camera.quaternion.copy(player.gltf.scene.quaternion);
       camera.translateY(5);
       camera.translateZ(2);
       camera.rotateX(-(mouse.y - 0.5) * Math.PI);
@@ -525,10 +534,12 @@ export function main(assets: Assets): void {
       soldier.stabAction.stop();
     }
 
-    soldier.gltf.scene.quaternion.setFromAxisAngle(
-      new Vector3(0, 1, 0),
-      soldier.yRot
-    );
+    if (!(soldier === player && isPlayerRidingDragonfly)) {
+      soldier.gltf.scene.quaternion.setFromAxisAngle(
+        new Vector3(0, 1, 0),
+        soldier.yRot
+      );
+    }
   }
 
   function addEnvironment(): void {
