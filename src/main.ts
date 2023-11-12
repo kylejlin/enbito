@@ -17,6 +17,7 @@ import {
   AnimationClip,
   AnimationAction,
   Raycaster,
+  AmbientLight,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
@@ -227,10 +228,33 @@ export function main(assets: Assets): void {
 
   scene.add(player.gltf.scene);
 
-  const towerGltf = cloneGltf(assets.azukiBannerTower);
-  const tower = towerGltf.scene;
-  scene.add(tower);
-  tower.position.set(0, 0, -100);
+  {
+    const towerGltf = cloneGltf(assets.azukiBannerTower);
+    const tower = towerGltf.scene;
+    scene.add(tower);
+    tower.position.set(0, 0, -100);
+  }
+
+  {
+    const towerGltf = cloneGltf(assets.azukiBannerTower);
+    const tower = towerGltf.scene;
+    scene.add(tower);
+    tower.position.set(0, 0, 100);
+  }
+
+  {
+    const towerGltf = cloneGltf(assets.azukiBannerTower);
+    const tower = towerGltf.scene;
+    scene.add(tower);
+    tower.position.set(100, 0, -100);
+  }
+
+  {
+    const towerGltf = cloneGltf(assets.azukiBannerTower);
+    const tower = towerGltf.scene;
+    scene.add(tower);
+    tower.position.set(100, 0, 100);
+  }
 
   const units = [
     getUnit({
@@ -270,6 +294,8 @@ export function main(assets: Assets): void {
   cursorWalkAction.play();
 
   scene.add(cursor);
+
+  scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = { assets, scene };
 
