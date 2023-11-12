@@ -594,7 +594,29 @@ export function main(assets: Assets): void {
 
     pendingDeployment.active = false;
 
-    // TODO
+    const temp_fromStartToCursor = groundCursor
+      .clone()
+      .sub(pendingDeployment.start);
+    const fromStartToCursorLength = temp_fromStartToCursor.length();
+    const RANK_GAP = 8;
+    const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
+    const previewUnit = getUnit({
+      start: pendingDeployment.start,
+      forward: temp_fromStartToCursor
+        .clone()
+        .normalize()
+        .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
+      dimensions: [width, 1],
+      gap: [RANK_GAP, 0],
+      assets,
+      allegiance: Allegiance.Azuki,
+    });
+    units.push(previewUnit);
+    for (const soldier of previewUnit.soldiers) {
+      scene.add(soldier.gltf.scene);
+      updateThreeJsProperties(soldier);
+    }
+    pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
   }
 }
 
@@ -997,7 +1019,11 @@ function tickBannerTowers(
       UNOCCUPIED;
 
     for (const unit of units) {
-      if (uniqueOccupier === CONTESTED) {
+      if (
+        uniqueOccupier === CONTESTED ||
+        uniqueOccupier === unit.allegiance ||
+        unit.isPreview
+      ) {
         break;
       }
 
