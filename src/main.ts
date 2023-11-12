@@ -228,34 +228,6 @@ export function main(assets: Assets): void {
 
   scene.add(player.gltf.scene);
 
-  {
-    const towerGltf = cloneGltf(assets.azukiBannerTower);
-    const tower = towerGltf.scene;
-    scene.add(tower);
-    tower.position.set(0, 0, -100);
-  }
-
-  {
-    const towerGltf = cloneGltf(assets.azukiBannerTower);
-    const tower = towerGltf.scene;
-    scene.add(tower);
-    tower.position.set(0, 0, 100);
-  }
-
-  {
-    const towerGltf = cloneGltf(assets.azukiBannerTower);
-    const tower = towerGltf.scene;
-    scene.add(tower);
-    tower.position.set(100, 0, -100);
-  }
-
-  {
-    const towerGltf = cloneGltf(assets.azukiBannerTower);
-    const tower = towerGltf.scene;
-    scene.add(tower);
-    tower.position.set(100, 0, 100);
-  }
-
   const units = [
     getUnit({
       start: new Vector3(0, 0, 100),
@@ -279,6 +251,32 @@ export function main(assets: Assets): void {
     for (const soldier of unit.soldiers) {
       scene.add(soldier.gltf.scene);
     }
+  }
+
+  const towers = [
+    getBannerTower({
+      position: new Vector3(0, 0, -100),
+      allegiance: Allegiance.Azuki,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(100, 0, -100),
+      allegiance: Allegiance.Azuki,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(0, 0, 100),
+      allegiance: Allegiance.Edamame,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(100, 0, 100),
+      allegiance: Allegiance.Edamame,
+      assets,
+    }),
+  ];
+  for (const tower of towers) {
+    scene.add(tower.gltf.scene);
   }
 
   const cursorGltf = cloneGltf(assets.azuki);
@@ -619,6 +617,12 @@ interface Soldier {
   yRot: number;
 }
 
+interface BannerTower {
+  gltf: GLTF;
+  isPreview: boolean;
+  allegiance: Allegiance;
+}
+
 interface SoldierAnimationState {
   kind: SoldierAnimationKind;
   timeInSeconds: number;
@@ -695,6 +699,25 @@ function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
     attackTarget: null,
     health: 100,
     yRot: 0,
+  };
+}
+
+function getBannerTower({
+  position,
+  allegiance,
+  assets,
+}: {
+  position: Vector3;
+
+  allegiance: Allegiance;
+  assets: Assets;
+}): BannerTower {
+  const gltf = cloneGltf(assets.azukiBannerTower);
+  gltf.scene.position.copy(position);
+  return {
+    gltf,
+    isPreview: false,
+    allegiance,
   };
 }
 
