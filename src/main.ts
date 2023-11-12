@@ -256,22 +256,22 @@ export function main(assets: Assets): void {
   const towers = [
     getBannerTower({
       position: new Vector3(0, 0, -100),
-      allegiance: Allegiance.Azuki,
+      allegiance: Allegiance.Edamame,
       assets,
     }),
     getBannerTower({
       position: new Vector3(100, 0, -100),
-      allegiance: Allegiance.Azuki,
+      allegiance: Allegiance.Edamame,
       assets,
     }),
     getBannerTower({
       position: new Vector3(0, 0, 100),
-      allegiance: Allegiance.Edamame,
+      allegiance: Allegiance.Azuki,
       assets,
     }),
     getBannerTower({
       position: new Vector3(100, 0, 100),
-      allegiance: Allegiance.Edamame,
+      allegiance: Allegiance.Azuki,
       assets,
     }),
   ];
@@ -444,6 +444,7 @@ export function main(assets: Assets): void {
     );
 
     tickUnits(elapsedTimeInSeconds, units, resources);
+    tickBannerTowers(elapsedTimeInSeconds, units, towers, resources);
   }
 
   function oncePerFrameBeforeRender(): void {
@@ -975,4 +976,84 @@ function limitTurn(
     return desiredAngle;
   }
   return currentAngle + maxChange * Math.sign(difference);
+}
+
+const UNOCCUPIED = Symbol();
+const CONTESTED = Symbol();
+function tickBannerTowers(
+  elapsedTimeInSeconds: number,
+  units: Unit[],
+  towers: BannerTower[],
+  { assets, scene }: Resources
+): void {
+  const teamsWithATower: Set<Allegiance> = new Set();
+
+  for (const tower of towers) {
+    if (tower.isPreview) {
+      continue;
+    }
+
+    let uniqueOccupier: typeof UNOCCUPIED | typeof CONTESTED | Allegiance =
+      UNOCCUPIED;
+
+    for (const unit of units) {
+      if (uniqueOccupier === CONTESTED) {
+        break;
+      }
+
+      const { soldiers } = unit;
+      for (const soldier of soldiers) {
+        if (
+          inTowerTerritory(
+            soldier.gltf.scene.position,
+            tower.gltf.scene.position
+          )
+        ) {
+          if (uniqueOccupier === UNOCCUPIED) {
+            uniqueOccupier = unit.allegiance;
+          } else if (uniqueOccupier !== unit.allegiance) {
+            uniqueOccupier = CONTESTED;
+            break;
+          }
+        }
+      }
+    }
+
+    if (uniqueOccupier !== UNOCCUPIED && uniqueOccupier !== CONTESTED) {
+      // TODO
+      if (tower.allegiance !== uniqueOccupier) {
+        console.log("conquered");
+      }
+      // END TODO
+
+      tower.allegiance = uniqueOccupier;
+    }
+
+    teamsWithATower.add(tower.allegiance);
+  }
+
+  if (teamsWithATower.size === 1) {
+    for (const winningTeam of Array.from(teamsWithATower.keys())) {
+      // TODO
+      console.log(
+        winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!"
+      );
+      alert(winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!");
+    }
+  }
+}
+
+function inTowerTerritory(
+  possibleOccupierPosition: Vector3,
+  towerPosition: Vector3
+): boolean {
+  const localX = possibleOccupierPosition.x - towerPosition.x;
+  const localZ = possibleOccupierPosition.z - towerPosition.z;
+  return (
+    possibleOccupierPosition.y < 1 &&
+    -10 <= localX &&
+    localX <= 10 &&
+    -10 <= localZ &&
+    localZ <= 10
+  );
 }
