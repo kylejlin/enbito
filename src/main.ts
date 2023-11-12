@@ -192,7 +192,7 @@ export function main(assets: Assets): void {
   playerDragonflyFlyAction.play();
 
   const player = (function (): Soldier {
-    const playerGltf = cloneGltf(assets.azuki);
+    const playerGltf = cloneGltf(assets.azukiSpear);
     const playerScene = playerGltf.scene;
     playerScene.position.set(0, 0, 0);
     const playerWalkClip = AnimationClip.findByName(
@@ -279,7 +279,7 @@ export function main(assets: Assets): void {
     scene.add(tower.gltf.scene);
   }
 
-  const cursorGltf = cloneGltf(assets.azuki);
+  const cursorGltf = cloneGltf(assets.azukiSpear);
   const cursor = cursorGltf.scene;
   cursor.position.set(3, 0, 0);
   const cursorWalkClip = AnimationClip.findByName(
@@ -685,6 +685,7 @@ function getUnit({
         soldierPosition.x,
         soldierPosition.y,
         soldierPosition.z,
+        allegiance,
         assets
       );
       soldier.yRot = Math.atan2(forward.x, forward.z);
@@ -699,8 +700,17 @@ function getUnit({
   };
 }
 
-function getSoldier(x: number, y: number, z: number, assets: Assets): Soldier {
-  const soldierGltf = cloneGltf(assets.azuki);
+function getSoldier(
+  x: number,
+  y: number,
+  z: number,
+  allegiance: Allegiance,
+  assets: Assets
+): Soldier {
+  const soldierGltf =
+    allegiance === Allegiance.Azuki
+      ? cloneGltf(assets.azukiSpear)
+      : cloneGltf(assets.edamameSpear);
   const soldierScene = soldierGltf.scene;
   soldierScene.position.set(x, y, z);
   const walkClip = AnimationClip.findByName(soldierGltf.animations, "Walk");
@@ -750,7 +760,7 @@ function startOrContinueWalkingAnimation(
   timeScale: number,
   assets: Assets
 ): void {
-  const scaledWalkClipDuration = assets.azukiWalkClip.duration / timeScale;
+  const scaledWalkClipDuration = assets.azukiSpearWalkClip.duration / timeScale;
   if (animation.kind !== SoldierAnimationKind.Walk) {
     animation.kind = SoldierAnimationKind.Walk;
     animation.timeInSeconds = 0;
@@ -766,7 +776,7 @@ function stopWalkingAnimation(
   timeScale: number,
   assets: Assets
 ): void {
-  const scaledWalkClipDuration = assets.azukiWalkClip.duration / timeScale;
+  const scaledWalkClipDuration = assets.azukiSpearWalkClip.duration / timeScale;
   if (animation.kind === SoldierAnimationKind.Walk) {
     const halfwayPoint = 0.5 * scaledWalkClipDuration;
     const reachesHalfwayPointThisTick =
@@ -790,7 +800,7 @@ function stopWalkingAndStartStabAnimation(
   timeScale: number,
   assets: Assets
 ): void {
-  const scaledWalkClipDuration = assets.azukiWalkClip.duration / timeScale;
+  const scaledWalkClipDuration = assets.azukiSpearWalkClip.duration / timeScale;
   if (animation.kind === SoldierAnimationKind.Walk) {
     const halfwayPoint = 0.5 * scaledWalkClipDuration;
     const reachesHalfwayPointThisTick =
@@ -815,7 +825,7 @@ function continueStabThenIdleAnimation(
   assets: Assets
 ): void {
   animation.timeInSeconds = animation.timeInSeconds + elapsedTimeInSeconds;
-  const scaledStabClipDuration = assets.azukiStabClip.duration / timeScale;
+  const scaledStabClipDuration = assets.azukiSpearStabClip.duration / timeScale;
   if (animation.timeInSeconds >= scaledStabClipDuration) {
     animation.kind = SoldierAnimationKind.Idle;
     animation.timeInSeconds = animation.timeInSeconds - scaledStabClipDuration;

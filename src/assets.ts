@@ -11,9 +11,12 @@ import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 
 export interface Assets {
   environment: DataTexture;
-  azuki: GLTF;
-  azukiWalkClip: AnimationClip;
-  azukiStabClip: AnimationClip;
+  azukiSpear: GLTF;
+  azukiSpearWalkClip: AnimationClip;
+  azukiSpearStabClip: AnimationClip;
+  edamameSpear: GLTF;
+  edamameSpearWalkClip: AnimationClip;
+  edamameSpearStabClip: AnimationClip;
   dragonfly: GLTF;
   grass: Texture;
   azukiBannerTower: GLTF;
@@ -31,6 +34,11 @@ export function loadAssets(): Promise<Assets> {
     }),
     new Promise<GLTF>((resolve) => {
       new GLTFLoader().load("./models/azuki.glb", (gltf) => {
+        resolve(gltf);
+      });
+    }),
+    new Promise<GLTF>((resolve) => {
+      new GLTFLoader().load("./models/edamame_spear.glb", (gltf) => {
         resolve(gltf);
       });
     }),
@@ -55,14 +63,38 @@ export function loadAssets(): Promise<Assets> {
       });
     }),
   ]).then(
-    ([environment, azuki, dragonfly, grass, azukiBannerTower]): Assets => {
-      const azukiWalkClip = AnimationClip.findByName(azuki.animations, "Walk");
-      const azukiStabClip = AnimationClip.findByName(azuki.animations, "Stab");
+    ([
+      environment,
+      azukiSpear,
+      edamameSpear,
+      dragonfly,
+      grass,
+      azukiBannerTower,
+    ]): Assets => {
+      const azukiSpearWalkClip = AnimationClip.findByName(
+        azukiSpear.animations,
+        "Walk"
+      );
+      const azukiSpearStabClip = AnimationClip.findByName(
+        azukiSpear.animations,
+        "Stab"
+      );
+      const edamameSpearWalkClip = AnimationClip.findByName(
+        edamameSpear.animations,
+        "Walk"
+      );
+      const edamameSpearStabClip = AnimationClip.findByName(
+        edamameSpear.animations,
+        "Stab"
+      );
       return {
         environment,
-        azuki,
-        azukiWalkClip,
-        azukiStabClip,
+        azukiSpear,
+        azukiSpearWalkClip,
+        azukiSpearStabClip,
+        edamameSpear,
+        edamameSpearWalkClip,
+        edamameSpearStabClip,
         dragonfly,
         grass,
         azukiBannerTower,
