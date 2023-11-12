@@ -745,7 +745,10 @@ function getBannerTower({
   allegiance: Allegiance;
   assets: Assets;
 }): BannerTower {
-  const gltf = cloneGltf(assets.azukiBannerTower);
+  const gltf =
+    allegiance === Allegiance.Azuki
+      ? cloneGltf(assets.azukiBannerTower)
+      : cloneGltf(assets.edamameBannerTower);
   gltf.scene.position.copy(position);
   return {
     gltf,
