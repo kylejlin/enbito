@@ -227,6 +227,11 @@ export function main(assets: Assets): void {
 
   scene.add(player.gltf.scene);
 
+  const towerGltf = cloneGltf(assets.azukiBannerTower);
+  const tower = towerGltf.scene;
+  scene.add(tower);
+  tower.position.set(0, 0, -100);
+
   const units = [
     getUnit({
       start: new Vector3(0, 0, 100),

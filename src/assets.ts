@@ -16,6 +16,7 @@ export interface Assets {
   azukiStabClip: AnimationClip;
   dragonfly: GLTF;
   grass: Texture;
+  azukiBannerTower: GLTF;
 }
 
 export function loadAssets(): Promise<Assets> {
@@ -48,16 +49,24 @@ export function loadAssets(): Promise<Assets> {
         resolve(texture);
       }
     }),
-  ]).then(([environment, azuki, dragonfly, grass]): Assets => {
-    const azukiWalkClip = AnimationClip.findByName(azuki.animations, "Walk");
-    const azukiStabClip = AnimationClip.findByName(azuki.animations, "Stab");
-    return {
-      environment,
-      azuki,
-      azukiWalkClip,
-      azukiStabClip,
-      dragonfly,
-      grass,
-    };
-  });
+    new Promise<GLTF>((resolve) => {
+      new GLTFLoader().load("./models/azuki_banner_tower.glb", (gltf) => {
+        resolve(gltf);
+      });
+    }),
+  ]).then(
+    ([environment, azuki, dragonfly, grass, azukiBannerTower]): Assets => {
+      const azukiWalkClip = AnimationClip.findByName(azuki.animations, "Walk");
+      const azukiStabClip = AnimationClip.findByName(azuki.animations, "Stab");
+      return {
+        environment,
+        azuki,
+        azukiWalkClip,
+        azukiStabClip,
+        dragonfly,
+        grass,
+        azukiBannerTower,
+      };
+    }
+  );
 }
