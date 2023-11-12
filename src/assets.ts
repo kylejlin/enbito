@@ -33,7 +33,7 @@ export function loadAssets(): Promise<Assets> {
         });
     }),
     new Promise<GLTF>((resolve) => {
-      new GLTFLoader().load("./models/azuki.glb", (gltf) => {
+      new GLTFLoader().load("./models/azuki_spear.glb", (gltf) => {
         resolve(gltf);
       });
     }),
