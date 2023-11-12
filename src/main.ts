@@ -276,7 +276,7 @@ export function main(assets: Assets): void {
     }),
   ];
   for (const tower of towers) {
-    scene.add(tower.gltf.scene);
+    scene.add(getActiveBannerTowerGltf(tower).scene);
   }
 
   const cursorGltf = cloneGltf(assets.azukiSpear);
@@ -454,6 +454,10 @@ export function main(assets: Assets): void {
       for (const soldier of unit.soldiers) {
         updateThreeJsProperties(soldier);
       }
+    }
+
+    for (const tower of towers) {
+      getActiveBannerTowerGltf(tower).scene.position.copy(tower.position);
     }
 
     if (isPlayerRidingDragonfly) {
@@ -641,7 +645,9 @@ interface Soldier {
 }
 
 interface BannerTower {
-  gltf: GLTF;
+  position: Vector3;
+  azukiGltf: GLTF;
+  edamameGltf: GLTF;
   isPreview: boolean;
   allegiance: Allegiance;
 }
@@ -745,13 +751,10 @@ function getBannerTower({
   allegiance: Allegiance;
   assets: Assets;
 }): BannerTower {
-  const gltf =
-    allegiance === Allegiance.Azuki
-      ? cloneGltf(assets.azukiBannerTower)
-      : cloneGltf(assets.edamameBannerTower);
-  gltf.scene.position.copy(position);
   return {
-    gltf,
+    position,
+    azukiGltf: cloneGltf(assets.azukiBannerTower),
+    edamameGltf: cloneGltf(assets.edamameBannerTower),
     isPreview: false,
     allegiance,
   };
@@ -1042,12 +1045,7 @@ function tickBannerTowers(
 
       const { soldiers } = unit;
       for (const soldier of soldiers) {
-        if (
-          inTowerTerritory(
-            soldier.gltf.scene.position,
-            tower.gltf.scene.position
-          )
-        ) {
+        if (inTowerTerritory(soldier.gltf.scene.position, tower.position)) {
           if (uniqueOccupier === UNOCCUPIED) {
             uniqueOccupier = unit.allegiance;
           } else if (uniqueOccupier !== unit.allegiance) {
@@ -1058,14 +1056,14 @@ function tickBannerTowers(
       }
     }
 
-    if (uniqueOccupier !== UNOCCUPIED && uniqueOccupier !== CONTESTED) {
-      // TODO
-      if (tower.allegiance !== uniqueOccupier) {
-        console.log("conquered");
-      }
-      // END TODO
-
+    if (
+      uniqueOccupier !== UNOCCUPIED &&
+      uniqueOccupier !== CONTESTED &&
+      tower.allegiance !== uniqueOccupier
+    ) {
+      scene.remove(getActiveBannerTowerGltf(tower).scene);
       tower.allegiance = uniqueOccupier;
+      scene.add(getActiveBannerTowerGltf(tower).scene);
     }
 
     teamsWithATower.add(tower.allegiance);
@@ -1095,4 +1093,10 @@ function inTowerTerritory(
     -10 <= localZ &&
     localZ <= 10
   );
+}
+
+function getActiveBannerTowerGltf(tower: BannerTower): GLTF {
+  return tower.allegiance === Allegiance.Azuki
+    ? tower.azukiGltf
+    : tower.edamameGltf;
 }
