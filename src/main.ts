@@ -106,6 +106,7 @@ export function main(assets: Assets): void {
       const wasKey1Down = keys._1;
       keys._1 = true;
       trySetDeploymentStart(wasKey1Down);
+      // switch cursor type to spear
     }
   });
   window.addEventListener("keyup", (e) => {
