@@ -534,7 +534,7 @@ export function main(assets: Assets): void {
             .normalize()
             .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
           dimensions: [width, 1],
-          gap: [RANK_GAP, 0],
+          gap: [8, 8 * (Math.sqrt(3) / 2)],
           assets,
           allegiance: Allegiance.Azuki,
         });
