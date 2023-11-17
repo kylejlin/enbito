@@ -434,9 +434,8 @@ export function main(assets: Assets): void {
       }
 
       if (
-        keys.space &&
-        (player.animation.kind === SoldierAnimationKind.Idle ||
-          player.animation.kind === SoldierAnimationKind.Slash)
+        player.animation.kind === SoldierAnimationKind.Slash ||
+        (keys.space && player.animation.kind === SoldierAnimationKind.Idle)
       ) {
         const finishesCycle = startOrContinueSlashAnimation(
           elapsedTimeInSeconds,
@@ -451,6 +450,12 @@ export function main(assets: Assets): void {
             player.gltf.scene.position,
             units
           );
+          if (!keys.space) {
+            player.animation = {
+              kind: SoldierAnimationKind.Idle,
+              timeInSeconds: 0,
+            };
+          }
         }
       }
 
