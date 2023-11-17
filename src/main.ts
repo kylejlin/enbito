@@ -33,6 +33,7 @@ enum SoldierAnimationKind {
   Idle,
   Walk,
   Stab,
+  Slash,
 }
 
 interface Resources {
@@ -204,10 +205,15 @@ export function main(assets: Assets): void {
       playerGltf.animations,
       "Stab"
     );
+    const playerSlashClip = AnimationClip.findByName(
+      playerGltf.animations,
+      "Slash"
+    );
 
     const playerMixer = new AnimationMixer(playerScene);
     const playerWalkAction = playerMixer.clipAction(playerWalkClip);
     const playerStabAction = playerMixer.clipAction(playerStabClip);
+    const playerSlashAction = playerMixer.clipAction(playerSlashClip);
     playerWalkAction.timeScale = 2;
     return {
       gltf: playerGltf,
@@ -220,6 +226,8 @@ export function main(assets: Assets): void {
       walkAction: playerWalkAction,
       stabClip: playerStabClip,
       stabAction: playerStabAction,
+      slashClip: playerSlashClip,
+      slashAction: playerSlashAction,
       attackTarget: null,
       health: 100,
       yRot: 0,
@@ -425,6 +433,19 @@ export function main(assets: Assets): void {
         );
       }
 
+      if (
+        keys.space &&
+        (player.animation.kind === SoldierAnimationKind.Idle ||
+          player.animation.kind === SoldierAnimationKind.Slash)
+      ) {
+        startOrContinueSlashAnimation(
+          elapsedTimeInSeconds,
+          player.animation,
+          player.slashAction.timeScale,
+          assets
+        );
+      }
+
       if (player.animation.kind === SoldierAnimationKind.Walk) {
         player.gltf.scene.translateZ(-3 * elapsedTimeInSeconds);
       }
@@ -554,17 +575,27 @@ export function main(assets: Assets): void {
       soldier.walkAction.play();
 
       soldier.stabAction.stop();
+      soldier.slashAction.stop();
 
       soldier.mixer.setTime(soldier.animation.timeInSeconds);
     } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
       soldier.stabAction.play();
 
       soldier.walkAction.stop();
+      soldier.slashAction.stop();
+
+      soldier.mixer.setTime(soldier.animation.timeInSeconds);
+    } else if (soldier.animation.kind === SoldierAnimationKind.Slash) {
+      soldier.slashAction.play();
+
+      soldier.walkAction.stop();
+      soldier.stabAction.stop();
 
       soldier.mixer.setTime(soldier.animation.timeInSeconds);
     } else {
       soldier.walkAction.stop();
       soldier.stabAction.stop();
+      soldier.slashAction.stop();
     }
 
     if (!(soldier === player && isPlayerRidingDragonfly)) {
@@ -640,6 +671,10 @@ interface Soldier {
   walkAction: AnimationAction;
   stabClip: AnimationClip;
   stabAction: AnimationAction;
+  /** This is the same as `stabClip` if the soldier cannot slash. */
+  slashClip: AnimationClip;
+  /** This is the same as `stabAction` if the solider cannot clash. */
+  slashAction: AnimationAction;
   attackTarget: null | Soldier;
   health: number;
   yRot: number;
@@ -728,6 +763,10 @@ function getSoldier(
   const stabAction = mixer.clipAction(stabClip);
   stabAction.timeScale = 0.5;
 
+  // By default, soldiers cannot slash.
+  const slashClip = AnimationClip.findByName(soldierGltf.animations, "Stab");
+  const slashAction = mixer.clipAction(slashClip);
+
   return {
     gltf: soldierGltf,
     animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
@@ -736,6 +775,8 @@ function getSoldier(
     walkAction,
     stabClip,
     stabAction,
+    slashClip,
+    slashAction,
     attackTarget: null,
     health: 100,
     yRot: 0,
@@ -774,6 +815,24 @@ function startOrContinueWalkingAnimation(
   } else {
     animation.timeInSeconds =
       (animation.timeInSeconds + elapsedTimeInSeconds) % scaledWalkClipDuration;
+  }
+}
+
+function startOrContinueSlashAnimation(
+  elapsedTimeInSeconds: number,
+  animation: SoldierAnimationState,
+  timeScale: number,
+  assets: Assets
+): void {
+  const scaledSlashClipDuration =
+    assets.azukiKingSlashClip.duration / timeScale;
+  if (animation.kind !== SoldierAnimationKind.Slash) {
+    animation.kind = SoldierAnimationKind.Slash;
+    animation.timeInSeconds = 0;
+  } else {
+    animation.timeInSeconds =
+      (animation.timeInSeconds + elapsedTimeInSeconds) %
+      scaledSlashClipDuration;
   }
 }
 

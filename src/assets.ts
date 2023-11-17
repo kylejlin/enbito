@@ -14,6 +14,7 @@ export interface Assets {
   azukiSpear: GLTF;
   azukiSpearWalkClip: AnimationClip;
   azukiSpearStabClip: AnimationClip;
+  azukiKingSlashClip: AnimationClip;
   edamameSpear: GLTF;
   edamameSpearWalkClip: AnimationClip;
   edamameSpearStabClip: AnimationClip;
@@ -101,11 +102,16 @@ export function loadAssets(): Promise<Assets> {
         edamameSpear.animations,
         "Stab"
       );
+      const azukiKingSlashClip = AnimationClip.findByName(
+        azukiKing.animations,
+        "Slash"
+      );
       return {
         environment,
         azukiSpear,
         azukiSpearWalkClip,
         azukiSpearStabClip,
+        azukiKingSlashClip,
         edamameSpear,
         edamameSpearWalkClip,
         edamameSpearStabClip,
