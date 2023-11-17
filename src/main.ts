@@ -193,7 +193,7 @@ export function main(assets: Assets): void {
   playerDragonflyFlyAction.timeScale = 5;
   playerDragonflyFlyAction.play();
 
-  const player = (function (): Soldier {
+  const player = (function (): King {
     const playerGltf = cloneGltf(assets.azukiKing);
     const playerScene = playerGltf.scene;
     playerScene.position.set(0, 0, 0);
@@ -216,6 +216,7 @@ export function main(assets: Assets): void {
     const playerSlashAction = playerMixer.clipAction(playerSlashClip);
     playerWalkAction.timeScale = 2;
     return {
+      isKing: true,
       gltf: playerGltf,
       animation: {
         kind: SoldierAnimationKind.Idle,
@@ -583,23 +584,29 @@ export function main(assets: Assets): void {
     }
   }
 
-  function updateThreeJsProperties(soldier: Soldier): void {
+  function updateThreeJsProperties(soldier: Soldier | King): void {
     if (soldier.animation.kind === SoldierAnimationKind.Walk) {
       soldier.walkAction.play();
 
       soldier.stabAction.stop();
-      soldier.slashAction.stop();
+      if (isKing(soldier)) {
+        soldier.slashAction.stop();
+      }
 
       soldier.mixer.setTime(soldier.animation.timeInSeconds);
     } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
       soldier.stabAction.play();
 
       soldier.walkAction.stop();
-      soldier.slashAction.stop();
+      if (isKing(soldier)) {
+        soldier.slashAction.stop();
+      }
 
       soldier.mixer.setTime(soldier.animation.timeInSeconds);
     } else if (soldier.animation.kind === SoldierAnimationKind.Slash) {
-      soldier.slashAction.play();
+      if (isKing(soldier)) {
+        soldier.slashAction.play();
+      }
 
       soldier.walkAction.stop();
       soldier.stabAction.stop();
@@ -608,7 +615,9 @@ export function main(assets: Assets): void {
     } else {
       soldier.walkAction.stop();
       soldier.stabAction.stop();
-      soldier.slashAction.stop();
+      if (isKing(soldier)) {
+        soldier.slashAction.stop();
+      }
     }
 
     if (!(soldier === player && isPlayerRidingDragonfly)) {
@@ -684,13 +693,15 @@ interface Soldier {
   walkAction: AnimationAction;
   stabClip: AnimationClip;
   stabAction: AnimationAction;
-  /** This is the same as `stabClip` if the soldier cannot slash. */
-  slashClip: AnimationClip;
-  /** This is the same as `stabAction` if the solider cannot clash. */
-  slashAction: AnimationAction;
   attackTarget: null | Soldier;
   health: number;
   yRot: number;
+}
+
+interface King extends Soldier {
+  isKing: true;
+  slashClip: AnimationClip;
+  slashAction: AnimationAction;
 }
 
 interface BannerTower {
@@ -776,10 +787,6 @@ function getSoldier(
   const stabAction = mixer.clipAction(stabClip);
   stabAction.timeScale = 0.5;
 
-  // By default, soldiers cannot slash.
-  const slashClip = AnimationClip.findByName(soldierGltf.animations, "Stab");
-  const slashAction = mixer.clipAction(slashClip);
-
   return {
     gltf: soldierGltf,
     animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
@@ -788,8 +795,6 @@ function getSoldier(
     walkAction,
     stabClip,
     stabAction,
-    slashClip,
-    slashAction,
     attackTarget: null,
     health: 100,
     yRot: 0,
@@ -1226,4 +1231,8 @@ function normalizeAngleBetweenNegPiAndPosPi(angle: number): number {
     out -= Math.PI * 2;
   }
   return out;
+}
+
+function isKing(soldier: Soldier): soldier is King {
+  return !!(soldier as King).isKing;
 }
