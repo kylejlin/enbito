@@ -239,7 +239,7 @@ export function main(assets: Assets): void {
   scene.add(player.gltf.scene);
 
   // TODO: Delete
-  scene.add(assets.explodingAzukiSpear1);
+  scene.add(assets.explodingAzukiSpearFrames[0]);
 
   const units = [
     getUnit({

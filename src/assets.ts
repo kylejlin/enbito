@@ -10,6 +10,7 @@ import {
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
+import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
 
 export interface Assets {
   environment: DataTexture;
@@ -25,7 +26,37 @@ export interface Assets {
   azukiBannerTower: GLTF;
   edamameBannerTower: GLTF;
   azukiKing: GLTF;
-  explodingAzukiSpear1: Group;
+  explodingAzukiSpearFrames: [
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group,
+    Group
+  ];
 }
 
 export function loadAssets(): Promise<Assets> {
@@ -78,15 +109,37 @@ export function loadAssets(): Promise<Assets> {
         resolve(gltf);
       });
     }),
-    new Promise<Group>((resolve) => {
-      new OBJLoader().load(
-        "./models/azuki_spear_exploding_frames/azuki_spear_exploding_000001.obj",
-        (obj) => {
-          console.log({ obj });
-          resolve(obj);
-        }
-      );
-    }),
+    Promise.all([
+      getAzukiSpearExplodingFrame("000001"),
+      getAzukiSpearExplodingFrame("000002"),
+      getAzukiSpearExplodingFrame("000003"),
+      getAzukiSpearExplodingFrame("000004"),
+      getAzukiSpearExplodingFrame("000005"),
+      getAzukiSpearExplodingFrame("000006"),
+      getAzukiSpearExplodingFrame("000007"),
+      getAzukiSpearExplodingFrame("000008"),
+      getAzukiSpearExplodingFrame("000009"),
+      getAzukiSpearExplodingFrame("000010"),
+      getAzukiSpearExplodingFrame("000011"),
+      getAzukiSpearExplodingFrame("000012"),
+      getAzukiSpearExplodingFrame("000013"),
+      getAzukiSpearExplodingFrame("000014"),
+      getAzukiSpearExplodingFrame("000015"),
+      getAzukiSpearExplodingFrame("000016"),
+      getAzukiSpearExplodingFrame("000017"),
+      getAzukiSpearExplodingFrame("000018"),
+      getAzukiSpearExplodingFrame("000019"),
+      getAzukiSpearExplodingFrame("000020"),
+      getAzukiSpearExplodingFrame("000021"),
+      getAzukiSpearExplodingFrame("000022"),
+      getAzukiSpearExplodingFrame("000023"),
+      getAzukiSpearExplodingFrame("000024"),
+      getAzukiSpearExplodingFrame("000025"),
+      getAzukiSpearExplodingFrame("000026"),
+      getAzukiSpearExplodingFrame("000027"),
+      getAzukiSpearExplodingFrame("000028"),
+      getAzukiSpearExplodingFrame("000029"),
+    ]),
   ]).then(
     ([
       environment,
@@ -97,7 +150,7 @@ export function loadAssets(): Promise<Assets> {
       azukiBannerTower,
       edamameBannerTower,
       azukiKing,
-      explodingAzukiSpear1,
+      explodingAzukiSpearFrames,
     ]): Assets => {
       const azukiSpearWalkClip = AnimationClip.findByName(
         azukiSpear.animations,
@@ -119,6 +172,7 @@ export function loadAssets(): Promise<Assets> {
         azukiKing.animations,
         "Slash"
       );
+
       return {
         environment,
         azukiSpear,
@@ -133,8 +187,24 @@ export function loadAssets(): Promise<Assets> {
         azukiBannerTower,
         edamameBannerTower,
         azukiKing,
-        explodingAzukiSpear1,
+        explodingAzukiSpearFrames,
       };
     }
   );
+}
+
+function getAzukiSpearExplodingFrame(id: string): Promise<Group> {
+  return new Promise<Group>((resolve) => {
+    new MTLLoader().load(
+      `./models/azuki_spear_exploding_frames/azuki_spear_exploding_${id}.mtl`,
+      (mtl) => {
+        new OBJLoader()
+          .setMaterials(mtl)
+          .load(
+            `./models/azuki_spear_exploding_frames/azuki_spear_exploding_${id}.obj`,
+            resolve
+          );
+      }
+    );
+  });
 }
