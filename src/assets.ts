@@ -5,9 +5,11 @@ import {
   LoadingManager,
   Texture,
   TextureLoader,
+  Group,
 } from "three";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 
 export interface Assets {
   environment: DataTexture;
@@ -23,6 +25,7 @@ export interface Assets {
   azukiBannerTower: GLTF;
   edamameBannerTower: GLTF;
   azukiKing: GLTF;
+  explodingAzukiSpear1: Group;
 }
 
 export function loadAssets(): Promise<Assets> {
@@ -75,6 +78,15 @@ export function loadAssets(): Promise<Assets> {
         resolve(gltf);
       });
     }),
+    new Promise<Group>((resolve) => {
+      new OBJLoader().load(
+        "./models/azuki_spear_exploding_frames/azuki_spear_exploding_000001.obj",
+        (obj) => {
+          console.log({ obj });
+          resolve(obj);
+        }
+      );
+    }),
   ]).then(
     ([
       environment,
@@ -85,6 +97,7 @@ export function loadAssets(): Promise<Assets> {
       azukiBannerTower,
       edamameBannerTower,
       azukiKing,
+      explodingAzukiSpear1,
     ]): Assets => {
       const azukiSpearWalkClip = AnimationClip.findByName(
         azukiSpear.animations,
@@ -120,6 +133,7 @@ export function loadAssets(): Promise<Assets> {
         azukiBannerTower,
         edamameBannerTower,
         azukiKing,
+        explodingAzukiSpear1,
       };
     }
   );
