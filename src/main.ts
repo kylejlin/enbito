@@ -438,12 +438,20 @@ export function main(assets: Assets): void {
         (player.animation.kind === SoldierAnimationKind.Idle ||
           player.animation.kind === SoldierAnimationKind.Slash)
       ) {
-        startOrContinueSlashAnimation(
+        const finishesCycle = startOrContinueSlashAnimation(
           elapsedTimeInSeconds,
           player.animation,
           player.slashAction.timeScale,
           assets
         );
+        if (finishesCycle) {
+          applyKingSlashDamage(
+            Allegiance.Azuki,
+            player.yRot,
+            player.gltf.scene.position,
+            units
+          );
+        }
       }
 
       if (player.animation.kind === SoldierAnimationKind.Walk) {
@@ -818,21 +826,26 @@ function startOrContinueWalkingAnimation(
   }
 }
 
+/** Returns whether the animation finishes a cycle this tick. */
 function startOrContinueSlashAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
   timeScale: number,
   assets: Assets
-): void {
+): boolean {
   const scaledSlashClipDuration =
     assets.azukiKingSlashClip.duration / timeScale;
   if (animation.kind !== SoldierAnimationKind.Slash) {
     animation.kind = SoldierAnimationKind.Slash;
     animation.timeInSeconds = 0;
+    return false;
   } else {
+    const finishes =
+      animation.timeInSeconds + elapsedTimeInSeconds >= scaledSlashClipDuration;
     animation.timeInSeconds =
       (animation.timeInSeconds + elapsedTimeInSeconds) %
       scaledSlashClipDuration;
+    return finishes;
   }
 }
 
@@ -1159,4 +1172,53 @@ function getActiveBannerTowerGltf(tower: BannerTower): GLTF {
   return tower.allegiance === Allegiance.Azuki
     ? tower.azukiGltf
     : tower.edamameGltf;
+}
+
+function applyKingSlashDamage(
+  allegiance: Allegiance,
+  yRot: number,
+  position: Vector3,
+  units: Unit[]
+): void {
+  const slashRangeSquared = 6 ** 2;
+  for (const unit of units) {
+    if (unit.allegiance === allegiance) {
+      continue;
+    }
+
+    for (const soldier of unit.soldiers) {
+      const differenceSquared =
+        soldier.gltf.scene.position.distanceToSquared(position);
+      const angleDifference = normalizeAngleBetweenNegPiAndPosPi(
+        yRot -
+          Math.atan2(
+            soldier.gltf.scene.position.x - position.x,
+            soldier.gltf.scene.position.z - position.z
+          ) +
+          Math.PI
+      );
+      console.log({ angleDifference });
+      if (
+        !(
+          differenceSquared <= slashRangeSquared &&
+          Math.abs(angleDifference) <= Math.PI * 0.2
+        )
+      ) {
+        continue;
+      }
+
+      soldier.health -= 100;
+    }
+  }
+}
+
+function normalizeAngleBetweenNegPiAndPosPi(angle: number): number {
+  let out = angle;
+  while (out < Math.PI) {
+    out += Math.PI * 2;
+  }
+  while (out > Math.PI) {
+    out -= Math.PI * 2;
+  }
+  return out;
 }
