@@ -239,7 +239,7 @@ export function main(assets: Assets): void {
   scene.add(player.gltf.scene);
 
   // TODO: Delete
-  scene.add(assets.explodingAzukiSpearFrames[0]);
+  let explosionTimer = 0;
 
   const units = [
     getUnit({
@@ -484,6 +484,18 @@ export function main(assets: Assets): void {
 
     tickUnits(elapsedTimeInSeconds, units, resources);
     tickBannerTowers(elapsedTimeInSeconds, units, towers, resources);
+
+    explosionTimer += elapsedTimeInSeconds;
+    const EXPLOSION_RATE = 1;
+    const explosionFrameNumber =
+      Math.floor(explosionTimer * EXPLOSION_RATE * 29) % 29;
+    for (let i = 0; i < assets.explodingAzukiSpearFrames.length; ++i) {
+      if (i === explosionFrameNumber) {
+        scene.add(assets.explodingAzukiSpearFrames[i]);
+      } else {
+        scene.remove(assets.explodingAzukiSpearFrames[i]);
+      }
+    }
   }
 
   function oncePerFrameBeforeRender(): void {
