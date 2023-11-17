@@ -836,7 +836,7 @@ function startOrContinueWalkingAnimation(
   }
 }
 
-/** Returns whether the animation finishes a cycle this tick. */
+/** Returns whether the animation crosses the damage point during this tick. */
 function startOrContinueSlashAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
@@ -850,8 +850,11 @@ function startOrContinueSlashAnimation(
     animation.timeInSeconds = 0;
     return false;
   } else {
+    // We should deal damage on slash animation frame 18.
+    const DAMAGE_POINT_LOCATION = 18 / 30;
     const finishes =
-      animation.timeInSeconds + elapsedTimeInSeconds >= scaledSlashClipDuration;
+      animation.timeInSeconds + elapsedTimeInSeconds >=
+      scaledSlashClipDuration * DAMAGE_POINT_LOCATION;
     animation.timeInSeconds =
       (animation.timeInSeconds + elapsedTimeInSeconds) %
       scaledSlashClipDuration;
