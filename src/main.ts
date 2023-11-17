@@ -506,7 +506,7 @@ export function main(assets: Assets): void {
       camera.position.copy(player.gltf.scene.position);
       camera.quaternion.copy(player.gltf.scene.quaternion);
       camera.translateY(5);
-      camera.translateZ(2);
+      camera.translateZ(5);
       camera.rotateX(-(mouse.y - 0.5) * Math.PI);
     }
 
