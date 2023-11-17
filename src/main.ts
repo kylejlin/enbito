@@ -193,7 +193,7 @@ export function main(assets: Assets): void {
   playerDragonflyFlyAction.play();
 
   const player = (function (): Soldier {
-    const playerGltf = cloneGltf(assets.azukiSpear);
+    const playerGltf = cloneGltf(assets.azukiKing);
     const playerScene = playerGltf.scene;
     playerScene.position.set(0, 0, 0);
     const playerWalkClip = AnimationClip.findByName(
