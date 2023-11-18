@@ -244,9 +244,6 @@ export function main(assets: Assets): void {
 
   scene.add(player.gltf.scene);
 
-  // TODO: Delete
-  let explosionTimer = 0;
-
   const units = [
     getUnit({
       start: new Vector3(0, 0, 100),
@@ -499,18 +496,6 @@ export function main(assets: Assets): void {
     tickUnits(elapsedTimeInSeconds, resources);
     tickBannerTowers(elapsedTimeInSeconds, resources);
     tickSoldierExplosions(elapsedTimeInSeconds, resources);
-
-    explosionTimer += elapsedTimeInSeconds;
-    const EXPLOSION_RATE = 1;
-    const explosionFrameNumber =
-      Math.floor(explosionTimer * EXPLOSION_RATE * 29) % 29;
-    for (let i = 0; i < assets.explodingAzukiFrames.length; ++i) {
-      if (i === explosionFrameNumber) {
-        scene.add(assets.explodingAzukiFrames[i]);
-      } else {
-        scene.remove(assets.explodingAzukiFrames[i]);
-      }
-    }
   }
 
   function oncePerFrameBeforeRender(): void {
