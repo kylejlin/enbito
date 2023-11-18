@@ -452,13 +452,13 @@ export function main(assets: Assets): void {
         player.animation.kind === SoldierAnimationKind.Slash ||
         (keys.space && player.animation.kind === SoldierAnimationKind.Idle)
       ) {
-        const finishesCycle = startOrContinueSlashAnimation(
+        const dealsDamageThisTick = startOrContinueSlashAnimation(
           elapsedTimeInSeconds,
           player.animation,
           player.slashAction.timeScale,
           assets
         );
-        if (finishesCycle) {
+        if (dealsDamageThisTick) {
           applyKingSlashDamage(
             Allegiance.Azuki,
             player.yRot,
@@ -874,10 +874,10 @@ function startOrContinueSlashAnimation(
     return false;
   } else {
     // We should deal damage on slash animation frame 18.
-    const DAMAGE_POINT_LOCATION = 18 / 30;
+    const SLASH_DAMAGE_POINT_LOCATION_FACTOR = 18 / 30;
     const finishes =
       animation.timeInSeconds + elapsedTimeInSeconds >=
-      scaledSlashClipDuration * DAMAGE_POINT_LOCATION;
+      scaledSlashClipDuration * SLASH_DAMAGE_POINT_LOCATION_FACTOR;
     animation.timeInSeconds =
       (animation.timeInSeconds + elapsedTimeInSeconds) %
       scaledSlashClipDuration;
@@ -933,30 +933,52 @@ function stopWalkingAndStartStabAnimation(
   }
 }
 
+const STAB_DAMAGE_POINT_LOCATION_FACTOR = 5 / 8;
+
+/** Returns whether the animation crosses the damage point during this tick. */
 function continueStabThenIdleAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
   timeScale: number,
   assets: Assets
-): void {
-  animation.timeInSeconds = animation.timeInSeconds + elapsedTimeInSeconds;
+): boolean {
   const scaledStabClipDuration = assets.azukiSpearStabClip.duration / timeScale;
+  const damageTime = scaledStabClipDuration * STAB_DAMAGE_POINT_LOCATION_FACTOR;
+  const dealsDamageThisTick =
+    animation.timeInSeconds < damageTime &&
+    animation.timeInSeconds + elapsedTimeInSeconds >= damageTime;
+
+  animation.timeInSeconds = animation.timeInSeconds + elapsedTimeInSeconds;
+
   if (animation.timeInSeconds >= scaledStabClipDuration) {
     animation.kind = SoldierAnimationKind.Idle;
     animation.timeInSeconds = animation.timeInSeconds - scaledStabClipDuration;
   }
+
+  return dealsDamageThisTick;
 }
 
+/** Returns whether the animation crosses the damage point during this tick. */
 function continueIdleThenStabAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
   assets: Assets
-): void {
+): boolean {
   animation.timeInSeconds += elapsedTimeInSeconds;
   if (animation.timeInSeconds >= STAB_COOLDOWN) {
     animation.kind = SoldierAnimationKind.Stab;
     animation.timeInSeconds = animation.timeInSeconds - STAB_COOLDOWN;
+
+    const timeScale = 1;
+    const scaledStabClipDuration =
+      assets.azukiSpearStabClip.duration / timeScale;
+    return (
+      animation.timeInSeconds >=
+      scaledStabClipDuration * STAB_DAMAGE_POINT_LOCATION_FACTOR
+    );
   }
+
+  return false;
 }
 
 function tickUnits(
@@ -1053,24 +1075,24 @@ function tickUnits(
           soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
 
           if (soldier.animation.kind === SoldierAnimationKind.Stab) {
-            continueStabThenIdleAnimation(
+            const dealsDamageThisTick = continueStabThenIdleAnimation(
               elapsedTimeInSeconds,
               soldier.animation,
               soldier.stabAction.timeScale,
               assets
             );
-            if (
-              (soldier.animation.kind as SoldierAnimationKind) ===
-              SoldierAnimationKind.Idle
-            ) {
+            if (dealsDamageThisTick) {
               soldier.attackTarget.health -= STAB_DAMAGE;
             }
           } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
-            continueIdleThenStabAnimation(
+            const dealsDamageThisTick = continueIdleThenStabAnimation(
               elapsedTimeInSeconds,
               soldier.animation,
               assets
             );
+            if (dealsDamageThisTick) {
+              soldier.attackTarget.health -= STAB_DAMAGE;
+            }
           }
         }
       }
@@ -1275,7 +1297,6 @@ function applyKingSlashDamage(
           ) +
           Math.PI
       );
-      console.log({ angleDifference });
       if (
         !(
           differenceSquared <= slashRangeSquared &&
