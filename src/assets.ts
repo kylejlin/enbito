@@ -196,7 +196,7 @@ export function loadAssets(): Promise<Assets> {
 function getAzukiSpearExplodingFrame(id: string): Promise<Group> {
   return new Promise<Group>((resolve) => {
     new MTLLoader().load(
-      `./models/azuki_spear_exploding_frames/azuki_spear_exploding_${id}.mtl`,
+      `./models/azuki_spear_exploding_frames/azuki_spear_common.mtl`,
       (mtl) => {
         new OBJLoader()
           .setMaterials(mtl)
