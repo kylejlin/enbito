@@ -504,11 +504,11 @@ export function main(assets: Assets): void {
     const EXPLOSION_RATE = 1;
     const explosionFrameNumber =
       Math.floor(explosionTimer * EXPLOSION_RATE * 29) % 29;
-    for (let i = 0; i < assets.explodingAzukiSpearFrames.length; ++i) {
+    for (let i = 0; i < assets.explodingAzukiFrames.length; ++i) {
       if (i === explosionFrameNumber) {
-        scene.add(assets.explodingAzukiSpearFrames[i]);
+        scene.add(assets.explodingAzukiFrames[i]);
       } else {
-        scene.remove(assets.explodingAzukiSpearFrames[i]);
+        scene.remove(assets.explodingAzukiFrames[i]);
       }
     }
   }
@@ -1235,10 +1235,11 @@ function tickSoldierExplosions(
       resources.scene.remove(explosion.scene);
     }
 
-    explosion.scene =
-      resources.assets.explodingAzukiSpearFrames[zeroIndexedFrameNumber].clone(
-        true
-      );
+    const explosionFrames =
+      explosion.allegiance === Allegiance.Azuki
+        ? resources.assets.explodingAzukiFrames
+        : resources.assets.explodingEdamameFrames;
+    explosion.scene = explosionFrames[zeroIndexedFrameNumber].clone(true);
     explosion.scene.position.copy(explosion.position);
     explosion.scene.quaternion.copy(explosion.orientation);
     resources.scene.add(explosion.scene);
