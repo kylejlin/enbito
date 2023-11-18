@@ -933,7 +933,7 @@ function stopWalkingAndStartStabAnimation(
   }
 }
 
-const STAB_DAMAGE_POINT_LOCATION_FACTOR = 5 / 8;
+const STAB_DAMAGE_POINT_LOCATION_FACTOR = 4 / 8;
 
 /** Returns whether the animation crosses the damage point during this tick. */
 function continueStabThenIdleAnimation(
