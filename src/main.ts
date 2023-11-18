@@ -18,6 +18,7 @@ import {
   AnimationAction,
   Raycaster,
   AmbientLight,
+  Object3D,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
@@ -39,6 +40,9 @@ enum SoldierAnimationKind {
 interface Resources {
   assets: Assets;
   scene: Scene;
+  units: Unit[];
+  towers: BannerTower[];
+  soldierExplosions: SoldierExplosion[];
 }
 
 const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
@@ -46,6 +50,8 @@ const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
 const STAB_DAMAGE = 60;
 const STAB_COOLDOWN = 1;
 const DRAGONFLY_SPEED = 30;
+const SOLDIER_EXPLOSION_DURATION = 1;
+const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 
 export function main(assets: Assets): void {
   let worldTime = Date.now();
@@ -292,6 +298,8 @@ export function main(assets: Assets): void {
     scene.add(getActiveBannerTowerGltf(tower).scene);
   }
 
+  const soldierExplosions: SoldierExplosion[] = [];
+
   const cursorGltf = cloneGltf(assets.azukiSpear);
   const cursor = cursorGltf.scene;
   cursor.position.set(3, 0, 0);
@@ -308,7 +316,13 @@ export function main(assets: Assets): void {
 
   scene.add(new AmbientLight(0x888888, 10));
 
-  const resources: Resources = { assets, scene };
+  const resources: Resources = {
+    assets,
+    scene,
+    units,
+    towers,
+    soldierExplosions,
+  };
 
   addSky();
   addEnvironment();
@@ -482,8 +496,9 @@ export function main(assets: Assets): void {
       )
     );
 
-    tickUnits(elapsedTimeInSeconds, units, resources);
-    tickBannerTowers(elapsedTimeInSeconds, units, towers, resources);
+    tickUnits(elapsedTimeInSeconds, resources);
+    tickBannerTowers(elapsedTimeInSeconds, resources);
+    tickSoldierExplosions(elapsedTimeInSeconds, resources);
 
     explosionTimer += elapsedTimeInSeconds;
     const EXPLOSION_RATE = 1;
@@ -727,6 +742,14 @@ interface BannerTower {
   allegiance: Allegiance;
 }
 
+interface SoldierExplosion {
+  allegiance: Allegiance;
+  position: Vector3;
+  orientation: Quaternion;
+  timeInSeconds: number;
+  scene: null | Object3D;
+}
+
 interface SoldierAnimationState {
   kind: SoldierAnimationKind;
   timeInSeconds: number;
@@ -953,8 +976,7 @@ function continueIdleThenStabAnimation(
 
 function tickUnits(
   elapsedTimeInSeconds: number,
-  units: Unit[],
-  { assets, scene }: Resources
+  { assets, scene, soldierExplosions, units }: Resources
 ): void {
   for (const unit of units) {
     const { soldiers } = unit;
@@ -962,6 +984,11 @@ function tickUnits(
       const soldier = soldiers[i];
       if (soldier.health <= 0) {
         scene.remove(soldier.gltf.scene);
+        const explosion = getSoldierExplosion(
+          unit.allegiance,
+          soldier.gltf.scene
+        );
+        soldierExplosions.push(explosion);
         soldiers.splice(i, 1);
         --i;
         continue;
@@ -1121,9 +1148,7 @@ const UNOCCUPIED = Symbol();
 const CONTESTED = Symbol();
 function tickBannerTowers(
   elapsedTimeInSeconds: number,
-  units: Unit[],
-  towers: BannerTower[],
-  { assets, scene }: Resources
+  { assets, scene, units, towers }: Resources
 ): void {
   const teamsWithATower: Set<Allegiance> = new Set();
 
@@ -1178,6 +1203,45 @@ function tickBannerTowers(
       );
       alert(winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!");
     }
+  }
+}
+
+function tickSoldierExplosions(
+  elapsedTimeInSeconds: number,
+  resources: Resources
+): void {
+  const { soldierExplosions } = resources;
+  for (let i = 0; i < soldierExplosions.length; ++i) {
+    const explosion = soldierExplosions[i];
+    explosion.timeInSeconds += elapsedTimeInSeconds;
+
+    if (explosion.timeInSeconds > SOLDIER_EXPLOSION_DURATION) {
+      if (explosion.scene !== null) {
+        resources.scene.remove(explosion.scene);
+      }
+      soldierExplosions.splice(i, 1);
+      continue;
+    }
+
+    const zeroIndexedFrameNumber = Math.min(
+      Math.floor(
+        (explosion.timeInSeconds / SOLDIER_EXPLOSION_DURATION) *
+          SOLDIER_EXPLOSION_FRAME_COUNT
+      ),
+      SOLDIER_EXPLOSION_FRAME_COUNT - 1
+    );
+
+    if (explosion.scene !== null) {
+      resources.scene.remove(explosion.scene);
+    }
+
+    explosion.scene =
+      resources.assets.explodingAzukiSpearFrames[zeroIndexedFrameNumber].clone(
+        true
+      );
+    explosion.scene.position.copy(explosion.position);
+    explosion.scene.quaternion.copy(explosion.orientation);
+    resources.scene.add(explosion.scene);
   }
 }
 
@@ -1253,4 +1317,17 @@ function normalizeAngleBetweenNegPiAndPosPi(angle: number): number {
 
 function isKing(soldier: Soldier): soldier is King {
   return !!(soldier as King).isKing;
+}
+
+function getSoldierExplosion(
+  allegiance: Allegiance,
+  soldier: Object3D
+): SoldierExplosion {
+  return {
+    allegiance,
+    position: soldier.position.clone(),
+    orientation: soldier.quaternion.clone(),
+    timeInSeconds: 0,
+    scene: null,
+  };
 }
