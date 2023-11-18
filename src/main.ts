@@ -452,6 +452,9 @@ export function main(assets: Assets): void {
         player.animation.kind === SoldierAnimationKind.Slash ||
         (keys.space && player.animation.kind === SoldierAnimationKind.Idle)
       ) {
+        const finishesSlashCycleThisTick =
+          player.animation.timeInSeconds + elapsedTimeInSeconds >=
+          assets.azukiKingSlashClip.duration / player.slashAction.timeScale;
         const dealsDamageThisTick = startOrContinueSlashAnimation(
           elapsedTimeInSeconds,
           player.animation,
@@ -465,12 +468,12 @@ export function main(assets: Assets): void {
             player.gltf.scene.position,
             units
           );
-          if (!keys.space) {
-            player.animation = {
-              kind: SoldierAnimationKind.Idle,
-              timeInSeconds: 0,
-            };
-          }
+        }
+        if (finishesSlashCycleThisTick && !keys.space) {
+          player.animation = {
+            kind: SoldierAnimationKind.Idle,
+            timeInSeconds: 0,
+          };
         }
       }
 
