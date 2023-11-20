@@ -39,7 +39,7 @@ enum SoldierAnimationKind {
 
 interface Resources {
   keys: KeySet;
-  pendingDeployment: PendingDeployment;
+  plannedDeployment: PlannedDeployment;
   groundCursor: null | Vector3;
   azukiKing: King;
   edamameKing: King;
@@ -57,9 +57,9 @@ interface KeySet {
   _1: boolean;
 }
 
-interface PendingDeployment {
+interface PlannedDeployment {
   start: null | Vector3;
-  pendingUnit: null | Unit;
+  plannedUnit: null | Unit;
   setUnit: null | Unit;
 }
 
@@ -116,10 +116,10 @@ export function main(assets: Assets): void {
     }
   });
 
-  const pendingDeployment: PendingDeployment = {
+  const plannedDeployment: PlannedDeployment = {
     start: null,
     setUnit: null,
-    pendingUnit: null,
+    plannedUnit: null,
   };
 
   const keys: KeySet = {
@@ -399,7 +399,7 @@ export function main(assets: Assets): void {
     units,
     towers,
     soldierExplosions,
-    pendingDeployment,
+    plannedDeployment,
   };
 
   addSky();
@@ -578,7 +578,7 @@ export function main(assets: Assets): void {
     );
 
     tickKings(elapsedTimeInSeconds, resources);
-    tickPendingDeployment(elapsedTimeInSeconds, resources);
+    tickPlannedDeployment(elapsedTimeInSeconds, resources);
     tickUnits(elapsedTimeInSeconds, resources);
     tickBannerTowers(elapsedTimeInSeconds, resources);
     tickSoldierExplosions(elapsedTimeInSeconds, resources);
@@ -630,8 +630,8 @@ export function main(assets: Assets): void {
       resources.groundCursor = hits[0].point;
     }
 
-    if (pendingDeployment.pendingUnit !== null) {
-      for (const soldier of pendingDeployment.pendingUnit.soldiers) {
+    if (plannedDeployment.plannedUnit !== null) {
+      for (const soldier of plannedDeployment.plannedUnit.soldiers) {
         scene.remove(soldier.gltf.scene);
       }
     }
@@ -639,18 +639,18 @@ export function main(assets: Assets): void {
     if (resources.groundCursor !== null) {
       cursor.position.copy(resources.groundCursor);
 
-      if (pendingDeployment.start !== null) {
+      if (plannedDeployment.start !== null) {
         const temp_fromStartToCursor = resources.groundCursor
           .clone()
-          .sub(pendingDeployment.start);
+          .sub(plannedDeployment.start);
         const fromStartToCursorLength = temp_fromStartToCursor.length();
         const RANK_GAP = 8;
         const width = Math.max(
           1,
           Math.floor(fromStartToCursorLength / RANK_GAP)
         );
-        pendingDeployment.pendingUnit = getUnit({
-          start: pendingDeployment.start,
+        plannedDeployment.plannedUnit = getUnit({
+          start: plannedDeployment.start,
           forward: temp_fromStartToCursor
             .clone()
             .normalize()
@@ -660,7 +660,7 @@ export function main(assets: Assets): void {
           assets,
           allegiance: Allegiance.Azuki,
         });
-        for (const soldier of pendingDeployment.pendingUnit.soldiers) {
+        for (const soldier of plannedDeployment.plannedUnit.soldiers) {
           scene.add(soldier.gltf.scene);
           updateThreeJsProperties(soldier);
         }
@@ -677,25 +677,25 @@ export function main(assets: Assets): void {
       return;
     }
 
-    resources.pendingDeployment.start = resources.groundCursor.clone();
+    resources.plannedDeployment.start = resources.groundCursor.clone();
   }
 
   function trySetDeploymentEnd(): void {
     if (
-      !(pendingDeployment.start !== null && resources.groundCursor !== null)
+      !(plannedDeployment.start !== null && resources.groundCursor !== null)
     ) {
       return;
     }
 
-    if (pendingDeployment.setUnit === null) {
+    if (plannedDeployment.setUnit === null) {
       const temp_fromStartToCursor = resources.groundCursor
         .clone()
-        .sub(pendingDeployment.start);
+        .sub(plannedDeployment.start);
       const fromStartToCursorLength = temp_fromStartToCursor.length();
       const RANK_GAP = 8;
       const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
-      pendingDeployment.setUnit = getUnit({
-        start: pendingDeployment.start,
+      plannedDeployment.setUnit = getUnit({
+        start: plannedDeployment.start,
         forward: temp_fromStartToCursor
           .clone()
           .normalize()
@@ -705,15 +705,15 @@ export function main(assets: Assets): void {
         assets,
         allegiance: Allegiance.Azuki,
       });
-      for (const soldier of pendingDeployment.setUnit.soldiers) {
+      for (const soldier of plannedDeployment.setUnit.soldiers) {
         scene.add(soldier.gltf.scene);
         updateThreeJsProperties(soldier);
       }
-      pendingDeployment.start = null;
+      plannedDeployment.start = null;
     } else {
       // TODO
       // For now, setting a second unit is a no-op.
-      pendingDeployment.start = null;
+      plannedDeployment.start = null;
     }
   }
 }
@@ -1044,17 +1044,17 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   }
 }
 
-function tickPendingDeployment(
+function tickPlannedDeployment(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
-  const { pendingDeployment, keys, scene } = resources;
+  const { plannedDeployment, keys, scene } = resources;
   const selectedTower = getAzukiBannerTowerEnclosingGroundCursor(resources);
-  if (pendingDeployment.setUnit !== null && keys.f && selectedTower !== null) {
-    for (const soldier of pendingDeployment.setUnit.soldiers) {
+  if (plannedDeployment.setUnit !== null && keys.f && selectedTower !== null) {
+    for (const soldier of plannedDeployment.setUnit.soldiers) {
       scene.remove(soldier.gltf.scene);
     }
-    pendingDeployment.setUnit = null;
+    plannedDeployment.setUnit = null;
   }
 }
 
