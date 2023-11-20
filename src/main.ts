@@ -878,9 +878,11 @@ function startOrContinueSlashAnimation(
   } else {
     // We should deal damage on slash animation frame 18.
     const SLASH_DAMAGE_POINT_LOCATION_FACTOR = 18 / 30;
-    const finishes =
-      animation.timeInSeconds + elapsedTimeInSeconds >=
+    const damageTime =
       scaledSlashClipDuration * SLASH_DAMAGE_POINT_LOCATION_FACTOR;
+    const finishes =
+      animation.timeInSeconds < damageTime &&
+      animation.timeInSeconds + elapsedTimeInSeconds >= damageTime;
     animation.timeInSeconds =
       (animation.timeInSeconds + elapsedTimeInSeconds) %
       scaledSlashClipDuration;
