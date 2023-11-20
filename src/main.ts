@@ -57,10 +57,10 @@ const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
 
 let hasAlerted = false;
-function alertOnce(message: string): void {
+function alertOnceAfterDelay(message: string): void {
   if (!hasAlerted) {
     hasAlerted = true;
-    alert(message);
+    setTimeout(() => alert(message), 2e3);
   }
 }
 
@@ -1045,13 +1045,37 @@ function continueIdleThenStabAnimation(
 
 function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   if (resources.azukiKing.health <= 0) {
-    // TODO
-    alertOnce("Edamame wins!");
+    alertOnceAfterDelay("Edamame wins!");
+
+    if (
+      resources.scene.children.some(
+        (child) => child === resources.azukiKing.gltf.scene
+      )
+    ) {
+      const azukiExplosion = getSoldierExplosion(
+        Allegiance.Azuki,
+        resources.azukiKing.gltf.scene
+      );
+      resources.soldierExplosions.push(azukiExplosion);
+      resources.scene.remove(resources.azukiKing.gltf.scene);
+    }
   }
 
   if (resources.edamameKing.health <= 0) {
-    // TODO
-    alertOnce("Azuki wins!");
+    alertOnceAfterDelay("Azuki wins!");
+
+    if (
+      resources.scene.children.some(
+        (child) => child === resources.edamameKing.gltf.scene
+      )
+    ) {
+      const edamameExplosion = getSoldierExplosion(
+        Allegiance.Edamame,
+        resources.edamameKing.gltf.scene
+      );
+      resources.soldierExplosions.push(edamameExplosion);
+      resources.scene.remove(resources.edamameKing.gltf.scene);
+    }
   }
 }
 
@@ -1302,7 +1326,7 @@ function tickBannerTowers(
       console.log(
         winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!"
       );
-      alertOnce(
+      alertOnceAfterDelay(
         winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!"
       );
     }
