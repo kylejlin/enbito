@@ -38,6 +38,8 @@ enum SoldierAnimationKind {
 }
 
 interface Resources {
+  pendingDeployment: PendingDeployment;
+  groundCursor: null | Vector3;
   azukiKing: King;
   edamameKing: King;
   assets: Assets;
@@ -45,6 +47,12 @@ interface Resources {
   units: Unit[];
   towers: BannerTower[];
   soldierExplosions: SoldierExplosion[];
+}
+
+interface PendingDeployment {
+  start: null | Vector3;
+  pendingUnit: null | Unit;
+  setUnit: null | Unit;
 }
 
 const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
@@ -100,13 +108,11 @@ export function main(assets: Assets): void {
     }
   });
 
-  const pendingDeployment = {
-    start: new Vector3(0, 0, 0),
-    endWhenMostRecentPreviewWasCreated: new Vector3(0, 0, 0),
-    active: false,
+  const pendingDeployment: PendingDeployment = {
+    start: null,
+    setUnit: null,
+    pendingUnit: null,
   };
-
-  let groundCursor: null | Vector3 = null;
 
   const keys = {
     w: false,
@@ -370,12 +376,14 @@ export function main(assets: Assets): void {
 
   const resources: Resources = {
     azukiKing: player,
+    groundCursor: null,
     edamameKing,
     assets,
     scene,
     units,
     towers,
     soldierExplosions,
+    pendingDeployment,
   };
 
   addSky();
@@ -554,12 +562,19 @@ export function main(assets: Assets): void {
     );
 
     tickKings(elapsedTimeInSeconds, resources);
+    tickPendingDeployment(elapsedTimeInSeconds, resources);
     tickUnits(elapsedTimeInSeconds, resources);
     tickBannerTowers(elapsedTimeInSeconds, resources);
     tickSoldierExplosions(elapsedTimeInSeconds, resources);
   }
 
   function oncePerFrameBeforeRender(): void {
+    if (!isPlayerRidingDragonfly) {
+      player.gltf.scene.quaternion.setFromAxisAngle(
+        new Vector3(0, 1, 0),
+        player.yRot
+      );
+    }
     updateThreeJsProperties(player);
 
     for (const unit of units) {
@@ -594,42 +609,22 @@ export function main(assets: Assets): void {
     );
     const hits = raycaster.intersectObject(grasslike, true);
     if (hits.length === 0) {
-      groundCursor = null;
+      resources.groundCursor = null;
     } else {
-      groundCursor = hits[0].point;
+      resources.groundCursor = hits[0].point;
     }
 
-    if (
-      groundCursor === null ||
-      !pendingDeployment.active ||
-      !groundCursor.equals(pendingDeployment.endWhenMostRecentPreviewWasCreated)
-    ) {
-      for (let i = 0; true; ) {
-        if (i >= units.length) {
-          break;
-        }
-        if (units[i].isPreview) {
-          for (const soldier of units[i].soldiers) {
-            scene.remove(soldier.gltf.scene);
-          }
-
-          units.splice(i, 1);
-        } else {
-          ++i;
-        }
+    if (pendingDeployment.pendingUnit !== null) {
+      for (const soldier of pendingDeployment.pendingUnit.soldiers) {
+        scene.remove(soldier.gltf.scene);
       }
     }
 
-    if (groundCursor !== null) {
-      cursor.position.copy(groundCursor);
+    if (resources.groundCursor !== null) {
+      cursor.position.copy(resources.groundCursor);
 
-      if (
-        pendingDeployment.active &&
-        !groundCursor.equals(
-          pendingDeployment.endWhenMostRecentPreviewWasCreated
-        )
-      ) {
-        const temp_fromStartToCursor = groundCursor
+      if (pendingDeployment.start !== null) {
+        const temp_fromStartToCursor = resources.groundCursor
           .clone()
           .sub(pendingDeployment.start);
         const fromStartToCursorLength = temp_fromStartToCursor.length();
@@ -638,7 +633,7 @@ export function main(assets: Assets): void {
           1,
           Math.floor(fromStartToCursorLength / RANK_GAP)
         );
-        const previewUnit = getUnit({
+        pendingDeployment.pendingUnit = getUnit({
           start: pendingDeployment.start,
           forward: temp_fromStartToCursor
             .clone()
@@ -649,58 +644,11 @@ export function main(assets: Assets): void {
           assets,
           allegiance: Allegiance.Azuki,
         });
-        previewUnit.isPreview = true;
-        units.push(previewUnit);
-        for (const soldier of previewUnit.soldiers) {
+        for (const soldier of pendingDeployment.pendingUnit.soldiers) {
           scene.add(soldier.gltf.scene);
           updateThreeJsProperties(soldier);
         }
-        pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
       }
-    }
-  }
-
-  function updateThreeJsProperties(soldier: Soldier | King): void {
-    if (soldier.animation.kind === SoldierAnimationKind.Walk) {
-      soldier.walkAction.play();
-
-      soldier.stabAction.stop();
-      if (isKing(soldier)) {
-        soldier.slashAction.stop();
-      }
-
-      soldier.mixer.setTime(soldier.animation.timeInSeconds);
-    } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
-      soldier.stabAction.play();
-
-      soldier.walkAction.stop();
-      if (isKing(soldier)) {
-        soldier.slashAction.stop();
-      }
-
-      soldier.mixer.setTime(soldier.animation.timeInSeconds);
-    } else if (soldier.animation.kind === SoldierAnimationKind.Slash) {
-      if (isKing(soldier)) {
-        soldier.slashAction.play();
-      }
-
-      soldier.walkAction.stop();
-      soldier.stabAction.stop();
-
-      soldier.mixer.setTime(soldier.animation.timeInSeconds);
-    } else {
-      soldier.walkAction.stop();
-      soldier.stabAction.stop();
-      if (isKing(soldier)) {
-        soldier.slashAction.stop();
-      }
-    }
-
-    if (!(soldier === player && isPlayerRidingDragonfly)) {
-      soldier.gltf.scene.quaternion.setFromAxisAngle(
-        new Vector3(0, 1, 0),
-        soldier.yRot
-      );
     }
   }
 
@@ -709,48 +657,44 @@ export function main(assets: Assets): void {
   }
 
   function trySetDeploymentStart(wasKey1Down: boolean): void {
-    if (groundCursor === null || wasKey1Down) {
+    if (resources.groundCursor === null || wasKey1Down) {
       return;
     }
 
-    pendingDeployment.start.copy(groundCursor);
-    pendingDeployment.active = true;
+    resources.pendingDeployment.start = resources.groundCursor.clone();
   }
 
   function trySetDeploymentEnd(): void {
-    if (!pendingDeployment.active) {
+    if (
+      !(pendingDeployment.start !== null && resources.groundCursor !== null)
+    ) {
       return;
     }
 
-    if (groundCursor === null) {
-      return;
-    }
-
-    pendingDeployment.active = false;
-
-    const temp_fromStartToCursor = groundCursor
-      .clone()
-      .sub(pendingDeployment.start);
-    const fromStartToCursorLength = temp_fromStartToCursor.length();
-    const RANK_GAP = 8;
-    const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
-    const previewUnit = getUnit({
-      start: pendingDeployment.start,
-      forward: temp_fromStartToCursor
+    if (pendingDeployment.setUnit === null) {
+      const temp_fromStartToCursor = resources.groundCursor
         .clone()
-        .normalize()
-        .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
-      dimensions: [width, 1],
-      gap: [RANK_GAP, 0],
-      assets,
-      allegiance: Allegiance.Azuki,
-    });
-    units.push(previewUnit);
-    for (const soldier of previewUnit.soldiers) {
-      scene.add(soldier.gltf.scene);
-      updateThreeJsProperties(soldier);
+        .sub(pendingDeployment.start);
+      const fromStartToCursorLength = temp_fromStartToCursor.length();
+      const RANK_GAP = 8;
+      const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
+      pendingDeployment.setUnit = getUnit({
+        start: pendingDeployment.start,
+        forward: temp_fromStartToCursor
+          .clone()
+          .normalize()
+          .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
+        dimensions: [width, 1],
+        gap: [RANK_GAP, 0],
+        assets,
+        allegiance: Allegiance.Azuki,
+      });
+      pendingDeployment.start = null;
+    } else {
+      // TODO
+      // For now, setting a second unit is a no-op.
+      pendingDeployment.start = null;
     }
-    pendingDeployment.endWhenMostRecentPreviewWasCreated.copy(groundCursor);
   }
 }
 
@@ -1077,6 +1021,63 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       resources.soldierExplosions.push(edamameExplosion);
       resources.scene.remove(resources.edamameKing.gltf.scene);
     }
+  }
+}
+
+function tickPendingDeployment(
+  elapsedTimeInSeconds: number,
+  resources: Resources
+): void {
+  const { pendingDeployment, scene } = resources;
+  if (pendingDeployment.setUnit !== null) {
+    for (const soldier of pendingDeployment.setUnit.soldiers) {
+      scene.add(soldier.gltf.scene);
+      updateThreeJsProperties(soldier);
+    }
+  }
+}
+
+function updateThreeJsProperties(soldier: Soldier | King): void {
+  if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+    soldier.walkAction.play();
+
+    soldier.stabAction.stop();
+    if (isKing(soldier)) {
+      soldier.slashAction.stop();
+    }
+
+    soldier.mixer.setTime(soldier.animation.timeInSeconds);
+  } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+    soldier.stabAction.play();
+
+    soldier.walkAction.stop();
+    if (isKing(soldier)) {
+      soldier.slashAction.stop();
+    }
+
+    soldier.mixer.setTime(soldier.animation.timeInSeconds);
+  } else if (soldier.animation.kind === SoldierAnimationKind.Slash) {
+    if (isKing(soldier)) {
+      soldier.slashAction.play();
+    }
+
+    soldier.walkAction.stop();
+    soldier.stabAction.stop();
+
+    soldier.mixer.setTime(soldier.animation.timeInSeconds);
+  } else {
+    soldier.walkAction.stop();
+    soldier.stabAction.stop();
+    if (isKing(soldier)) {
+      soldier.slashAction.stop();
+    }
+  }
+
+  if (!isKing(soldier)) {
+    soldier.gltf.scene.quaternion.setFromAxisAngle(
+      new Vector3(0, 1, 0),
+      soldier.yRot
+    );
   }
 }
 
