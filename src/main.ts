@@ -38,6 +38,8 @@ enum SoldierAnimationKind {
 }
 
 interface Resources {
+  azukiKing: King;
+  edamameKing: King;
   assets: Assets;
   scene: Scene;
   units: Unit[];
@@ -53,6 +55,14 @@ const DRAGONFLY_SPEED = 30;
 const SOLDIER_EXPLOSION_DURATION = 1;
 const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
+
+let hasAlerted = false;
+function alertOnce(message: string): void {
+  if (!hasAlerted) {
+    hasAlerted = true;
+    alert(message);
+  }
+}
 
 export function main(assets: Assets): void {
   let worldTime = Date.now();
@@ -243,6 +253,49 @@ export function main(assets: Assets): void {
   })();
   let isPlayerRidingDragonfly = false;
 
+  const edamameKing = (function (): King {
+    // TODO: Replace gltf with edamame king.
+    const playerGltf = cloneGltf(assets.azukiKing);
+    const playerScene = playerGltf.scene;
+    playerScene.position.set(0, 0, 0);
+    const playerWalkClip = AnimationClip.findByName(
+      playerGltf.animations,
+      "Walk"
+    );
+    const playerStabClip = AnimationClip.findByName(
+      playerGltf.animations,
+      "Stab"
+    );
+    const playerSlashClip = AnimationClip.findByName(
+      playerGltf.animations,
+      "Slash"
+    );
+
+    const playerMixer = new AnimationMixer(playerScene);
+    const playerWalkAction = playerMixer.clipAction(playerWalkClip);
+    const playerStabAction = playerMixer.clipAction(playerStabClip);
+    const playerSlashAction = playerMixer.clipAction(playerSlashClip);
+    playerWalkAction.timeScale = 2;
+    return {
+      isKing: true,
+      gltf: playerGltf,
+      animation: {
+        kind: SoldierAnimationKind.Idle,
+        timeInSeconds: 0,
+      },
+      mixer: playerMixer,
+      walkClip: playerWalkClip,
+      walkAction: playerWalkAction,
+      stabClip: playerStabClip,
+      stabAction: playerStabAction,
+      slashClip: playerSlashClip,
+      slashAction: playerSlashAction,
+      attackTarget: null,
+      health: 100,
+      yRot: 0,
+    };
+  })();
+
   scene.add(player.gltf.scene);
 
   const units = [
@@ -315,6 +368,8 @@ export function main(assets: Assets): void {
   scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = {
+    azukiKing: player,
+    edamameKing,
     assets,
     scene,
     units,
@@ -497,6 +552,7 @@ export function main(assets: Assets): void {
       )
     );
 
+    tickKings(elapsedTimeInSeconds, resources);
     tickUnits(elapsedTimeInSeconds, resources);
     tickBannerTowers(elapsedTimeInSeconds, resources);
     tickSoldierExplosions(elapsedTimeInSeconds, resources);
@@ -987,10 +1043,20 @@ function continueIdleThenStabAnimation(
   return false;
 }
 
-function tickUnits(
-  elapsedTimeInSeconds: number,
-  { assets, scene, soldierExplosions, units }: Resources
-): void {
+function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
+  if (resources.azukiKing.health <= 0) {
+    // TODO
+    alertOnce("Edamame wins!");
+  }
+
+  if (resources.edamameKing.health <= 0) {
+    // TODO
+    alertOnce("Azuki wins!");
+  }
+}
+
+function tickUnits(elapsedTimeInSeconds: number, resources: Resources): void {
+  const { assets, scene, soldierExplosions, units } = resources;
   for (const unit of units) {
     const { soldiers } = unit;
     for (let i = 0; i < soldiers.length; ++i) {
@@ -1025,8 +1091,8 @@ function tickUnits(
         const nearestEnemy = getNearestEnemy(
           soldier,
           unit,
-          units,
-          SPEAR_ATTACK_RANGE_SQUARED
+          SPEAR_ATTACK_RANGE_SQUARED,
+          resources
         );
         if (nearestEnemy !== null) {
           soldier.attackTarget = nearestEnemy;
@@ -1054,8 +1120,8 @@ function tickUnits(
           const nearestEnemy = getNearestEnemy(
             soldier,
             unit,
-            units,
-            SPEAR_ATTACK_RANGE_SQUARED
+            SPEAR_ATTACK_RANGE_SQUARED,
+            resources
           );
           if (nearestEnemy !== null) {
             soldier.attackTarget = nearestEnemy;
@@ -1089,6 +1155,7 @@ function tickUnits(
             );
             if (dealsDamageThisTick) {
               soldier.attackTarget.health -= STAB_DAMAGE;
+              console.log("d1", soldier.attackTarget.health);
             }
           } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
             const dealsDamageThisTick = continueIdleThenStabAnimation(
@@ -1098,6 +1165,7 @@ function tickUnits(
             );
             if (dealsDamageThisTick) {
               soldier.attackTarget.health -= STAB_DAMAGE;
+              console.log("d2", soldier.attackTarget.health);
             }
           }
         }
@@ -1109,8 +1177,8 @@ function tickUnits(
 function getNearestEnemy(
   soldier: Soldier,
   soldierUnit: Unit,
-  units: Unit[],
-  rangeSquared: number
+  rangeSquared: number,
+  { units, azukiKing, edamameKing }: Resources
 ): null | Soldier {
   let nearestEnemy: Soldier | null = null;
   let nearestDistanceSquared = Infinity;
@@ -1127,6 +1195,26 @@ function getNearestEnemy(
         nearestEnemy = enemy;
         nearestDistanceSquared = distSq;
       }
+    }
+  }
+
+  if (soldierUnit.allegiance !== Allegiance.Azuki) {
+    const distSq = soldier.gltf.scene.position.distanceToSquared(
+      azukiKing.gltf.scene.position
+    );
+    if (distSq < nearestDistanceSquared) {
+      nearestEnemy = azukiKing;
+      nearestDistanceSquared = distSq;
+    }
+  }
+
+  if (soldierUnit.allegiance !== Allegiance.Edamame) {
+    const distSq = soldier.gltf.scene.position.distanceToSquared(
+      edamameKing.gltf.scene.position
+    );
+    if (distSq < nearestDistanceSquared) {
+      nearestEnemy = edamameKing;
+      nearestDistanceSquared = distSq;
     }
   }
 
@@ -1214,7 +1302,9 @@ function tickBannerTowers(
       console.log(
         winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!"
       );
-      alert(winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!");
+      alertOnce(
+        winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!"
+      );
     }
   }
 }
