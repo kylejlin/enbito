@@ -258,7 +258,8 @@ export function main(assets: Assets): void {
   const edamameKing = (function (): King {
     const playerGltf = cloneGltf(assets.edamameKing);
     const playerScene = playerGltf.scene;
-    playerScene.position.set(0, 0, 0);
+    playerScene.position.set(50, 0, -50);
+    playerScene.rotateY(Math.PI);
     const playerWalkClip = AnimationClip.findByName(
       playerGltf.animations,
       "Walk"
