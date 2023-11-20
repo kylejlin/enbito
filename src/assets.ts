@@ -26,6 +26,7 @@ export interface Assets {
   azukiBannerTower: GLTF;
   edamameBannerTower: GLTF;
   azukiKing: GLTF;
+  edamameKing: GLTF;
   explodingAzukiFrames: [
     Group,
     Group,
@@ -140,6 +141,11 @@ export function loadAssets(): Promise<Assets> {
         resolve(gltf);
       });
     }),
+    new Promise<GLTF>((resolve) => {
+      new GLTFLoader().load("./models/edamame_king.glb", (gltf) => {
+        resolve(gltf);
+      });
+    }),
     Promise.all([
       getAzukiExplodingFrame("000001"),
       getAzukiExplodingFrame("000002"),
@@ -212,6 +218,7 @@ export function loadAssets(): Promise<Assets> {
       azukiBannerTower,
       edamameBannerTower,
       azukiKing,
+      edamameKing,
       explodingAzukiFrames,
       explodingEdamameFrames,
     ]): Assets => {
@@ -250,6 +257,7 @@ export function loadAssets(): Promise<Assets> {
         azukiBannerTower,
         edamameBannerTower,
         azukiKing,
+        edamameKing,
         explodingAzukiFrames,
         explodingEdamameFrames,
       };

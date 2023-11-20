@@ -253,9 +253,10 @@ export function main(assets: Assets): void {
   })();
   let isPlayerRidingDragonfly = false;
 
+  scene.add(player.gltf.scene);
+
   const edamameKing = (function (): King {
-    // TODO: Replace gltf with edamame king.
-    const playerGltf = cloneGltf(assets.azukiKing);
+    const playerGltf = cloneGltf(assets.edamameKing);
     const playerScene = playerGltf.scene;
     playerScene.position.set(0, 0, 0);
     const playerWalkClip = AnimationClip.findByName(
@@ -295,8 +296,7 @@ export function main(assets: Assets): void {
       yRot: 0,
     };
   })();
-
-  scene.add(player.gltf.scene);
+  scene.add(edamameKing.gltf.scene);
 
   const units = [
     getUnit({
