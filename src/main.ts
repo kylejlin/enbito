@@ -52,6 +52,7 @@ const STAB_COOLDOWN = 1;
 const DRAGONFLY_SPEED = 30;
 const SOLDIER_EXPLOSION_DURATION = 1;
 const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
+const SLASH_DAMAGE = 40;
 
 export function main(assets: Assets): void {
   let worldTime = Date.now();
@@ -1311,7 +1312,7 @@ function applyKingSlashDamage(
         continue;
       }
 
-      soldier.health -= 100;
+      soldier.health -= SLASH_DAMAGE;
     }
   }
 }
