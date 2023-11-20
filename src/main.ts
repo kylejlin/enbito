@@ -38,6 +38,7 @@ enum SoldierAnimationKind {
 }
 
 interface Resources {
+  keys: KeySet;
   pendingDeployment: PendingDeployment;
   groundCursor: null | Vector3;
   azukiKing: King;
@@ -47,6 +48,13 @@ interface Resources {
   units: Unit[];
   towers: BannerTower[];
   soldierExplosions: SoldierExplosion[];
+}
+
+interface KeySet {
+  w: boolean;
+  f: boolean;
+  space: boolean;
+  _1: boolean;
 }
 
 interface PendingDeployment {
@@ -114,14 +122,18 @@ export function main(assets: Assets): void {
     pendingUnit: null,
   };
 
-  const keys = {
+  const keys: KeySet = {
     w: false,
+    f: false,
     space: false,
     _1: false,
   };
   window.addEventListener("keydown", (e) => {
     if (e.key === "w") {
       keys.w = true;
+    }
+    if (e.key === "f") {
+      keys.f = true;
     }
     if (e.key === " ") {
       keys.space = true;
@@ -136,6 +148,9 @@ export function main(assets: Assets): void {
   window.addEventListener("keyup", (e) => {
     if (e.key === "w") {
       keys.w = false;
+    }
+    if (e.key === "f") {
+      keys.f = false;
     }
     if (e.key === " ") {
       keys.space = false;
@@ -375,6 +390,7 @@ export function main(assets: Assets): void {
   scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = {
+    keys,
     azukiKing: player,
     groundCursor: null,
     edamameKing,
@@ -689,6 +705,10 @@ export function main(assets: Assets): void {
         assets,
         allegiance: Allegiance.Azuki,
       });
+      for (const soldier of pendingDeployment.setUnit.soldiers) {
+        scene.add(soldier.gltf.scene);
+        updateThreeJsProperties(soldier);
+      }
       pendingDeployment.start = null;
     } else {
       // TODO
@@ -1028,12 +1048,13 @@ function tickPendingDeployment(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
-  const { pendingDeployment, scene } = resources;
-  if (pendingDeployment.setUnit !== null) {
+  const { pendingDeployment, keys, scene } = resources;
+  const selectedTower = getAzukiBannerTowerEnclosingGroundCursor(resources);
+  if (pendingDeployment.setUnit !== null && keys.f && selectedTower !== null) {
     for (const soldier of pendingDeployment.setUnit.soldiers) {
-      scene.add(soldier.gltf.scene);
-      updateThreeJsProperties(soldier);
+      scene.remove(soldier.gltf.scene);
     }
+    pendingDeployment.setUnit = null;
   }
 }
 
@@ -1459,4 +1480,24 @@ function getSoldierExplosion(
     timeInSeconds: 0,
     scene: null,
   };
+}
+
+function getAzukiBannerTowerEnclosingGroundCursor(
+  resources: Resources
+): null | BannerTower {
+  const { groundCursor } = resources;
+  if (groundCursor === null) {
+    return null;
+  }
+
+  for (const tower of resources.towers) {
+    if (
+      tower.allegiance === Allegiance.Azuki &&
+      inTowerTerritory(groundCursor, tower.position)
+    ) {
+      return tower;
+    }
+  }
+
+  return null;
 }
