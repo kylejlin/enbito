@@ -1202,7 +1202,7 @@ function getNearestEnemy(
     const distSq = soldier.gltf.scene.position.distanceToSquared(
       azukiKing.gltf.scene.position
     );
-    if (distSq < nearestDistanceSquared) {
+    if (distSq < nearestDistanceSquared && azukiKing.health > 0) {
       nearestEnemy = azukiKing;
       nearestDistanceSquared = distSq;
     }
@@ -1212,7 +1212,7 @@ function getNearestEnemy(
     const distSq = soldier.gltf.scene.position.distanceToSquared(
       edamameKing.gltf.scene.position
     );
-    if (distSq < nearestDistanceSquared) {
+    if (distSq < nearestDistanceSquared && edamameKing.health > 0) {
       nearestEnemy = edamameKing;
       nearestDistanceSquared = distSq;
     }
