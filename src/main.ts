@@ -1150,10 +1150,35 @@ function tickUnit(
   unit: Unit,
   resources: Resources
 ): void {
-  if (unit.isPreview) {
-    return;
+  switch (unit.order.kind) {
+    case UnitOrderKind.Advance:
+      tickUnitWithAdvanceOrder(
+        elapsedTimeInSeconds,
+        unit,
+        unit.order,
+        resources
+      );
+      return;
+    case UnitOrderKind.Assemble:
+      tickUnitWithAssembleOrder(
+        elapsedTimeInSeconds,
+        unit,
+        unit.order,
+        resources
+      );
+      return;
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const _exhaustiveCheck: never = unit.order;
+}
+
+function tickUnitWithAdvanceOrder(
+  elapsedTimeInSeconds: number,
+  unit: Unit,
+  order: AdvanceOrder,
+  resources: Resources
+): void {
   const { assets } = resources;
 
   const { soldiers } = unit;
@@ -1245,6 +1270,15 @@ function tickUnit(
       }
     }
   }
+}
+
+function tickUnitWithAssembleOrder(
+  elapsedTimeInSeconds: number,
+  unit: Unit,
+  order: AssembleOrder,
+  resources: Resources
+): void {
+  // TODO
 }
 
 function getNearestEnemy(
