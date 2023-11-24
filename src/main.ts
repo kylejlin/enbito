@@ -37,6 +37,11 @@ enum SoldierAnimationKind {
   Slash,
 }
 
+enum UnitOrderKind {
+  Advance,
+  Assemble,
+}
+
 interface Resources {
   keys: KeySet;
   plannedDeployment: PlannedDeployment;
@@ -719,10 +724,22 @@ export function main(assets: Assets): void {
 }
 
 interface Unit {
+  order: UnitOrder;
   soldiers: Soldier[];
   forward: Vector3;
   isPreview: boolean;
   allegiance: Allegiance;
+}
+
+export type UnitOrder = AdvanceOrder | AssembleOrder;
+
+interface AdvanceOrder {
+  kind: UnitOrderKind.Advance;
+}
+
+interface AssembleOrder {
+  kind: UnitOrderKind.Assemble;
+  target: Unit;
 }
 
 interface Soldier {
@@ -807,6 +824,7 @@ function getUnit({
     }
   }
   return {
+    order: { kind: UnitOrderKind.Advance },
     soldiers,
     forward,
     isPreview: false,
@@ -1103,7 +1121,7 @@ function updateThreeJsProperties(soldier: Soldier | King): void {
 }
 
 function tickUnits(elapsedTimeInSeconds: number, resources: Resources): void {
-  const { assets, scene, soldierExplosions, units } = resources;
+  const { scene, soldierExplosions, units } = resources;
   for (const unit of units) {
     const { soldiers } = unit;
     for (let i = 0; i < soldiers.length; ++i) {
@@ -1123,18 +1141,58 @@ function tickUnits(elapsedTimeInSeconds: number, resources: Resources): void {
   }
 
   for (const unit of units) {
-    if (unit.isPreview) {
-      continue;
+    tickUnit(elapsedTimeInSeconds, unit, resources);
+  }
+}
+
+function tickUnit(
+  elapsedTimeInSeconds: number,
+  unit: Unit,
+  resources: Resources
+): void {
+  if (unit.isPreview) {
+    return;
+  }
+
+  const { assets } = resources;
+
+  const { soldiers } = unit;
+
+  const wasAnySoldierFighting = soldiers.some(
+    (soldier) => soldier.attackTarget !== null
+  );
+  if (!wasAnySoldierFighting) {
+    const forwardAngle = Math.atan2(unit.forward.x, unit.forward.z);
+    for (const soldier of soldiers) {
+      const nearestEnemy = getNearestEnemy(
+        soldier,
+        unit,
+        SPEAR_ATTACK_RANGE_SQUARED,
+        resources
+      );
+      if (nearestEnemy !== null) {
+        soldier.attackTarget = nearestEnemy;
+      } else {
+        const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+        soldier.yRot = limitTurn(soldier.yRot, forwardAngle, radiansPerTick);
+        if (soldier.yRot === forwardAngle) {
+          startOrContinueWalkingAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            1,
+            assets
+          );
+          soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
+        }
+      }
     }
+  } else {
+    for (const soldier of soldiers) {
+      if (soldier.attackTarget !== null && soldier.attackTarget.health <= 0) {
+        soldier.attackTarget = null;
+      }
 
-    const { soldiers } = unit;
-
-    const wasAnySoldierFighting = soldiers.some(
-      (soldier) => soldier.attackTarget !== null
-    );
-    if (!wasAnySoldierFighting) {
-      const forwardAngle = Math.atan2(unit.forward.x, unit.forward.z);
-      for (const soldier of soldiers) {
+      if (soldier.attackTarget === null) {
         const nearestEnemy = getNearestEnemy(
           soldier,
           unit,
@@ -1143,77 +1201,45 @@ function tickUnits(elapsedTimeInSeconds: number, resources: Resources): void {
         );
         if (nearestEnemy !== null) {
           soldier.attackTarget = nearestEnemy;
-        } else {
-          const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-          soldier.yRot = limitTurn(soldier.yRot, forwardAngle, radiansPerTick);
-          if (soldier.yRot === forwardAngle) {
-            startOrContinueWalkingAnimation(
-              elapsedTimeInSeconds,
-              soldier.animation,
-              1,
-              assets
-            );
-            soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
-          }
         }
       }
-    } else {
-      for (const soldier of soldiers) {
-        if (soldier.attackTarget !== null && soldier.attackTarget.health <= 0) {
-          soldier.attackTarget = null;
-        }
 
-        if (soldier.attackTarget === null) {
-          const nearestEnemy = getNearestEnemy(
-            soldier,
-            unit,
-            SPEAR_ATTACK_RANGE_SQUARED,
-            resources
-          );
-          if (nearestEnemy !== null) {
-            soldier.attackTarget = nearestEnemy;
-          }
-        }
+      if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+        stopWalkingAndStartStabAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          1,
+          assets
+        );
+      }
 
-        if (soldier.animation.kind === SoldierAnimationKind.Walk) {
-          stopWalkingAndStartStabAnimation(
+      if (soldier.attackTarget !== null) {
+        const difference = soldier.attackTarget.gltf.scene.position
+          .clone()
+          .sub(soldier.gltf.scene.position);
+        const desiredYRot =
+          Math.atan2(difference.x, difference.z) + Math.PI + 0.05;
+        const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+        soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+
+        if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+          const dealsDamageThisTick = continueStabThenIdleAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
-            1,
+            soldier.stabAction.timeScale,
             assets
           );
-        }
-
-        if (soldier.attackTarget !== null) {
-          const difference = soldier.attackTarget.gltf.scene.position
-            .clone()
-            .sub(soldier.gltf.scene.position);
-          const desiredYRot =
-            Math.atan2(difference.x, difference.z) + Math.PI + 0.05;
-          const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-          soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
-
-          if (soldier.animation.kind === SoldierAnimationKind.Stab) {
-            const dealsDamageThisTick = continueStabThenIdleAnimation(
-              elapsedTimeInSeconds,
-              soldier.animation,
-              soldier.stabAction.timeScale,
-              assets
-            );
-            if (dealsDamageThisTick) {
-              soldier.attackTarget.health -= STAB_DAMAGE;
-              console.log("d1", soldier.attackTarget.health);
-            }
-          } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
-            const dealsDamageThisTick = continueIdleThenStabAnimation(
-              elapsedTimeInSeconds,
-              soldier.animation,
-              assets
-            );
-            if (dealsDamageThisTick) {
-              soldier.attackTarget.health -= STAB_DAMAGE;
-              console.log("d2", soldier.attackTarget.health);
-            }
+          if (dealsDamageThisTick) {
+            soldier.attackTarget.health -= STAB_DAMAGE;
+          }
+        } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
+          const dealsDamageThisTick = continueIdleThenStabAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            assets
+          );
+          if (dealsDamageThisTick) {
+            soldier.attackTarget.health -= STAB_DAMAGE;
           }
         }
       }
