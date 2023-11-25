@@ -737,6 +737,7 @@ interface Unit {
   forward: Vector3;
   isPreview: boolean;
   allegiance: Allegiance;
+  areSoldiersStillBeingAdded: boolean;
 }
 
 export type UnitOrder = AdvanceOrder | AssembleOrder;
@@ -775,7 +776,7 @@ interface BannerTower {
   edamameGltf: GLTF;
   isPreview: boolean;
   allegiance: Allegiance;
-  pendingSoldiers: [Soldier, Unit][];
+  pendingSoldiers: [Soldier, Unit, { isLastInUnit: boolean }][];
   secondsUntilNextSoldier: number;
 }
 
@@ -839,6 +840,7 @@ function getUnit({
     forward,
     isPreview: false,
     allegiance,
+    areSoldiersStillBeingAdded: false,
   };
 }
 
@@ -1092,13 +1094,26 @@ function tickPlannedDeployment(
       forward: plannedDeployment.setUnit.forward,
       isPreview: false,
       allegiance: plannedDeployment.setUnit.allegiance,
+      areSoldiersStillBeingAdded: true,
     };
     units.push(pendingUnit);
     selectedTower.pendingSoldiers.push(
-      ...plannedDeployment.setUnit.soldiers.map((soldier): [Soldier, Unit] => {
-        soldier.assemblyPoint.copy(soldier.gltf.scene.position);
-        return [soldier, pendingUnit];
-      })
+      ...plannedDeployment.setUnit.soldiers.map(
+        (
+          soldier,
+          soldierIndex,
+          { length: soldierCount }
+        ): [Soldier, Unit, { isLastInUnit: boolean }] => {
+          soldier.assemblyPoint.copy(soldier.gltf.scene.position);
+          return [
+            soldier,
+            pendingUnit,
+            {
+              isLastInUnit: soldierIndex === soldierCount - 1,
+            },
+          ];
+        }
+      )
     );
 
     plannedDeployment.setUnit = null;
@@ -1307,22 +1322,53 @@ function tickUnitWithAssembleOrder(
   order: AssembleOrder,
   resources: Resources
 ): void {
+  let isUnitStillAssembling = false;
+
   for (const soldier of unit.soldiers) {
+    let isReadyForCombat = false;
+
     const difference = soldier.assemblyPoint
       .clone()
       .sub(soldier.gltf.scene.position);
-    const desiredYRot = Math.atan2(difference.x, difference.z) + Math.PI;
-    const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-    soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
-    startOrContinueWalkingAnimation(
-      ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
-      soldier.animation,
-      1,
-      resources.assets
-    );
-    soldier.gltf.scene.translateZ(
-      ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
-    );
+    if (difference.lengthSq() < 0.1) {
+      const desiredYRot = Math.atan2(unit.forward.x, unit.forward.z);
+      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+      soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+      stopWalkingAnimation(
+        ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
+        soldier.animation,
+        1,
+        resources.assets
+      );
+
+      if (
+        soldier.animation.kind === SoldierAnimationKind.Idle &&
+        soldier.yRot === desiredYRot
+      ) {
+        isReadyForCombat = true;
+      }
+    } else {
+      const desiredYRot = Math.atan2(difference.x, difference.z) + Math.PI;
+      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+      soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+      startOrContinueWalkingAnimation(
+        ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
+        soldier.animation,
+        1,
+        resources.assets
+      );
+      soldier.gltf.scene.translateZ(
+        ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
+      );
+    }
+
+    if (soldier.health > 0 && !isReadyForCombat) {
+      isUnitStillAssembling = true;
+    }
+  }
+
+  if (!unit.areSoldiersStillBeingAdded && !isUnitStillAssembling) {
+    unit.order = { kind: UnitOrderKind.Advance };
   }
 }
 
@@ -1454,10 +1500,13 @@ function tickBannerTower(
 
   tower.secondsUntilNextSoldier -= elapsedTimeInSeconds;
   if (tower.secondsUntilNextSoldier <= 0 && tower.pendingSoldiers.length > 0) {
-    const [soldier, unit] = tower.pendingSoldiers.shift()!;
+    const [soldier, unit, { isLastInUnit }] = tower.pendingSoldiers.shift()!;
     soldier.gltf.scene.position.copy(tower.position);
     unit.soldiers.push(soldier);
     scene.add(soldier.gltf.scene);
+    if (isLastInUnit) {
+      unit.areSoldiersStillBeingAdded = false;
+    }
     tower.secondsUntilNextSoldier = SOLDIER_DEPLOYMENT_DELAY_SECONDS;
   }
 }
