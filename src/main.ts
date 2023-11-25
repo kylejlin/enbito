@@ -25,6 +25,8 @@ import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
+const dummyVector3 = new Vector3();
+
 enum Allegiance {
   Azuki,
   Edamame,
@@ -275,6 +277,7 @@ export function main(assets: Assets): void {
       attackTarget: null,
       health: 100,
       yRot: 0,
+      assemblyPoint: dummyVector3,
     };
   })();
   let isPlayerRidingDragonfly = false;
@@ -321,6 +324,7 @@ export function main(assets: Assets): void {
       attackTarget: null,
       health: 100,
       yRot: 0,
+      assemblyPoint: dummyVector3,
     };
   })();
   scene.add(edamameKing.gltf.scene);
@@ -753,6 +757,7 @@ interface Soldier {
   attackTarget: null | Soldier;
   health: number;
   yRot: number;
+  assemblyPoint: Vector3;
 }
 
 interface King extends Soldier {
@@ -864,6 +869,7 @@ function getSoldier(
     attackTarget: null,
     health: 100,
     yRot: 0,
+    assemblyPoint: dummyVector3,
   };
 }
 
@@ -1066,13 +1072,16 @@ function tickPlannedDeployment(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
-  const { plannedDeployment, keys, scene } = resources;
+  const { plannedDeployment, keys, scene, units } = resources;
   const selectedTower = getAzukiBannerTowerEnclosingGroundCursor(resources);
   if (plannedDeployment.setUnit !== null && keys.f && selectedTower !== null) {
     for (const soldier of plannedDeployment.setUnit.soldiers) {
       scene.remove(soldier.gltf.scene);
     }
+
     plannedDeployment.setUnit = null;
+
+    // TODO: Schedule deployment.
   }
 }
 
@@ -1278,7 +1287,23 @@ function tickUnitWithAssembleOrder(
   order: AssembleOrder,
   resources: Resources
 ): void {
-  // TODO
+  for (const soldier of unit.soldiers) {
+    const difference = soldier.assemblyPoint
+      .clone()
+      .sub(soldier.gltf.scene.position);
+    const desiredYRot = Math.atan2(difference.x, difference.z) + Math.PI;
+    const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+    soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+    if (soldier.yRot === desiredYRot) {
+      startOrContinueWalkingAnimation(
+        elapsedTimeInSeconds,
+        soldier.animation,
+        1,
+        resources.assets
+      );
+      soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
+    }
+  }
 }
 
 function getNearestEnemy(
