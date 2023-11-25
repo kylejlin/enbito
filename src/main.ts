@@ -81,6 +81,7 @@ const SOLDIER_EXPLOSION_DURATION = 1;
 const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
 const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
+const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -1313,15 +1314,15 @@ function tickUnitWithAssembleOrder(
     const desiredYRot = Math.atan2(difference.x, difference.z) + Math.PI;
     const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
     soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
-    if (soldier.yRot === desiredYRot) {
-      startOrContinueWalkingAnimation(
-        elapsedTimeInSeconds,
-        soldier.animation,
-        1,
-        resources.assets
-      );
-      soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
-    }
+    startOrContinueWalkingAnimation(
+      ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
+      soldier.animation,
+      1,
+      resources.assets
+    );
+    soldier.gltf.scene.translateZ(
+      ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
+    );
   }
 }
 
