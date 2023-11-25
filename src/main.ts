@@ -25,7 +25,9 @@ import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-const dummyVector3 = new Vector3();
+function getDummyVector3(): Vector3 {
+  return new Vector3();
+}
 
 enum Allegiance {
   Azuki,
@@ -78,6 +80,7 @@ const DRAGONFLY_SPEED = 30;
 const SOLDIER_EXPLOSION_DURATION = 1;
 const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
+const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -277,7 +280,7 @@ export function main(assets: Assets): void {
       attackTarget: null,
       health: 100,
       yRot: 0,
-      assemblyPoint: dummyVector3,
+      assemblyPoint: getDummyVector3(),
     };
   })();
   let isPlayerRidingDragonfly = false;
@@ -324,7 +327,7 @@ export function main(assets: Assets): void {
       attackTarget: null,
       health: 100,
       yRot: 0,
-      assemblyPoint: dummyVector3,
+      assemblyPoint: getDummyVector3(),
     };
   })();
   scene.add(edamameKing.gltf.scene);
@@ -743,7 +746,6 @@ interface AdvanceOrder {
 
 interface AssembleOrder {
   kind: UnitOrderKind.Assemble;
-  target: Unit;
 }
 
 interface Soldier {
@@ -772,6 +774,8 @@ interface BannerTower {
   edamameGltf: GLTF;
   isPreview: boolean;
   allegiance: Allegiance;
+  pendingSoldiers: [Soldier, Unit][];
+  secondsUntilNextSoldier: number;
 }
 
 interface SoldierExplosion {
@@ -869,7 +873,7 @@ function getSoldier(
     attackTarget: null,
     health: 100,
     yRot: 0,
-    assemblyPoint: dummyVector3,
+    assemblyPoint: getDummyVector3(),
   };
 }
 
@@ -889,6 +893,8 @@ function getBannerTower({
     edamameGltf: cloneGltf(assets.edamameBannerTower),
     isPreview: false,
     allegiance,
+    pendingSoldiers: [],
+    secondsUntilNextSoldier: 0,
   };
 }
 
@@ -1079,9 +1085,22 @@ function tickPlannedDeployment(
       scene.remove(soldier.gltf.scene);
     }
 
-    plannedDeployment.setUnit = null;
+    const pendingUnit: Unit = {
+      order: { kind: UnitOrderKind.Assemble },
+      soldiers: [],
+      forward: plannedDeployment.setUnit.forward,
+      isPreview: false,
+      allegiance: plannedDeployment.setUnit.allegiance,
+    };
+    units.push(pendingUnit);
+    selectedTower.pendingSoldiers.push(
+      ...plannedDeployment.setUnit.soldiers.map((soldier): [Soldier, Unit] => {
+        soldier.assemblyPoint.copy(soldier.gltf.scene.position);
+        return [soldier, pendingUnit];
+      })
+    );
 
-    // TODO: Schedule deployment.
+    plannedDeployment.setUnit = null;
   }
 }
 
@@ -1381,63 +1400,64 @@ const UNOCCUPIED = Symbol();
 const CONTESTED = Symbol();
 function tickBannerTowers(
   elapsedTimeInSeconds: number,
+  resources: Resources
+): void {
+  for (const tower of resources.towers) {
+    tickBannerTower(elapsedTimeInSeconds, tower, resources);
+  }
+}
+
+function tickBannerTower(
+  elapsedTimeInSeconds: number,
+  tower: BannerTower,
   { assets, scene, units, towers }: Resources
 ): void {
-  const teamsWithATower: Set<Allegiance> = new Set();
+  if (tower.isPreview) {
+    return;
+  }
 
-  for (const tower of towers) {
-    if (tower.isPreview) {
-      continue;
+  let uniqueOccupier: typeof UNOCCUPIED | typeof CONTESTED | Allegiance =
+    UNOCCUPIED;
+
+  for (const unit of units) {
+    if (
+      uniqueOccupier === CONTESTED ||
+      uniqueOccupier === unit.allegiance ||
+      unit.isPreview
+    ) {
+      break;
     }
 
-    let uniqueOccupier: typeof UNOCCUPIED | typeof CONTESTED | Allegiance =
-      UNOCCUPIED;
-
-    for (const unit of units) {
-      if (
-        uniqueOccupier === CONTESTED ||
-        uniqueOccupier === unit.allegiance ||
-        unit.isPreview
-      ) {
-        break;
-      }
-
-      const { soldiers } = unit;
-      for (const soldier of soldiers) {
-        if (inTowerTerritory(soldier.gltf.scene.position, tower.position)) {
-          if (uniqueOccupier === UNOCCUPIED) {
-            uniqueOccupier = unit.allegiance;
-          } else if (uniqueOccupier !== unit.allegiance) {
-            uniqueOccupier = CONTESTED;
-            break;
-          }
+    const { soldiers } = unit;
+    for (const soldier of soldiers) {
+      if (inTowerTerritory(soldier.gltf.scene.position, tower.position)) {
+        if (uniqueOccupier === UNOCCUPIED) {
+          uniqueOccupier = unit.allegiance;
+        } else if (uniqueOccupier !== unit.allegiance) {
+          uniqueOccupier = CONTESTED;
+          break;
         }
       }
     }
-
-    if (
-      uniqueOccupier !== UNOCCUPIED &&
-      uniqueOccupier !== CONTESTED &&
-      tower.allegiance !== uniqueOccupier
-    ) {
-      scene.remove(getActiveBannerTowerGltf(tower).scene);
-      tower.allegiance = uniqueOccupier;
-      scene.add(getActiveBannerTowerGltf(tower).scene);
-    }
-
-    teamsWithATower.add(tower.allegiance);
   }
 
-  if (teamsWithATower.size === 1) {
-    for (const winningTeam of Array.from(teamsWithATower.keys())) {
-      // TODO
-      console.log(
-        winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!"
-      );
-      alertOnceAfterDelay(
-        winningTeam === Allegiance.Azuki ? "Azuki wins!" : "Edamame wins!"
-      );
-    }
+  if (
+    uniqueOccupier !== UNOCCUPIED &&
+    uniqueOccupier !== CONTESTED &&
+    tower.allegiance !== uniqueOccupier
+  ) {
+    scene.remove(getActiveBannerTowerGltf(tower).scene);
+    tower.allegiance = uniqueOccupier;
+    scene.add(getActiveBannerTowerGltf(tower).scene);
+  }
+
+  tower.secondsUntilNextSoldier -= elapsedTimeInSeconds;
+  if (tower.secondsUntilNextSoldier <= 0 && tower.pendingSoldiers.length > 0) {
+    const [soldier, unit] = tower.pendingSoldiers.shift()!;
+    soldier.gltf.scene.position.copy(tower.position);
+    unit.soldiers.push(soldier);
+    scene.add(soldier.gltf.scene);
+    tower.secondsUntilNextSoldier = SOLDIER_DEPLOYMENT_DELAY_SECONDS;
   }
 }
 
