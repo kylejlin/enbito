@@ -284,7 +284,7 @@ export function main(assets: Assets): void {
       assemblyPoint: getDummyVector3(),
     };
   })();
-  let isPlayerRidingDragonfly = false;
+  let isPlayerRidingDragonfly = true;
 
   scene.add(player.gltf.scene);
 
@@ -518,6 +518,7 @@ export function main(assets: Assets): void {
         new Vector3(0, 1, 0),
         player.yRot
       );
+      playerDragonfly.rotateX(-(mouse.y - 0.5) * Math.PI);
       playerDragonfly.rotateZ(-(mouse.x - 0.5) * Math.PI);
 
       playerDragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
