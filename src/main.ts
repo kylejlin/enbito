@@ -63,7 +63,7 @@ interface KeySet {
   w: boolean;
   f: boolean;
   t: boolean;
-  v: boolean;
+  g: boolean;
   space: boolean;
   _1: boolean;
 }
@@ -138,7 +138,7 @@ export function main(assets: Assets): void {
     w: false,
     f: false,
     t: false,
-    v: false,
+    g: false,
     space: false,
     _1: false,
   };
@@ -152,8 +152,8 @@ export function main(assets: Assets): void {
     if (e.key === "t") {
       keys.t = true;
     }
-    if (e.key === "v") {
-      keys.v = true;
+    if (e.key === "g") {
+      keys.g = true;
     }
     if (e.key === " ") {
       keys.space = true;
@@ -175,8 +175,8 @@ export function main(assets: Assets): void {
     if (e.key === "t") {
       keys.t = false;
     }
-    if (e.key === "v") {
-      keys.v = false;
+    if (e.key === "g") {
+      keys.g = false;
     }
     if (e.key === " ") {
       keys.space = false;
@@ -1161,7 +1161,7 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   if (resources.keys.t) {
     resources.azukiKing.dragonfly.speed += 10 * elapsedTimeInSeconds;
   }
-  if (resources.keys.v) {
+  if (resources.keys.g) {
     resources.azukiKing.dragonfly.speed -= 10 * elapsedTimeInSeconds;
   }
   console.log(resources.azukiKing.dragonfly.speed);
