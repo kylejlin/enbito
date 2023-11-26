@@ -83,6 +83,7 @@ const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
 const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
 const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
+const MAX_LANDING_SPEED = 10;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -306,6 +307,7 @@ export function main(assets: Assets): void {
       assemblyPoint: getDummyVector3(),
       dragonfly: {
         isBeingRidden: true,
+        isLanding: false,
         gltf: playerDragonflyGltf,
         mixer: playerDragonflyMixer,
         flyClip: playerDragonflyFlyClip,
@@ -378,6 +380,7 @@ export function main(assets: Assets): void {
       assemblyPoint: getDummyVector3(),
       dragonfly: {
         isBeingRidden: false,
+        isLanding: false,
         gltf: playerDragonflyGltf,
         mixer: playerDragonflyMixer,
         flyClip: playerDragonflyFlyClip,
@@ -557,46 +560,56 @@ export function main(assets: Assets): void {
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
     if (resources.azukiKing.dragonfly.isBeingRidden) {
-      // TODO
-      let wrappedMouseX = mouse.x;
-      while (wrappedMouseX > 1) {
-        wrappedMouseX -= 1;
+      if (resources.azukiKing.dragonfly.isLanding) {
+        console.log("landing");
+      } else {
+        // TODO
+        let wrappedMouseX = mouse.x;
+        while (wrappedMouseX > 1) {
+          wrappedMouseX -= 1;
+        }
+        while (wrappedMouseX < -1) {
+          wrappedMouseX += 1;
+        }
+
+        player.yRot +=
+          0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
+
+        resources.azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
+          new Vector3(0, 1, 0),
+          player.yRot
+        );
+        resources.azukiKing.dragonfly.gltf.scene.rotateX(
+          -(mouse.y - 0.5) * Math.PI
+        );
+        resources.azukiKing.dragonfly.gltf.scene.rotateZ(
+          -(mouse.x - 0.5) * Math.PI
+        );
+
+        resources.azukiKing.dragonfly.gltf.scene.translateZ(
+          resources.azukiKing.dragonfly.speed * -elapsedTimeInSeconds
+        );
+
+        player.gltf.scene.position.copy(
+          resources.azukiKing.dragonfly.gltf.scene.position
+        );
+        player.gltf.scene.quaternion.copy(
+          resources.azukiKing.dragonfly.gltf.scene.quaternion
+        );
+        player.gltf.scene.translateZ(-0.3);
+
+        console.log("y", mouse.y);
+        if (
+          player.dragonfly.gltf.scene.position.y < 5 &&
+          player.dragonfly.speed < MAX_LANDING_SPEED &&
+          mouse.y > 0.5
+        ) {
+          player.dragonfly.isLanding = true;
+          // TODO
+          // resources.azukiKing.dragonfly.isBeingRidden = false;
+          // resources.azukiKing.gltf.scene.position.setY(0);
+        }
       }
-      while (wrappedMouseX < -1) {
-        wrappedMouseX += 1;
-      }
-
-      player.yRot +=
-        0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
-
-      resources.azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
-        new Vector3(0, 1, 0),
-        player.yRot
-      );
-      resources.azukiKing.dragonfly.gltf.scene.rotateX(
-        -(mouse.y - 0.5) * Math.PI
-      );
-      resources.azukiKing.dragonfly.gltf.scene.rotateZ(
-        -(mouse.x - 0.5) * Math.PI
-      );
-
-      resources.azukiKing.dragonfly.gltf.scene.translateZ(
-        resources.azukiKing.dragonfly.speed * -elapsedTimeInSeconds
-      );
-
-      player.gltf.scene.position.copy(
-        resources.azukiKing.dragonfly.gltf.scene.position
-      );
-      player.gltf.scene.quaternion.copy(
-        resources.azukiKing.dragonfly.gltf.scene.quaternion
-      );
-      player.gltf.scene.translateZ(-0.3);
-
-      // TODO: Delete
-      // if (playerDragonfly.position.y < 1) {
-      //   resources.azukiKing.dragonfly.isBeingRidden = false;
-      //   resources.azukiKing.gltf.scene.position.setY(0);
-      // }
     } else {
       if (keys.w) {
         startOrContinueWalkingAnimation(
@@ -849,6 +862,7 @@ interface KingDragonfly {
   flyClip: AnimationClip;
   flyAction: AnimationAction;
   isBeingRidden: boolean;
+  isLanding: boolean;
   speed: number;
 }
 
