@@ -527,10 +527,11 @@ export function main(assets: Assets): void {
       player.gltf.scene.quaternion.copy(playerDragonfly.quaternion);
       player.gltf.scene.translateZ(-0.3);
 
-      if (playerDragonfly.position.y < 1) {
-        isPlayerRidingDragonfly = false;
-        resources.azukiKing.gltf.scene.position.setY(0);
-      }
+      // TODO: Delete
+      // if (playerDragonfly.position.y < 1) {
+      //   isPlayerRidingDragonfly = false;
+      //   resources.azukiKing.gltf.scene.position.setY(0);
+      // }
     } else {
       if (keys.w) {
         startOrContinueWalkingAnimation(
