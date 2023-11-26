@@ -62,6 +62,8 @@ interface Resources {
 interface KeySet {
   w: boolean;
   f: boolean;
+  t: boolean;
+  v: boolean;
   space: boolean;
   _1: boolean;
 }
@@ -76,7 +78,6 @@ const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
 const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
 const STAB_DAMAGE = 60;
 const STAB_COOLDOWN = 1;
-const DRAGONFLY_SPEED = 30;
 const SOLDIER_EXPLOSION_DURATION = 1;
 const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
@@ -136,6 +137,8 @@ export function main(assets: Assets): void {
   const keys: KeySet = {
     w: false,
     f: false,
+    t: false,
+    v: false,
     space: false,
     _1: false,
   };
@@ -145,6 +148,12 @@ export function main(assets: Assets): void {
     }
     if (e.key === "f") {
       keys.f = true;
+    }
+    if (e.key === "t") {
+      keys.t = true;
+    }
+    if (e.key === "v") {
+      keys.v = true;
     }
     if (e.key === " ") {
       keys.space = true;
@@ -162,6 +171,12 @@ export function main(assets: Assets): void {
     }
     if (e.key === "f") {
       keys.f = false;
+    }
+    if (e.key === "t") {
+      keys.t = false;
+    }
+    if (e.key === "v") {
+      keys.v = false;
     }
     if (e.key === " ") {
       keys.space = false;
@@ -295,6 +310,7 @@ export function main(assets: Assets): void {
         mixer: playerDragonflyMixer,
         flyClip: playerDragonflyFlyClip,
         flyAction: playerDragonflyFlyAction,
+        speed: 30,
       },
     };
   })();
@@ -366,6 +382,7 @@ export function main(assets: Assets): void {
         mixer: playerDragonflyMixer,
         flyClip: playerDragonflyFlyClip,
         flyAction: playerDragonflyFlyAction,
+        speed: 30,
       },
     };
   })();
@@ -564,7 +581,7 @@ export function main(assets: Assets): void {
       );
 
       resources.azukiKing.dragonfly.gltf.scene.translateZ(
-        DRAGONFLY_SPEED * -elapsedTimeInSeconds
+        resources.azukiKing.dragonfly.speed * -elapsedTimeInSeconds
       );
 
       player.gltf.scene.position.copy(
@@ -632,7 +649,7 @@ export function main(assets: Assets): void {
     }
 
     dragonflyMixer.update(elapsedTimeInSeconds);
-    dragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
+    dragonfly.translateZ(30 * -elapsedTimeInSeconds);
 
     resources.azukiKing.dragonfly.mixer.update(elapsedTimeInSeconds);
 
@@ -832,6 +849,7 @@ interface KingDragonfly {
   flyClip: AnimationClip;
   flyAction: AnimationAction;
   isBeingRidden: boolean;
+  speed: number;
 }
 
 interface BannerTower {
@@ -1139,6 +1157,14 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       resources.scene.remove(resources.edamameKing.gltf.scene);
     }
   }
+
+  if (resources.keys.t) {
+    resources.azukiKing.dragonfly.speed += 10 * elapsedTimeInSeconds;
+  }
+  if (resources.keys.v) {
+    resources.azukiKing.dragonfly.speed -= 10 * elapsedTimeInSeconds;
+  }
+  console.log(resources.azukiKing.dragonfly.speed);
 }
 
 function tickPlannedDeployment(
