@@ -116,7 +116,7 @@ export function main(assets: Assets): void {
         mouse.y = 1;
       }
 
-      if (isPlayerRidingDragonfly) {
+      if (resources.azukiKing.dragonfly.isBeingRidden) {
         if (mouse.x < 0) {
           mouse.x = 0;
         }
@@ -230,18 +230,6 @@ export function main(assets: Assets): void {
   dragonfly.scale.multiplyScalar(0.6);
   // TODO: Delete END
 
-  const playerDragonflyGltf = cloneGltf(assets.dragonfly);
-  const playerDragonfly = playerDragonflyGltf.scene;
-  playerDragonfly.position.set(0, 0, 0);
-  scene.add(playerDragonfly);
-  playerDragonfly.position.set(0, 30, 0);
-  playerDragonfly.scale.multiplyScalar(0.6);
-
-  const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
-  const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(flyClip);
-  playerDragonflyFlyAction.timeScale = 5;
-  playerDragonflyFlyAction.play();
-
   const player = (function (): King {
     const playerGltf = cloneGltf(assets.azukiKing);
     const playerScene = playerGltf.scene;
@@ -264,6 +252,25 @@ export function main(assets: Assets): void {
     const playerStabAction = playerMixer.clipAction(playerStabClip);
     const playerSlashAction = playerMixer.clipAction(playerSlashClip);
     playerWalkAction.timeScale = 2;
+
+    const playerDragonflyGltf = cloneGltf(assets.dragonfly);
+    const playerDragonfly = playerDragonflyGltf.scene;
+    playerDragonfly.position.set(0, 0, 0);
+    scene.add(playerDragonfly);
+    playerDragonfly.position.set(0, 30, 0);
+    playerDragonfly.scale.multiplyScalar(0.6);
+
+    const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
+    const playerDragonflyFlyClip = AnimationClip.findByName(
+      dragonflyGltf.animations,
+      "Fly"
+    );
+    const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(
+      playerDragonflyFlyClip
+    );
+    playerDragonflyFlyAction.timeScale = 5;
+    playerDragonflyFlyAction.play();
+
     return {
       isKing: true,
       gltf: playerGltf,
@@ -282,9 +289,15 @@ export function main(assets: Assets): void {
       health: 100,
       yRot: 0,
       assemblyPoint: getDummyVector3(),
+      dragonfly: {
+        isBeingRidden: true,
+        gltf: playerDragonflyGltf,
+        mixer: playerDragonflyMixer,
+        flyClip: playerDragonflyFlyClip,
+        flyAction: playerDragonflyFlyAction,
+      },
     };
   })();
-  let isPlayerRidingDragonfly = true;
 
   scene.add(player.gltf.scene);
 
@@ -311,6 +324,24 @@ export function main(assets: Assets): void {
     const playerStabAction = playerMixer.clipAction(playerStabClip);
     const playerSlashAction = playerMixer.clipAction(playerSlashClip);
     playerWalkAction.timeScale = 2;
+
+    const playerDragonflyGltf = cloneGltf(assets.dragonfly);
+    const playerDragonfly = playerDragonflyGltf.scene;
+    playerDragonfly.position.set(0, 0, 0);
+    playerDragonfly.position.set(0, 30, 0);
+    playerDragonfly.scale.multiplyScalar(0.6);
+
+    const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
+    const playerDragonflyFlyClip = AnimationClip.findByName(
+      dragonflyGltf.animations,
+      "Fly"
+    );
+    const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(
+      playerDragonflyFlyClip
+    );
+    playerDragonflyFlyAction.timeScale = 5;
+    playerDragonflyFlyAction.play();
+
     return {
       isKing: true,
       gltf: playerGltf,
@@ -329,6 +360,13 @@ export function main(assets: Assets): void {
       health: 100,
       yRot: 0,
       assemblyPoint: getDummyVector3(),
+      dragonfly: {
+        isBeingRidden: false,
+        gltf: playerDragonflyGltf,
+        mixer: playerDragonflyMixer,
+        flyClip: playerDragonflyFlyClip,
+        flyAction: playerDragonflyFlyAction,
+      },
     };
   })();
   scene.add(edamameKing.gltf.scene);
@@ -490,7 +528,7 @@ export function main(assets: Assets): void {
   }
 
   function oncePerFrameBeforeTicks(): void {
-    if (isPlayerRidingDragonfly) {
+    if (resources.azukiKing.dragonfly.isBeingRidden) {
       // TODO
     } else {
       player.yRot = -(mouse.x - 0.5) * Math.PI * 2;
@@ -501,7 +539,7 @@ export function main(assets: Assets): void {
     const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
-    if (isPlayerRidingDragonfly) {
+    if (resources.azukiKing.dragonfly.isBeingRidden) {
       // TODO
       let wrappedMouseX = mouse.x;
       while (wrappedMouseX > 1) {
@@ -514,22 +552,32 @@ export function main(assets: Assets): void {
       player.yRot +=
         0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
 
-      playerDragonfly.quaternion.setFromAxisAngle(
+      resources.azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
         new Vector3(0, 1, 0),
         player.yRot
       );
-      playerDragonfly.rotateX(-(mouse.y - 0.5) * Math.PI);
-      playerDragonfly.rotateZ(-(mouse.x - 0.5) * Math.PI);
+      resources.azukiKing.dragonfly.gltf.scene.rotateX(
+        -(mouse.y - 0.5) * Math.PI
+      );
+      resources.azukiKing.dragonfly.gltf.scene.rotateZ(
+        -(mouse.x - 0.5) * Math.PI
+      );
 
-      playerDragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
+      resources.azukiKing.dragonfly.gltf.scene.translateZ(
+        DRAGONFLY_SPEED * -elapsedTimeInSeconds
+      );
 
-      player.gltf.scene.position.copy(playerDragonfly.position);
-      player.gltf.scene.quaternion.copy(playerDragonfly.quaternion);
+      player.gltf.scene.position.copy(
+        resources.azukiKing.dragonfly.gltf.scene.position
+      );
+      player.gltf.scene.quaternion.copy(
+        resources.azukiKing.dragonfly.gltf.scene.quaternion
+      );
       player.gltf.scene.translateZ(-0.3);
 
       // TODO: Delete
       // if (playerDragonfly.position.y < 1) {
-      //   isPlayerRidingDragonfly = false;
+      //   resources.azukiKing.dragonfly.isBeingRidden = false;
       //   resources.azukiKing.gltf.scene.position.setY(0);
       // }
     } else {
@@ -586,7 +634,7 @@ export function main(assets: Assets): void {
     dragonflyMixer.update(elapsedTimeInSeconds);
     dragonfly.translateZ(DRAGONFLY_SPEED * -elapsedTimeInSeconds);
 
-    playerDragonflyMixer.update(elapsedTimeInSeconds);
+    resources.azukiKing.dragonfly.mixer.update(elapsedTimeInSeconds);
 
     cursorMixer.update((1 * elapsedTimeInMillisecs) / 1000);
     cursor.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
@@ -605,7 +653,7 @@ export function main(assets: Assets): void {
   }
 
   function oncePerFrameBeforeRender(): void {
-    if (!isPlayerRidingDragonfly) {
+    if (!resources.azukiKing.dragonfly.isBeingRidden) {
       player.gltf.scene.quaternion.setFromAxisAngle(
         new Vector3(0, 1, 0),
         player.yRot
@@ -623,7 +671,7 @@ export function main(assets: Assets): void {
       getActiveBannerTowerGltf(tower).scene.position.copy(tower.position);
     }
 
-    if (isPlayerRidingDragonfly) {
+    if (resources.azukiKing.dragonfly.isBeingRidden) {
       // TODO
       camera.position.copy(player.gltf.scene.position);
       camera.quaternion.copy(player.gltf.scene.quaternion);
@@ -775,6 +823,15 @@ interface King extends Soldier {
   isKing: true;
   slashClip: AnimationClip;
   slashAction: AnimationAction;
+  dragonfly: KingDragonfly;
+}
+
+interface KingDragonfly {
+  gltf: GLTF;
+  mixer: AnimationMixer;
+  flyClip: AnimationClip;
+  flyAction: AnimationAction;
+  isBeingRidden: boolean;
 }
 
 interface BannerTower {
