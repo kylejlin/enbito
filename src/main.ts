@@ -83,7 +83,7 @@ const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
 const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
 const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
-const MAX_LANDING_SPEED = 10;
+const MAX_LANDING_SPEED = 20;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
