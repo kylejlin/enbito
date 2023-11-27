@@ -578,10 +578,10 @@ export function main(assets: Assets): void {
           wrappedMouseX += 1;
         }
 
-        player.dragonfly.yaw +=
-          0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
-        player.dragonfly.pitch = -(mouse.y - 0.5) * Math.PI;
         player.dragonfly.roll = -(mouse.x - 0.5) * Math.PI;
+        player.dragonfly.yaw +=
+          0.5 * elapsedTimeInSeconds * (player.dragonfly.roll * 2);
+        player.dragonfly.pitch = -(mouse.y - 0.5) * Math.PI;
 
         player.yRot = player.dragonfly.yaw;
 
