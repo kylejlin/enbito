@@ -579,13 +579,13 @@ export function main(assets: Assets): void {
         player.dragonfly.roll = limitTurn(
           player.dragonfly.roll,
           0,
-          0.5 * Math.PI * elapsedTimeInSeconds
+          0.2 * Math.PI * elapsedTimeInSeconds
         );
 
         if (player.dragonfly.pitch === 0 && player.dragonfly.roll === 0) {
           player.dragonfly.speed = Math.max(
             0,
-            player.dragonfly.speed - elapsedTimeInSeconds * 10
+            player.dragonfly.speed - elapsedTimeInSeconds * 5
           );
           player.dragonfly.gltf.scene.position.setY(
             Math.max(
