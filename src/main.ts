@@ -83,7 +83,7 @@ const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
 const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
 const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
-const MAX_LANDING_SPEED = 20;
+const MAX_LANDING_SPEED = 30;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -313,6 +313,9 @@ export function main(assets: Assets): void {
         flyClip: playerDragonflyFlyClip,
         flyAction: playerDragonflyFlyAction,
         speed: 30,
+        yaw: 0,
+        pitch: 0,
+        roll: 0,
       },
     };
   })();
@@ -386,6 +389,9 @@ export function main(assets: Assets): void {
         flyClip: playerDragonflyFlyClip,
         flyAction: playerDragonflyFlyAction,
         speed: 30,
+        yaw: 0,
+        pitch: 0,
+        roll: 0,
       },
     };
   })();
@@ -572,29 +578,27 @@ export function main(assets: Assets): void {
           wrappedMouseX += 1;
         }
 
-        player.yRot +=
+        player.dragonfly.yaw +=
           0.5 * elapsedTimeInSeconds * (-(wrappedMouseX - 0.5) * Math.PI * 2);
+        player.dragonfly.pitch = -(mouse.y - 0.5) * Math.PI;
+        player.dragonfly.roll = -(mouse.x - 0.5) * Math.PI;
 
-        resources.azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
+        player.yRot = player.dragonfly.yaw;
+
+        player.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
           new Vector3(0, 1, 0),
           player.yRot
         );
-        resources.azukiKing.dragonfly.gltf.scene.rotateX(
-          -(mouse.y - 0.5) * Math.PI
-        );
-        resources.azukiKing.dragonfly.gltf.scene.rotateZ(
-          -(mouse.x - 0.5) * Math.PI
+        player.dragonfly.gltf.scene.rotateX(player.dragonfly.pitch);
+        player.dragonfly.gltf.scene.rotateZ(player.dragonfly.roll);
+
+        player.dragonfly.gltf.scene.translateZ(
+          player.dragonfly.speed * -elapsedTimeInSeconds
         );
 
-        resources.azukiKing.dragonfly.gltf.scene.translateZ(
-          resources.azukiKing.dragonfly.speed * -elapsedTimeInSeconds
-        );
-
-        player.gltf.scene.position.copy(
-          resources.azukiKing.dragonfly.gltf.scene.position
-        );
+        player.gltf.scene.position.copy(player.dragonfly.gltf.scene.position);
         player.gltf.scene.quaternion.copy(
-          resources.azukiKing.dragonfly.gltf.scene.quaternion
+          player.dragonfly.gltf.scene.quaternion
         );
         player.gltf.scene.translateZ(-0.3);
 
@@ -864,6 +868,9 @@ interface KingDragonfly {
   isBeingRidden: boolean;
   isLanding: boolean;
   speed: number;
+  yaw: number;
+  pitch: number;
+  roll: number;
 }
 
 interface BannerTower {
