@@ -568,6 +568,59 @@ export function main(assets: Assets): void {
     if (resources.azukiKing.dragonfly.isBeingRidden) {
       if (resources.azukiKing.dragonfly.isLanding) {
         console.log("landing");
+
+        player.dragonfly.yaw +=
+          0.5 * elapsedTimeInSeconds * (player.dragonfly.roll * 2);
+        player.dragonfly.pitch = limitTurn(
+          player.dragonfly.pitch,
+          0,
+          0.5 * Math.PI * elapsedTimeInSeconds
+        );
+        player.dragonfly.roll = limitTurn(
+          player.dragonfly.roll,
+          0,
+          0.5 * Math.PI * elapsedTimeInSeconds
+        );
+
+        if (player.dragonfly.pitch === 0 && player.dragonfly.roll === 0) {
+          player.dragonfly.speed = Math.max(
+            0,
+            player.dragonfly.speed - elapsedTimeInSeconds * 10
+          );
+          player.dragonfly.gltf.scene.position.setY(
+            Math.max(
+              2.5,
+              player.dragonfly.gltf.scene.position.y - 1 * elapsedTimeInSeconds
+            )
+          );
+
+          if (player.dragonfly.gltf.scene.position.y <= 2.5) {
+            player.dragonfly.isBeingRidden = false;
+          }
+        }
+
+        player.yRot = player.dragonfly.yaw;
+
+        player.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
+          new Vector3(0, 1, 0),
+          player.yRot
+        );
+        player.dragonfly.gltf.scene.rotateX(player.dragonfly.pitch);
+        player.dragonfly.gltf.scene.rotateZ(player.dragonfly.roll);
+
+        player.dragonfly.gltf.scene.translateZ(
+          player.dragonfly.speed * -elapsedTimeInSeconds
+        );
+
+        player.gltf.scene.position.copy(player.dragonfly.gltf.scene.position);
+        player.gltf.scene.quaternion.copy(
+          player.dragonfly.gltf.scene.quaternion
+        );
+        player.gltf.scene.translateZ(-0.3);
+
+        if (!player.dragonfly.isBeingRidden) {
+          player.gltf.scene.position.setY(0);
+        }
       } else {
         // TODO
         let wrappedMouseX = mouse.x;
