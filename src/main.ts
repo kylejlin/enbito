@@ -605,7 +605,7 @@ export function main(assets: Assets): void {
         console.log("y", mouse.y);
         if (
           player.dragonfly.gltf.scene.position.y < 5 &&
-          player.dragonfly.speed < MAX_LANDING_SPEED &&
+          player.dragonfly.speed <= MAX_LANDING_SPEED &&
           mouse.y > 0.5
         ) {
           player.dragonfly.isLanding = true;
