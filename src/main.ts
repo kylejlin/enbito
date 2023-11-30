@@ -47,6 +47,7 @@ enum UnitOrderKind {
 }
 
 interface Resources {
+  mouse: MouseState;
   keys: KeySet;
   plannedDeployment: PlannedDeployment;
   groundCursor: null | Vector3;
@@ -59,11 +60,20 @@ interface Resources {
   soldierExplosions: SoldierExplosion[];
 }
 
+interface MouseState {
+  /** Left edge is 0, right edge is 1. */
+  x: number;
+  /** Top edge is 0, bottom edge is 1. */
+  y: number;
+  isLocked: boolean;
+}
+
 interface KeySet {
   w: boolean;
   f: boolean;
   t: boolean;
   g: boolean;
+  r: boolean;
   space: boolean;
   _1: boolean;
 }
@@ -84,6 +94,7 @@ const SLASH_DAMAGE = 40;
 const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
 const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
 const MAX_LANDING_SPEED = 30;
+const DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED = 5 ** 2;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -98,7 +109,7 @@ export function main(assets: Assets): void {
   let lastWorldTime = worldTime;
   const MILLISECS_PER_TICK = 10;
 
-  const mouse = { x: 0.5, y: 0.5, isLocked: false };
+  const mouse: MouseState = { x: 0.5, y: 0.5, isLocked: false };
   document.addEventListener("pointerlockchange", () => {
     mouse.isLocked = !!document.pointerLockElement;
   });
@@ -140,6 +151,7 @@ export function main(assets: Assets): void {
     f: false,
     t: false,
     g: false,
+    r: false,
     space: false,
     _1: false,
   };
@@ -155,6 +167,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "g") {
       keys.g = true;
+    }
+    if (e.key === "r") {
+      keys.r = true;
     }
     if (e.key === " ") {
       keys.space = true;
@@ -178,6 +193,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "g") {
       keys.g = false;
+    }
+    if (e.key === "r") {
+      keys.r = false;
     }
     if (e.key === " ") {
       keys.space = false;
@@ -469,6 +487,7 @@ export function main(assets: Assets): void {
   scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = {
+    mouse,
     keys,
     azukiKing: player,
     groundCursor: null,
@@ -1246,6 +1265,18 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   }
   if (resources.keys.g) {
     resources.azukiKing.dragonfly.speed -= 10 * elapsedTimeInSeconds;
+  }
+  if (
+    resources.keys.r &&
+    resources.azukiKing.gltf.scene.position.distanceToSquared(
+      resources.azukiKing.dragonfly.gltf.scene.position
+    ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED &&
+    resources.mouse.isLocked
+  ) {
+    resources.mouse.x = 0.5;
+    resources.mouse.y = 0.5;
+    resources.azukiKing.dragonfly.isBeingRidden = true;
+    resources.azukiKing.dragonfly.isLanding = false;
   }
 }
 
