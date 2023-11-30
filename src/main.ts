@@ -353,7 +353,7 @@ export function main(assets: Assets): void {
   const edamameKing = (function (): King {
     const playerGltf = cloneGltf(assets.edamameKing);
     const playerScene = playerGltf.scene;
-    playerScene.position.set(50, 0, -50);
+    playerScene.position.set(0, 0, -50);
     playerScene.rotateY(Math.PI);
     const playerWalkClip = AnimationClip.findByName(
       playerGltf.animations,
@@ -428,7 +428,7 @@ export function main(assets: Assets): void {
 
   const units = [
     getUnit({
-      start: new Vector3(0, 0, 100),
+      start: new Vector3(-50, 0, 100),
       forward: new Vector3(0, 0, 1).normalize(),
       dimensions: [10, 10],
       gap: [8, 8 * (Math.sqrt(3) / 2)],
@@ -437,7 +437,7 @@ export function main(assets: Assets): void {
     }),
 
     getUnit({
-      start: new Vector3(100, 0, -100),
+      start: new Vector3(50, 0, -100),
       forward: new Vector3(0, 0, -1).normalize(),
       dimensions: [10, 10],
       gap: [8, 8 * (Math.sqrt(3) / 2)],
@@ -453,22 +453,22 @@ export function main(assets: Assets): void {
 
   const towers = [
     getBannerTower({
-      position: new Vector3(0, 0, -100),
+      position: new Vector3(-50, 0, -100),
       allegiance: Allegiance.Edamame,
       assets,
     }),
     getBannerTower({
-      position: new Vector3(100, 0, -100),
+      position: new Vector3(50, 0, -100),
       allegiance: Allegiance.Edamame,
       assets,
     }),
     getBannerTower({
-      position: new Vector3(0, 0, 100),
+      position: new Vector3(-50, 0, 100),
       allegiance: Allegiance.Azuki,
       assets,
     }),
     getBannerTower({
-      position: new Vector3(100, 0, 100),
+      position: new Vector3(50, 0, 100),
       allegiance: Allegiance.Azuki,
       assets,
     }),
@@ -478,7 +478,7 @@ export function main(assets: Assets): void {
       assets,
     }),
     getBannerTower({
-      position: new Vector3(-300, 0, 400),
+      position: new Vector3(-400, 0, 400),
       allegiance: Allegiance.Azuki,
       assets,
     }),
