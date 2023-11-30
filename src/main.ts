@@ -482,6 +482,21 @@ export function main(assets: Assets): void {
       allegiance: Allegiance.Azuki,
       assets,
     }),
+    getBannerTower({
+      position: new Vector3(0, 0, 1000),
+      allegiance: Allegiance.Azuki,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(700, 0, 1600),
+      allegiance: Allegiance.Azuki,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(-700, 0, 1600),
+      allegiance: Allegiance.Azuki,
+      assets,
+    }),
   ];
   for (const tower of towers) {
     scene.add(getActiveBannerTowerGltf(tower).scene);
