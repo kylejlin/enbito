@@ -278,7 +278,7 @@ export function main(assets: Assets): void {
   const player = (function (): King {
     const playerGltf = cloneGltf(assets.azukiKing);
     const playerScene = playerGltf.scene;
-    playerScene.position.set(0, 0, 0);
+    playerScene.position.set(0, 0, 100);
     const playerWalkClip = AnimationClip.findByName(
       playerGltf.animations,
       "Walk"
@@ -302,7 +302,7 @@ export function main(assets: Assets): void {
     const playerDragonfly = playerDragonflyGltf.scene;
     playerDragonfly.position.set(0, 0, 0);
     scene.add(playerDragonfly);
-    playerDragonfly.position.set(0, 30, 0);
+    playerDragonfly.position.set(0, 2.5, 105);
     playerDragonfly.scale.multiplyScalar(0.6);
 
     const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
@@ -335,7 +335,7 @@ export function main(assets: Assets): void {
       yRot: 0,
       assemblyPoint: getDummyVector3(),
       dragonfly: {
-        isBeingRidden: true,
+        isBeingRidden: false,
         isLanding: false,
         gltf: playerDragonflyGltf,
         mixer: playerDragonflyMixer,
