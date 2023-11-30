@@ -465,6 +465,31 @@ export function main(assets: Assets): void {
       assets,
     }),
     getBannerTower({
+      position: new Vector3(400, 0, -400),
+      allegiance: Allegiance.Edamame,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(-400, 0, -400),
+      allegiance: Allegiance.Edamame,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(0, 0, -1000),
+      allegiance: Allegiance.Edamame,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(700, 0, -1600),
+      allegiance: Allegiance.Edamame,
+      assets,
+    }),
+    getBannerTower({
+      position: new Vector3(-700, 0, -1600),
+      allegiance: Allegiance.Edamame,
+      assets,
+    }),
+    getBannerTower({
       position: new Vector3(-50, 0, 100),
       allegiance: Allegiance.Azuki,
       assets,
