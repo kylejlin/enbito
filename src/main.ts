@@ -316,6 +316,7 @@ export function main(assets: Assets): void {
         yaw: 0,
         pitch: 0,
         roll: 0,
+        dismountTimer: 0,
       },
     };
   })();
@@ -392,6 +393,7 @@ export function main(assets: Assets): void {
         yaw: 0,
         pitch: 0,
         roll: 0,
+        dismountTimer: 0,
       },
     };
   })();
@@ -574,10 +576,12 @@ export function main(assets: Assets): void {
           player.dragonfly.speed < 5
         ) {
           console.log("done");
-          setTimeout(() => {
+          player.dragonfly.dismountTimer -= elapsedTimeInSeconds;
+          if (player.dragonfly.dismountTimer <= 0) {
             player.dragonfly.isBeingRidden = false;
+            player.dragonfly.isLanding = false;
             player.gltf.scene.position.setY(0);
-          }, 1500);
+          }
         } else {
           player.dragonfly.yaw +=
             0.5 * elapsedTimeInSeconds * (player.dragonfly.roll * 2);
@@ -666,9 +670,7 @@ export function main(assets: Assets): void {
           mouse.y > 0.5
         ) {
           player.dragonfly.isLanding = true;
-          // TODO
-          // resources.azukiKing.dragonfly.isBeingRidden = false;
-          // resources.azukiKing.gltf.scene.position.setY(0);
+          player.dragonfly.dismountTimer = 1.5;
         }
       }
     } else {
@@ -928,6 +930,13 @@ interface KingDragonfly {
   yaw: number;
   pitch: number;
   roll: number;
+  /**
+   * Once the dragonfly lands, the rider will wait a few seconds before dismounting.
+   * `dismountTimer` keeps track of how many seconds are remaining.
+   * The clock doesn't start until the dragonfly is on the ground and has
+   * sufficiently low speed.
+   */
+  dismountTimer: number;
 }
 
 interface BannerTower {
