@@ -1,9 +1,9 @@
 export interface BattleState {
   entities: any[];
-  azukiKing: King;
-  edamameKing: King;
-  units: Unit[];
-  towers: BannerTower[];
+  azukiKingId: Ref;
+  edamameKingId: Ref;
+  activeUnitIds: Ref[];
+  activeTowerIds: Ref[];
 }
 
 export enum UnitOrderKind {
@@ -25,7 +25,7 @@ export enum Allegiance {
 
 export type Triple = [number, number, number];
 
-export interface EntityId {
+export interface Ref {
   isEntityId: true;
   value: number;
 }
@@ -33,7 +33,7 @@ export interface EntityId {
 export interface Soldier {
   position: Triple;
   animation: SoldierAnimationState;
-  attackTargetId: null | EntityId;
+  attackTargetId: null | Ref;
   health: number;
   yRot: number;
   assemblyPoint: Triple;
@@ -82,7 +82,7 @@ interface AssembleOrder {
 
 export interface Unit {
   order: UnitOrder;
-  soldiers: Soldier[];
+  soldierIds: Ref[];
   forward: Triple;
   isPreview: boolean;
   allegiance: Allegiance;
@@ -98,6 +98,6 @@ export interface BannerTower {
 }
 
 export interface BannerTowerPendingUnit {
-  soldierIds: EntityId[];
-  unitId: EntityId;
+  soldierIds: Ref[];
+  unitId: Ref;
 }
