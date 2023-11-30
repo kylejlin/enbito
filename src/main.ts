@@ -218,7 +218,9 @@ export function main(assets: Assets): void {
   const scene = new Scene();
   const camera = new PerspectiveCamera(
     57,
-    window.innerWidth / window.innerHeight
+    window.innerWidth / window.innerHeight,
+    undefined,
+    10000
   );
 
   const renderer = new WebGLRenderer();
