@@ -24,40 +24,26 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { BattleState } from "./battleState";
+import { San } from "./san";
 
 function getDummyVector3(): Vector3 {
   return new Vector3();
 }
 
-enum Allegiance {
-  Azuki,
-  Edamame,
-}
-
-enum SoldierAnimationKind {
-  Idle,
-  Walk,
-  Stab,
-  Slash,
-}
-
-enum UnitOrderKind {
-  Advance,
-  Assemble,
-}
-
 interface Resources {
+  assets: Assets;
+
   mouse: MouseState;
   keys: KeySet;
+
+  battleState: BattleState;
+
   plannedDeployment: PlannedDeployment;
   groundCursor: null | Vector3;
-  azukiKing: King;
-  edamameKing: King;
-  assets: Assets;
-  scene: Scene;
-  units: Unit[];
-  towers: BannerTower[];
   soldierExplosions: SoldierExplosion[];
+
+  san: San;
 }
 
 interface MouseState {
@@ -955,87 +941,12 @@ export function main(assets: Assets): void {
   }
 }
 
-interface Unit {
-  order: UnitOrder;
-  soldiers: Soldier[];
-  forward: Vector3;
-  isPreview: boolean;
-  allegiance: Allegiance;
-  areSoldiersStillBeingAdded: boolean;
-}
-
-export type UnitOrder = AdvanceOrder | AssembleOrder;
-
-interface AdvanceOrder {
-  kind: UnitOrderKind.Advance;
-}
-
-interface AssembleOrder {
-  kind: UnitOrderKind.Assemble;
-}
-
-interface Soldier {
-  gltf: GLTF;
-  animation: SoldierAnimationState;
-  mixer: AnimationMixer;
-  walkClip: AnimationClip;
-  walkAction: AnimationAction;
-  stabClip: AnimationClip;
-  stabAction: AnimationAction;
-  attackTarget: null | Soldier;
-  health: number;
-  yRot: number;
-  assemblyPoint: Vector3;
-}
-
-interface King extends Soldier {
-  isKing: true;
-  slashClip: AnimationClip;
-  slashAction: AnimationAction;
-  dragonfly: KingDragonfly;
-}
-
-interface KingDragonfly {
-  gltf: GLTF;
-  mixer: AnimationMixer;
-  flyClip: AnimationClip;
-  flyAction: AnimationAction;
-  isBeingRidden: boolean;
-  isLanding: boolean;
-  speed: number;
-  yaw: number;
-  pitch: number;
-  roll: number;
-  /**
-   * Once the dragonfly lands, the rider will wait a few seconds before dismounting.
-   * `dismountTimer` keeps track of how many seconds are remaining.
-   * The clock doesn't start until the dragonfly is on the ground and has
-   * sufficiently low speed.
-   */
-  dismountTimer: number;
-}
-
-interface BannerTower {
-  position: Vector3;
-  azukiGltf: GLTF;
-  edamameGltf: GLTF;
-  isPreview: boolean;
-  allegiance: Allegiance;
-  pendingSoldiers: [Soldier, Unit, { isLastInUnit: boolean }][];
-  secondsUntilNextSoldier: number;
-}
-
 interface SoldierExplosion {
   allegiance: Allegiance;
   position: Vector3;
   orientation: Quaternion;
   timeInSeconds: number;
   scene: null | Object3D;
-}
-
-interface SoldierAnimationState {
-  kind: SoldierAnimationKind;
-  timeInSeconds: number;
 }
 
 function getUnit({
