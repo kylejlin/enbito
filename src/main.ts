@@ -74,6 +74,7 @@ interface KeySet {
   t: boolean;
   g: boolean;
   r: boolean;
+  v: boolean;
   space: boolean;
   _1: boolean;
 }
@@ -152,6 +153,7 @@ export function main(assets: Assets): void {
     t: false,
     g: false,
     r: false,
+    v: false,
     space: false,
     _1: false,
   };
@@ -170,6 +172,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "r") {
       keys.r = true;
+    }
+    if (e.key === "v") {
+      keys.v = true;
     }
     if (e.key === " ") {
       keys.space = true;
@@ -196,6 +201,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "r") {
       keys.r = false;
+    }
+    if (e.key === "v") {
+      keys.v = false;
     }
     if (e.key === " ") {
       keys.space = false;
@@ -682,7 +690,7 @@ export function main(assets: Assets): void {
         if (
           player.dragonfly.gltf.scene.position.y < 10 &&
           player.dragonfly.speed <= MAX_LANDING_SPEED &&
-          mouse.y > 0.5
+          keys.v
         ) {
           player.dragonfly.isLanding = true;
           player.dragonfly.dismountTimer = 1.5;
