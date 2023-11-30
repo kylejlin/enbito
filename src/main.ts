@@ -569,13 +569,10 @@ export function main(assets: Assets): void {
 
     if (resources.azukiKing.dragonfly.isBeingRidden) {
       if (resources.azukiKing.dragonfly.isLanding) {
-        console.log("landing");
-
         if (
           player.dragonfly.gltf.scene.position.y <= 2.5 &&
           player.dragonfly.speed < 5
         ) {
-          console.log("done");
           player.dragonfly.dismountTimer -= elapsedTimeInSeconds;
           if (player.dragonfly.dismountTimer <= 0) {
             player.dragonfly.isBeingRidden = false;
@@ -663,7 +660,6 @@ export function main(assets: Assets): void {
         );
         player.gltf.scene.translateZ(-0.3);
 
-        console.log("y", mouse.y);
         if (
           player.dragonfly.gltf.scene.position.y < 10 &&
           player.dragonfly.speed <= MAX_LANDING_SPEED &&
@@ -1251,7 +1247,6 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   if (resources.keys.g) {
     resources.azukiKing.dragonfly.speed -= 10 * elapsedTimeInSeconds;
   }
-  console.log(resources.azukiKing.dragonfly.speed);
 }
 
 function tickPlannedDeployment(
