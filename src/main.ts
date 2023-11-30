@@ -96,6 +96,7 @@ const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
 const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
 const MAX_LANDING_SPEED = 30;
 const DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED = 5 ** 2;
+const DRAGONFLY_MIN_SPEED = 5;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -1272,7 +1273,10 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     resources.azukiKing.dragonfly.speed += 10 * elapsedTimeInSeconds;
   }
   if (resources.keys.g) {
-    resources.azukiKing.dragonfly.speed -= 10 * elapsedTimeInSeconds;
+    resources.azukiKing.dragonfly.speed = Math.max(
+      DRAGONFLY_MIN_SPEED,
+      resources.azukiKing.dragonfly.speed - 10 * elapsedTimeInSeconds
+    );
   }
   if (
     resources.keys.r &&
@@ -1285,6 +1289,7 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     resources.mouse.y = 0.5;
     resources.azukiKing.dragonfly.isBeingRidden = true;
     resources.azukiKing.dragonfly.isLanding = false;
+    resources.azukiKing.dragonfly.speed = DRAGONFLY_MIN_SPEED;
   }
 }
 
