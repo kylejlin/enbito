@@ -25,7 +25,7 @@ import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { BattleState, King, Ref } from "./battleState";
-import { San } from "./san";
+import { San, getDefaultSanData } from "./san";
 import { BattleManager } from "./battleManager";
 import { getDefaultBattleState } from "./getBattleState";
 
@@ -535,7 +535,7 @@ export function main(assets: Assets): void {
 
   const resources: Resources = {
     battle: new BattleManager(getDefaultBattleState()),
-    san: getDefaultSan(),
+    san: new San(getDefaultSanData(assets)),
     mouse,
     keys,
     groundCursor: null,

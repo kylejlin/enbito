@@ -24,9 +24,13 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { BattleState } from "./battleState";
+import { Allegiance, BattleState } from "./battleState";
 
-export interface San {
+export class San {
+  constructor(private readonly data: SanData) {}
+}
+
+export interface SanData {
   scene: Scene;
   azukiKing: SanKing;
   edamameKing: SanKing;
@@ -45,7 +49,7 @@ export interface SanSpear {
   stabAction: AnimationAction;
 }
 
-export interface SanKing extends SanSpear {
+export interface SanKing {
   gltf: GLTF;
   mixer: AnimationMixer;
   walkClip: AnimationClip;
@@ -67,4 +71,43 @@ export interface BannerTower {
 
 export interface SoldierExplosion {
   scene: null | Object3D;
+}
+
+export function getDefaultSanData(assets: Assets): SanData {
+  return {
+    scene: new Scene(),
+    azukiKing: getDefaultSanKing(assets, Allegiance.Azuki),
+    edamameKing: getDefaultSanKing(assets, Allegiance.Edamame),
+    azukiSpears: [],
+    edamameSpears: [],
+    azukiBannerTowers: [],
+    edamameBannerTowers: [],
+  };
+}
+
+export function getDefaultSanKing(
+  assets: Assets,
+  allegiance: Allegiance
+): SanKing {
+  const gltf =
+    allegiance === Allegiance.Azuki
+      ? cloneGltf(assets.azukiKing)
+      : cloneGltf(assets.edamameKing);
+  const playerScene = gltf.scene;
+  const walkClip = AnimationClip.findByName(gltf.animations, "Walk");
+  const slashClip = AnimationClip.findByName(gltf.animations, "Slash");
+
+  const mixer = new AnimationMixer(playerScene);
+  const walkAction = mixer.clipAction(walkClip);
+  const slashAction = mixer.clipAction(slashClip);
+  walkAction.timeScale = 2;
+
+  return {
+    gltf,
+    mixer,
+    walkClip,
+    walkAction,
+    slashAction,
+    slashClip,
+  };
 }
