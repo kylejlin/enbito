@@ -24,8 +24,10 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { BattleState } from "./battleState";
+import { BattleState, King, Ref } from "./battleState";
 import { San } from "./san";
+import { BattleManager } from "./battleManager";
+import { getDefaultBattleState } from "./getBattleState";
 
 function getDummyVector3(): Vector3 {
   return new Vector3();
@@ -37,7 +39,7 @@ interface Resources {
   mouse: MouseState;
   keys: KeySet;
 
-  battleState: BattleState;
+  battle: BattleManager;
 
   plannedDeployment: PlannedDeployment;
   groundCursor: null | Vector3;
@@ -67,8 +69,8 @@ interface KeySet {
 
 interface PlannedDeployment {
   start: null | Vector3;
-  plannedUnit: null | Unit;
-  setUnit: null | Unit;
+  plannedUnitId: null | Ref;
+  setUnitId: null | Ref;
 }
 
 const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
@@ -117,7 +119,7 @@ export function main(assets: Assets): void {
         mouse.y = 1;
       }
 
-      if (resources.azukiKing.dragonfly.isBeingRidden) {
+      if (resources.battle.getAzukiKing().dragonfly.isBeingRidden) {
         if (mouse.x < 0) {
           mouse.x = 0;
         }
@@ -130,8 +132,8 @@ export function main(assets: Assets): void {
 
   const plannedDeployment: PlannedDeployment = {
     start: null,
-    setUnit: null,
-    plannedUnit: null,
+    setUnitId: null,
+    plannedUnitId: null,
   };
 
   const keys: KeySet = {
@@ -261,259 +263,257 @@ export function main(assets: Assets): void {
   dragonfly.scale.multiplyScalar(0.6);
   // TODO: Delete END
 
-  const player = (function (): King {
-    const playerGltf = cloneGltf(assets.azukiKing);
-    const playerScene = playerGltf.scene;
-    playerScene.position.set(0, 0, 100);
-    const playerWalkClip = AnimationClip.findByName(
-      playerGltf.animations,
-      "Walk"
-    );
-    const playerStabClip = AnimationClip.findByName(
-      playerGltf.animations,
-      "Stab"
-    );
-    const playerSlashClip = AnimationClip.findByName(
-      playerGltf.animations,
-      "Slash"
-    );
+  // const player = (function (): King {
+  //   const playerGltf = cloneGltf(assets.azukiKing);
+  //   const playerScene = playerGltf.scene;
+  //   playerScene.position.set(0, 0, 100);
+  //   const playerWalkClip = AnimationClip.findByName(
+  //     playerGltf.animations,
+  //     "Walk"
+  //   );
+  //   const playerStabClip = AnimationClip.findByName(
+  //     playerGltf.animations,
+  //     "Stab"
+  //   );
+  //   const playerSlashClip = AnimationClip.findByName(
+  //     playerGltf.animations,
+  //     "Slash"
+  //   );
 
-    const playerMixer = new AnimationMixer(playerScene);
-    const playerWalkAction = playerMixer.clipAction(playerWalkClip);
-    const playerStabAction = playerMixer.clipAction(playerStabClip);
-    const playerSlashAction = playerMixer.clipAction(playerSlashClip);
-    playerWalkAction.timeScale = 2;
+  //   const playerMixer = new AnimationMixer(playerScene);
+  //   const playerWalkAction = playerMixer.clipAction(playerWalkClip);
+  //   const playerStabAction = playerMixer.clipAction(playerStabClip);
+  //   const playerSlashAction = playerMixer.clipAction(playerSlashClip);
+  //   playerWalkAction.timeScale = 2;
 
-    const playerDragonflyGltf = cloneGltf(assets.dragonfly);
-    const playerDragonfly = playerDragonflyGltf.scene;
-    playerDragonfly.position.set(0, 0, 0);
-    scene.add(playerDragonfly);
-    playerDragonfly.position.set(0, 2.5, 105);
-    playerDragonfly.scale.multiplyScalar(0.6);
+  //   const playerDragonflyGltf = cloneGltf(assets.dragonfly);
+  //   const playerDragonfly = playerDragonflyGltf.scene;
+  //   playerDragonfly.position.set(0, 0, 0);
+  //   scene.add(playerDragonfly);
+  //   playerDragonfly.position.set(0, 2.5, 105);
+  //   playerDragonfly.scale.multiplyScalar(0.6);
 
-    const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
-    const playerDragonflyFlyClip = AnimationClip.findByName(
-      dragonflyGltf.animations,
-      "Fly"
-    );
-    const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(
-      playerDragonflyFlyClip
-    );
-    playerDragonflyFlyAction.timeScale = 5;
-    playerDragonflyFlyAction.play();
+  //   const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
+  //   const playerDragonflyFlyClip = AnimationClip.findByName(
+  //     dragonflyGltf.animations,
+  //     "Fly"
+  //   );
+  //   const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(
+  //     playerDragonflyFlyClip
+  //   );
+  //   playerDragonflyFlyAction.timeScale = 5;
+  //   playerDragonflyFlyAction.play();
 
-    return {
-      isKing: true,
-      gltf: playerGltf,
-      animation: {
-        kind: SoldierAnimationKind.Idle,
-        timeInSeconds: 0,
-      },
-      mixer: playerMixer,
-      walkClip: playerWalkClip,
-      walkAction: playerWalkAction,
-      stabClip: playerStabClip,
-      stabAction: playerStabAction,
-      slashClip: playerSlashClip,
-      slashAction: playerSlashAction,
-      attackTarget: null,
-      health: 100,
-      yRot: 0,
-      assemblyPoint: getDummyVector3(),
-      dragonfly: {
-        isBeingRidden: false,
-        isLanding: false,
-        gltf: playerDragonflyGltf,
-        mixer: playerDragonflyMixer,
-        flyClip: playerDragonflyFlyClip,
-        flyAction: playerDragonflyFlyAction,
-        speed: 30,
-        yaw: 0,
-        pitch: 0,
-        roll: 0,
-        dismountTimer: 0,
-      },
-    };
-  })();
+  //   return {
+  //     isKing: true,
+  //     gltf: playerGltf,
+  //     animation: {
+  //       kind: SoldierAnimationKind.Idle,
+  //       timeInSeconds: 0,
+  //     },
+  //     mixer: playerMixer,
+  //     walkClip: playerWalkClip,
+  //     walkAction: playerWalkAction,
+  //     stabClip: playerStabClip,
+  //     stabAction: playerStabAction,
+  //     slashClip: playerSlashClip,
+  //     slashAction: playerSlashAction,
+  //     attackTarget: null,
+  //     health: 100,
+  //     yRot: 0,
+  //     assemblyPoint: getDummyVector3(),
+  //     dragonfly: {
+  //       isBeingRidden: false,
+  //       isLanding: false,
+  //       gltf: playerDragonflyGltf,
+  //       mixer: playerDragonflyMixer,
+  //       flyClip: playerDragonflyFlyClip,
+  //       flyAction: playerDragonflyFlyAction,
+  //       speed: 30,
+  //       yaw: 0,
+  //       pitch: 0,
+  //       roll: 0,
+  //       dismountTimer: 0,
+  //     },
+  //   };
+  // })();
 
-  scene.add(player.gltf.scene);
+  // const edamameKing = (function (): King {
+  //   const playerGltf = cloneGltf(assets.edamameKing);
+  //   const playerScene = playerGltf.scene;
+  //   playerScene.position.set(0, 0, -50);
+  //   playerScene.rotateY(Math.PI);
+  //   const playerWalkClip = AnimationClip.findByName(
+  //     playerGltf.animations,
+  //     "Walk"
+  //   );
+  //   const playerStabClip = AnimationClip.findByName(
+  //     playerGltf.animations,
+  //     "Stab"
+  //   );
+  //   const playerSlashClip = AnimationClip.findByName(
+  //     playerGltf.animations,
+  //     "Slash"
+  //   );
 
-  const edamameKing = (function (): King {
-    const playerGltf = cloneGltf(assets.edamameKing);
-    const playerScene = playerGltf.scene;
-    playerScene.position.set(0, 0, -50);
-    playerScene.rotateY(Math.PI);
-    const playerWalkClip = AnimationClip.findByName(
-      playerGltf.animations,
-      "Walk"
-    );
-    const playerStabClip = AnimationClip.findByName(
-      playerGltf.animations,
-      "Stab"
-    );
-    const playerSlashClip = AnimationClip.findByName(
-      playerGltf.animations,
-      "Slash"
-    );
+  //   const playerMixer = new AnimationMixer(playerScene);
+  //   const playerWalkAction = playerMixer.clipAction(playerWalkClip);
+  //   const playerStabAction = playerMixer.clipAction(playerStabClip);
+  //   const playerSlashAction = playerMixer.clipAction(playerSlashClip);
+  //   playerWalkAction.timeScale = 2;
 
-    const playerMixer = new AnimationMixer(playerScene);
-    const playerWalkAction = playerMixer.clipAction(playerWalkClip);
-    const playerStabAction = playerMixer.clipAction(playerStabClip);
-    const playerSlashAction = playerMixer.clipAction(playerSlashClip);
-    playerWalkAction.timeScale = 2;
+  //   const playerDragonflyGltf = cloneGltf(assets.dragonfly);
+  //   const playerDragonfly = playerDragonflyGltf.scene;
+  //   playerDragonfly.position.set(0, 0, 0);
+  //   playerDragonfly.position.set(0, 30, 0);
+  //   playerDragonfly.scale.multiplyScalar(0.6);
 
-    const playerDragonflyGltf = cloneGltf(assets.dragonfly);
-    const playerDragonfly = playerDragonflyGltf.scene;
-    playerDragonfly.position.set(0, 0, 0);
-    playerDragonfly.position.set(0, 30, 0);
-    playerDragonfly.scale.multiplyScalar(0.6);
+  //   const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
+  //   const playerDragonflyFlyClip = AnimationClip.findByName(
+  //     dragonflyGltf.animations,
+  //     "Fly"
+  //   );
+  //   const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(
+  //     playerDragonflyFlyClip
+  //   );
+  //   playerDragonflyFlyAction.timeScale = 5;
+  //   playerDragonflyFlyAction.play();
 
-    const playerDragonflyMixer = new AnimationMixer(playerDragonfly);
-    const playerDragonflyFlyClip = AnimationClip.findByName(
-      dragonflyGltf.animations,
-      "Fly"
-    );
-    const playerDragonflyFlyAction = playerDragonflyMixer.clipAction(
-      playerDragonflyFlyClip
-    );
-    playerDragonflyFlyAction.timeScale = 5;
-    playerDragonflyFlyAction.play();
+  //   return {
+  //     isKing: true,
+  //     gltf: playerGltf,
+  //     animation: {
+  //       kind: SoldierAnimationKind.Idle,
+  //       timeInSeconds: 0,
+  //     },
+  //     mixer: playerMixer,
+  //     walkClip: playerWalkClip,
+  //     walkAction: playerWalkAction,
+  //     stabClip: playerStabClip,
+  //     stabAction: playerStabAction,
+  //     slashClip: playerSlashClip,
+  //     slashAction: playerSlashAction,
+  //     attackTarget: null,
+  //     health: 100,
+  //     yRot: 0,
+  //     assemblyPoint: getDummyVector3(),
+  //     dragonfly: {
+  //       isBeingRidden: false,
+  //       isLanding: false,
+  //       gltf: playerDragonflyGltf,
+  //       mixer: playerDragonflyMixer,
+  //       flyClip: playerDragonflyFlyClip,
+  //       flyAction: playerDragonflyFlyAction,
+  //       speed: 30,
+  //       yaw: 0,
+  //       pitch: 0,
+  //       roll: 0,
+  //       dismountTimer: 0,
+  //     },
+  //   };
+  // })();
+  // scene.add(edamameKing.gltf.scene);
 
-    return {
-      isKing: true,
-      gltf: playerGltf,
-      animation: {
-        kind: SoldierAnimationKind.Idle,
-        timeInSeconds: 0,
-      },
-      mixer: playerMixer,
-      walkClip: playerWalkClip,
-      walkAction: playerWalkAction,
-      stabClip: playerStabClip,
-      stabAction: playerStabAction,
-      slashClip: playerSlashClip,
-      slashAction: playerSlashAction,
-      attackTarget: null,
-      health: 100,
-      yRot: 0,
-      assemblyPoint: getDummyVector3(),
-      dragonfly: {
-        isBeingRidden: false,
-        isLanding: false,
-        gltf: playerDragonflyGltf,
-        mixer: playerDragonflyMixer,
-        flyClip: playerDragonflyFlyClip,
-        flyAction: playerDragonflyFlyAction,
-        speed: 30,
-        yaw: 0,
-        pitch: 0,
-        roll: 0,
-        dismountTimer: 0,
-      },
-    };
-  })();
-  scene.add(edamameKing.gltf.scene);
+  // const units = [
+  //   getUnit({
+  //     start: new Vector3(-50, 0, 100),
+  //     forward: new Vector3(0, 0, 1).normalize(),
+  //     dimensions: [10, 10],
+  //     gap: [8, 8 * (Math.sqrt(3) / 2)],
+  //     assets,
+  //     allegiance: Allegiance.Azuki,
+  //   }),
 
-  const units = [
-    getUnit({
-      start: new Vector3(-50, 0, 100),
-      forward: new Vector3(0, 0, 1).normalize(),
-      dimensions: [10, 10],
-      gap: [8, 8 * (Math.sqrt(3) / 2)],
-      assets,
-      allegiance: Allegiance.Azuki,
-    }),
+  //   getUnit({
+  //     start: new Vector3(50, 0, -100),
+  //     forward: new Vector3(0, 0, -1).normalize(),
+  //     dimensions: [10, 10],
+  //     gap: [8, 8 * (Math.sqrt(3) / 2)],
+  //     assets,
+  //     allegiance: Allegiance.Edamame,
+  //   }),
+  // ];
+  // for (const unit of units) {
+  //   for (const soldier of unit.soldiers) {
+  //     scene.add(soldier.gltf.scene);
+  //   }
+  // }
 
-    getUnit({
-      start: new Vector3(50, 0, -100),
-      forward: new Vector3(0, 0, -1).normalize(),
-      dimensions: [10, 10],
-      gap: [8, 8 * (Math.sqrt(3) / 2)],
-      assets,
-      allegiance: Allegiance.Edamame,
-    }),
-  ];
-  for (const unit of units) {
-    for (const soldier of unit.soldiers) {
-      scene.add(soldier.gltf.scene);
-    }
-  }
-
-  const towers = [
-    getBannerTower({
-      position: new Vector3(-50, 0, -100),
-      allegiance: Allegiance.Edamame,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(50, 0, -100),
-      allegiance: Allegiance.Edamame,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(400, 0, -400),
-      allegiance: Allegiance.Edamame,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(-400, 0, -400),
-      allegiance: Allegiance.Edamame,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(0, 0, -1000),
-      allegiance: Allegiance.Edamame,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(700, 0, -1600),
-      allegiance: Allegiance.Edamame,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(-700, 0, -1600),
-      allegiance: Allegiance.Edamame,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(-50, 0, 100),
-      allegiance: Allegiance.Azuki,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(50, 0, 100),
-      allegiance: Allegiance.Azuki,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(400, 0, 400),
-      allegiance: Allegiance.Azuki,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(-400, 0, 400),
-      allegiance: Allegiance.Azuki,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(0, 0, 1000),
-      allegiance: Allegiance.Azuki,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(700, 0, 1600),
-      allegiance: Allegiance.Azuki,
-      assets,
-    }),
-    getBannerTower({
-      position: new Vector3(-700, 0, 1600),
-      allegiance: Allegiance.Azuki,
-      assets,
-    }),
-  ];
-  for (const tower of towers) {
-    scene.add(getActiveBannerTowerGltf(tower).scene);
-  }
+  // const towers = [
+  //   getBannerTower({
+  //     position: new Vector3(-50, 0, -100),
+  //     allegiance: Allegiance.Edamame,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(50, 0, -100),
+  //     allegiance: Allegiance.Edamame,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(400, 0, -400),
+  //     allegiance: Allegiance.Edamame,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(-400, 0, -400),
+  //     allegiance: Allegiance.Edamame,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(0, 0, -1000),
+  //     allegiance: Allegiance.Edamame,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(700, 0, -1600),
+  //     allegiance: Allegiance.Edamame,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(-700, 0, -1600),
+  //     allegiance: Allegiance.Edamame,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(-50, 0, 100),
+  //     allegiance: Allegiance.Azuki,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(50, 0, 100),
+  //     allegiance: Allegiance.Azuki,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(400, 0, 400),
+  //     allegiance: Allegiance.Azuki,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(-400, 0, 400),
+  //     allegiance: Allegiance.Azuki,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(0, 0, 1000),
+  //     allegiance: Allegiance.Azuki,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(700, 0, 1600),
+  //     allegiance: Allegiance.Azuki,
+  //     assets,
+  //   }),
+  //   getBannerTower({
+  //     position: new Vector3(-700, 0, 1600),
+  //     allegiance: Allegiance.Azuki,
+  //     assets,
+  //   }),
+  // ];
+  // for (const tower of towers) {
+  //   scene.add(getActiveBannerTowerGltf(tower).scene);
+  // }
 
   const soldierExplosions: SoldierExplosion[] = [];
 
@@ -534,15 +534,12 @@ export function main(assets: Assets): void {
   scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = {
+    battle: new BattleManager(getDefaultBattleState()),
+    san: getDefaultSan(),
     mouse,
     keys,
-    azukiKing: player,
     groundCursor: null,
-    edamameKing,
     assets,
-    scene,
-    units,
-    towers,
     soldierExplosions,
     plannedDeployment,
   };
