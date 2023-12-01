@@ -78,11 +78,11 @@ export interface Orientation {
 
 export type UnitOrder = AdvanceOrder | AssembleOrder;
 
-interface AdvanceOrder {
+export interface AdvanceOrder {
   kind: UnitOrderKind.Advance;
 }
 
-interface AssembleOrder {
+export interface AssembleOrder {
   kind: UnitOrderKind.Assemble;
 }
 

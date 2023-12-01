@@ -25,7 +25,9 @@ import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
+  AdvanceOrder,
   Allegiance,
+  AssembleOrder,
   BattleStateData,
   King,
   Orientation,
@@ -1306,80 +1308,84 @@ function tickPlannedDeployment(
   }
 }
 
-function updateThreeJsProperties(soldier: Soldier | King): void {
-  if (soldier.animation.kind === SoldierAnimationKind.Walk) {
-    soldier.walkAction.play();
+// function updateThreeJsProperties(soldier: Soldier | King): void {
+//   if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+//     soldier.walkAction.play();
 
-    soldier.stabAction.stop();
-    if (isKing(soldier)) {
-      soldier.slashAction.stop();
-    }
+//     soldier.stabAction.stop();
+//     if (isKing(soldier)) {
+//       soldier.slashAction.stop();
+//     }
 
-    soldier.mixer.setTime(soldier.animation.timeInSeconds);
-  } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
-    soldier.stabAction.play();
+//     soldier.mixer.setTime(soldier.animation.timeInSeconds);
+//   } else if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+//     soldier.stabAction.play();
 
-    soldier.walkAction.stop();
-    if (isKing(soldier)) {
-      soldier.slashAction.stop();
-    }
+//     soldier.walkAction.stop();
+//     if (isKing(soldier)) {
+//       soldier.slashAction.stop();
+//     }
 
-    soldier.mixer.setTime(soldier.animation.timeInSeconds);
-  } else if (soldier.animation.kind === SoldierAnimationKind.Slash) {
-    if (isKing(soldier)) {
-      soldier.slashAction.play();
-    }
+//     soldier.mixer.setTime(soldier.animation.timeInSeconds);
+//   } else if (soldier.animation.kind === SoldierAnimationKind.Slash) {
+//     if (isKing(soldier)) {
+//       soldier.slashAction.play();
+//     }
 
-    soldier.walkAction.stop();
-    soldier.stabAction.stop();
+//     soldier.walkAction.stop();
+//     soldier.stabAction.stop();
 
-    soldier.mixer.setTime(soldier.animation.timeInSeconds);
-  } else {
-    soldier.walkAction.stop();
-    soldier.stabAction.stop();
-    if (isKing(soldier)) {
-      soldier.slashAction.stop();
-    }
-  }
+//     soldier.mixer.setTime(soldier.animation.timeInSeconds);
+//   } else {
+//     soldier.walkAction.stop();
+//     soldier.stabAction.stop();
+//     if (isKing(soldier)) {
+//       soldier.slashAction.stop();
+//     }
+//   }
 
-  if (!isKing(soldier)) {
-    soldier.gltf.scene.quaternion.setFromAxisAngle(
-      new Vector3(0, 1, 0),
-      soldier.yRot
-    );
-  }
-}
+//   if (!isKing(soldier)) {
+//     soldier.gltf.scene.quaternion.setFromAxisAngle(
+//       new Vector3(0, 1, 0),
+//       soldier.yRot
+//     );
+//   }
+// }
 
 function tickUnits(elapsedTimeInSeconds: number, resources: Resources): void {
-  const { scene, soldierExplosions, units } = resources;
-  for (const unit of units) {
-    const { soldiers } = unit;
-    for (let i = 0; i < soldiers.length; ++i) {
-      const soldier = soldiers[i];
+  const { battle } = resources;
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    const { soldierIds } = unit;
+    for (let i = 0; i < soldierIds.length; ++i) {
+      const soldierId = soldierIds[i];
+      const soldier = battle.getSoldier(soldierId);
       if (soldier.health <= 0) {
-        scene.remove(soldier.gltf.scene);
+        // scene.remove(soldier.gltf.scene);
         const explosion = getSoldierExplosion(
           unit.allegiance,
-          soldier.gltf.scene
+          soldier.position,
+          { yaw: soldier.yRot, pitch: 0, roll: 0 }
         );
-        soldierExplosions.push(explosion);
-        soldiers.splice(i, 1);
+        battle.data.soldierExplosions.push(explosion);
+        soldierIds.splice(i, 1);
         --i;
         continue;
       }
     }
   }
 
-  for (const unit of units) {
-    tickUnit(elapsedTimeInSeconds, unit, resources);
+  for (const unitId of battle.data.activeUnitIds) {
+    tickUnit(elapsedTimeInSeconds, unitId, resources);
   }
 }
 
 function tickUnit(
   elapsedTimeInSeconds: number,
-  unit: Unit,
+  unitId: Ref,
   resources: Resources
 ): void {
+  const unit = resources.battle.getUnit(unitId);
   switch (unit.order.kind) {
     case UnitOrderKind.Advance:
       tickUnitWithAdvanceOrder(
@@ -1409,24 +1415,25 @@ function tickUnitWithAdvanceOrder(
   order: AdvanceOrder,
   resources: Resources
 ): void {
-  const { assets } = resources;
+  const { assets, battle } = resources;
 
-  const { soldiers } = unit;
+  const { soldierIds } = unit;
 
-  const wasAnySoldierFighting = soldiers.some(
-    (soldier) => soldier.attackTarget !== null
+  const wasAnySoldierFighting = soldierIds.some(
+    (soldierId) => battle.getSoldier(soldierId).attackTargetId !== null
   );
   if (!wasAnySoldierFighting) {
-    const forwardAngle = Math.atan2(unit.forward.x, unit.forward.z);
-    for (const soldier of soldiers) {
-      const nearestEnemy = getNearestEnemy(
+    const forwardAngle = Math.atan2(unit.forward[0], unit.forward[2]);
+    for (const soldierId of soldierIds) {
+      const soldier = battle.getSoldier(soldierId);
+      const nearestEnemy = getNearestEnemyId(
         soldier,
         unit,
         SPEAR_ATTACK_RANGE_SQUARED,
         resources
       );
       if (nearestEnemy !== null) {
-        soldier.attackTarget = nearestEnemy;
+        soldier.attackTargetId = nearestEnemy;
       } else {
         const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
         soldier.yRot = limitTurn(soldier.yRot, forwardAngle, radiansPerTick);
@@ -1434,28 +1441,35 @@ function tickUnitWithAdvanceOrder(
           startOrContinueWalkingAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
-            1,
-            assets
+            assets.mcon
           );
-          soldier.gltf.scene.translateZ(-1.5 * elapsedTimeInSeconds);
+          geoUtils.translateZ(
+            soldier.position,
+            { yaw: soldier.yRot, pitch: 0, roll: 0 },
+            -1.5 * elapsedTimeInSeconds
+          );
         }
       }
     }
   } else {
-    for (const soldier of soldiers) {
-      if (soldier.attackTarget !== null && soldier.attackTarget.health <= 0) {
-        soldier.attackTarget = null;
+    for (const soldierId of soldierIds) {
+      const soldier = battle.getSoldier(soldierId);
+      if (
+        soldier.attackTargetId !== null &&
+        battle.getSoldier(soldier.attackTargetId).health <= 0
+      ) {
+        soldier.attackTargetId = null;
       }
 
-      if (soldier.attackTarget === null) {
-        const nearestEnemy = getNearestEnemy(
+      if (soldier.attackTargetId === null) {
+        const nearestEnemy = getNearestEnemyId(
           soldier,
           unit,
           SPEAR_ATTACK_RANGE_SQUARED,
           resources
         );
         if (nearestEnemy !== null) {
-          soldier.attackTarget = nearestEnemy;
+          soldier.attackTargetId = nearestEnemy;
         }
       }
 
@@ -1468,12 +1482,14 @@ function tickUnitWithAdvanceOrder(
         );
       }
 
-      if (soldier.attackTarget !== null) {
-        const difference = soldier.attackTarget.gltf.scene.position
-          .clone()
-          .sub(soldier.gltf.scene.position);
+      if (soldier.attackTargetId !== null) {
+        const attackTarget = battle.getSoldier(soldier.attackTargetId);
+        const difference = geoUtils.sub(
+          attackTarget.position,
+          soldier.position
+        );
         const desiredYRot =
-          Math.atan2(difference.x, difference.z) + Math.PI + 0.05;
+          Math.atan2(difference[0], difference[2]) + Math.PI + 0.05;
         const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
         soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
 
@@ -1481,11 +1497,11 @@ function tickUnitWithAdvanceOrder(
           const dealsDamageThisTick = continueStabThenIdleAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
-            soldier.stabAction.timeScale,
+            1,
             assets
           );
           if (dealsDamageThisTick) {
-            soldier.attackTarget.health -= STAB_DAMAGE;
+            attackTarget.health -= STAB_DAMAGE;
           }
         } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
           const dealsDamageThisTick = continueIdleThenStabAnimation(
@@ -1494,7 +1510,7 @@ function tickUnitWithAdvanceOrder(
             assets
           );
           if (dealsDamageThisTick) {
-            soldier.attackTarget.health -= STAB_DAMAGE;
+            attackTarget.health -= STAB_DAMAGE;
           }
         }
       }
@@ -1508,23 +1524,24 @@ function tickUnitWithAssembleOrder(
   order: AssembleOrder,
   resources: Resources
 ): void {
+  const { battle } = resources;
+
   let isUnitStillAssembling = false;
 
-  for (const soldier of unit.soldiers) {
+  for (const soldierId of unit.soldierIds) {
+    const soldier = battle.getSoldier(soldierId);
+
     let isReadyForCombat = false;
 
-    const difference = soldier.assemblyPoint
-      .clone()
-      .sub(soldier.gltf.scene.position);
-    if (difference.lengthSq() < 0.1) {
-      const desiredYRot = Math.atan2(unit.forward.x, unit.forward.z);
+    const difference = geoUtils.sub(soldier.assemblyPoint, soldier.position);
+    if (geoUtils.lengthSq(difference) < 0.1) {
+      const desiredYRot = Math.atan2(unit.forward[0], unit.forward[2]);
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
       soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
       stopWalkingAnimation(
         ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
         soldier.animation,
-        1,
-        resources.assets
+        resources.assets.mcon
       );
 
       if (
@@ -1534,16 +1551,17 @@ function tickUnitWithAssembleOrder(
         isReadyForCombat = true;
       }
     } else {
-      const desiredYRot = Math.atan2(difference.x, difference.z) + Math.PI;
+      const desiredYRot = Math.atan2(difference[0], difference[2]) + Math.PI;
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
       soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
       startOrContinueWalkingAnimation(
         ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
         soldier.animation,
-        1,
-        resources.assets
+        resources.assets.mcon
       );
-      soldier.gltf.scene.translateZ(
+      geoUtils.translateZ(
+        soldier.position,
+        { yaw: soldier.yRot, pitch: 0, roll: 0 },
         ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
       );
     }
@@ -1558,46 +1576,54 @@ function tickUnitWithAssembleOrder(
   }
 }
 
-function getNearestEnemy(
+function getNearestEnemyId(
   soldier: Soldier,
   soldierUnit: Unit,
   rangeSquared: number,
-  { units, azukiKing, edamameKing }: Resources
-): null | Soldier {
-  let nearestEnemy: Soldier | null = null;
+  { battle }: Resources
+): null | Ref {
+  const azukiKing = battle.getAzukiKing();
+  const edamameKing = battle.getEdamameKing();
+
+  let nearestEnemyId: Ref | null = null;
   let nearestDistanceSquared = Infinity;
-  for (const unit of units) {
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
     if (unit.allegiance === soldierUnit.allegiance || unit.isPreview) {
       continue;
     }
 
-    for (const enemy of unit.soldiers) {
-      const distSq = soldier.gltf.scene.position.distanceToSquared(
-        enemy.gltf.scene.position
+    for (const enemyId of unit.soldierIds) {
+      const enemy = battle.getSoldier(enemyId);
+      const distSq = geoUtils.distanceToSquared(
+        soldier.position,
+        enemy.position
       );
       if (distSq < nearestDistanceSquared) {
-        nearestEnemy = enemy;
+        nearestEnemyId = enemyId;
         nearestDistanceSquared = distSq;
       }
     }
   }
 
   if (soldierUnit.allegiance !== Allegiance.Azuki) {
-    const distSq = soldier.gltf.scene.position.distanceToSquared(
-      azukiKing.gltf.scene.position
+    const distSq = geoUtils.distanceToSquared(
+      soldier.position,
+      azukiKing.position
     );
     if (distSq < nearestDistanceSquared && azukiKing.health > 0) {
-      nearestEnemy = azukiKing;
+      nearestEnemyId = battle.data.azukiKingId;
       nearestDistanceSquared = distSq;
     }
   }
 
   if (soldierUnit.allegiance !== Allegiance.Edamame) {
-    const distSq = soldier.gltf.scene.position.distanceToSquared(
-      edamameKing.gltf.scene.position
+    const distSq = geoUtils.distanceToSquared(
+      soldier.position,
+      edamameKing.position
     );
     if (distSq < nearestDistanceSquared && edamameKing.health > 0) {
-      nearestEnemy = edamameKing;
+      nearestEnemyId = battle.data.edamameKingId;
       nearestDistanceSquared = distSq;
     }
   }
@@ -1606,7 +1632,7 @@ function getNearestEnemy(
     return null;
   }
 
-  return nearestEnemy;
+  return nearestEnemyId;
 }
 
 function limitTurn(

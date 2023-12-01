@@ -52,3 +52,16 @@ export function distanceToSquared(self: Triple, other: Triple): number {
 export function cloneTriple(x: Triple): Triple {
   return [x[0], x[1], x[2]];
 }
+
+export function sub(minuend: Triple, subtrahend: Triple): Triple {
+  return [
+    minuend[0] - subtrahend[0],
+    minuend[1] - subtrahend[1],
+    minuend[2] - subtrahend[2],
+  ];
+}
+
+export function lengthSq(a: Triple): number {
+  const [x, y, z] = a;
+  return x * x + y * y + z * z;
+}
