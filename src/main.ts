@@ -28,9 +28,12 @@ import {
   Allegiance,
   BattleStateData,
   King,
+  Orientation,
   Ref,
+  Soldier,
   SoldierAnimationKind,
   SoldierAnimationState,
+  Triple,
 } from "./battleStateData";
 import { San, getDefaultSanData } from "./san";
 import { BattleState } from "./battleState";
@@ -951,118 +954,118 @@ export function main(assets: Assets): void {
 interface SoldierExplosion {
   allegiance: Allegiance;
   position: Vector3;
-  orientation: Quaternion;
+  quaternion: Quaternion;
   timeInSeconds: number;
   scene: null | Object3D;
 }
 
-function getUnit({
-  start,
-  forward,
-  dimensions: [width, height],
-  gap: [rightGap, backGap],
-  assets,
-  allegiance,
-}: {
-  start: Vector3;
-  forward: Vector3;
-  dimensions: [number, number];
-  gap: [number, number];
-  assets: Assets;
-  allegiance: Allegiance;
-}): Unit {
-  const rightStep = forward
-    .clone()
-    .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2)
-    .multiplyScalar(rightGap);
-  const backStep = forward
-    .clone()
-    .applyAxisAngle(new Vector3(0, 1, 0), Math.PI)
-    .multiplyScalar(backGap);
-  const soldiers: Soldier[] = [];
-  for (let right = 0; right < width; ++right) {
-    for (let back = 0; back < height; ++back) {
-      const soldierPosition = start
-        .clone()
-        .add(rightStep.clone().multiplyScalar(right + 0.5 * (back & 1)))
-        .add(backStep.clone().multiplyScalar(back));
-      const soldier = getSoldier(
-        soldierPosition.x,
-        soldierPosition.y,
-        soldierPosition.z,
-        allegiance,
-        assets
-      );
-      soldier.yRot = Math.atan2(forward.x, forward.z);
-      soldiers.push(soldier);
-    }
-  }
-  return {
-    order: { kind: UnitOrderKind.Advance },
-    soldiers,
-    forward,
-    isPreview: false,
-    allegiance,
-    areSoldiersStillBeingAdded: false,
-  };
-}
+// function getUnit({
+//   start,
+//   forward,
+//   dimensions: [width, height],
+//   gap: [rightGap, backGap],
+//   assets,
+//   allegiance,
+// }: {
+//   start: Vector3;
+//   forward: Vector3;
+//   dimensions: [number, number];
+//   gap: [number, number];
+//   assets: Assets;
+//   allegiance: Allegiance;
+// }): Unit {
+//   const rightStep = forward
+//     .clone()
+//     .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2)
+//     .multiplyScalar(rightGap);
+//   const backStep = forward
+//     .clone()
+//     .applyAxisAngle(new Vector3(0, 1, 0), Math.PI)
+//     .multiplyScalar(backGap);
+//   const soldiers: Soldier[] = [];
+//   for (let right = 0; right < width; ++right) {
+//     for (let back = 0; back < height; ++back) {
+//       const soldierPosition = start
+//         .clone()
+//         .add(rightStep.clone().multiplyScalar(right + 0.5 * (back & 1)))
+//         .add(backStep.clone().multiplyScalar(back));
+//       const soldier = getSoldier(
+//         soldierPosition.x,
+//         soldierPosition.y,
+//         soldierPosition.z,
+//         allegiance,
+//         assets
+//       );
+//       soldier.yRot = Math.atan2(forward.x, forward.z);
+//       soldiers.push(soldier);
+//     }
+//   }
+//   return {
+//     order: { kind: UnitOrderKind.Advance },
+//     soldiers,
+//     forward,
+//     isPreview: false,
+//     allegiance,
+//     areSoldiersStillBeingAdded: false,
+//   };
+// }
 
-function getSoldier(
-  x: number,
-  y: number,
-  z: number,
-  allegiance: Allegiance,
-  assets: Assets
-): Soldier {
-  const soldierGltf =
-    allegiance === Allegiance.Azuki
-      ? cloneGltf(assets.azukiSpear)
-      : cloneGltf(assets.edamameSpear);
-  const soldierScene = soldierGltf.scene;
-  soldierScene.position.set(x, y, z);
-  const walkClip = AnimationClip.findByName(soldierGltf.animations, "Walk");
-  const stabClip = AnimationClip.findByName(soldierGltf.animations, "Stab");
+// function getSoldier(
+//   x: number,
+//   y: number,
+//   z: number,
+//   allegiance: Allegiance,
+//   assets: Assets
+// ): Soldier {
+//   const soldierGltf =
+//     allegiance === Allegiance.Azuki
+//       ? cloneGltf(assets.azukiSpear)
+//       : cloneGltf(assets.edamameSpear);
+//   const soldierScene = soldierGltf.scene;
+//   soldierScene.position.set(x, y, z);
+//   const walkClip = AnimationClip.findByName(soldierGltf.animations, "Walk");
+//   const stabClip = AnimationClip.findByName(soldierGltf.animations, "Stab");
 
-  const mixer = new AnimationMixer(soldierScene);
-  const walkAction = mixer.clipAction(walkClip);
-  const stabAction = mixer.clipAction(stabClip);
-  stabAction.timeScale = 0.5;
+//   const mixer = new AnimationMixer(soldierScene);
+//   const walkAction = mixer.clipAction(walkClip);
+//   const stabAction = mixer.clipAction(stabClip);
+//   stabAction.timeScale = 0.5;
 
-  return {
-    gltf: soldierGltf,
-    animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
-    mixer,
-    walkClip,
-    walkAction,
-    stabClip,
-    stabAction,
-    attackTarget: null,
-    health: 100,
-    yRot: 0,
-    assemblyPoint: getDummyVector3(),
-  };
-}
+//   return {
+//     gltf: soldierGltf,
+//     animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
+//     mixer,
+//     walkClip,
+//     walkAction,
+//     stabClip,
+//     stabAction,
+//     attackTarget: null,
+//     health: 100,
+//     yRot: 0,
+//     assemblyPoint: getDummyVector3(),
+//   };
+// }
 
-function getBannerTower({
-  position,
-  allegiance,
-  assets,
-}: {
-  position: Vector3;
+// function getBannerTower({
+//   position,
+//   allegiance,
+//   assets,
+// }: {
+//   position: Vector3;
 
-  allegiance: Allegiance;
-  assets: Assets;
-}): BannerTower {
-  return {
-    position,
-    azukiGltf: cloneGltf(assets.azukiBannerTower),
-    edamameGltf: cloneGltf(assets.edamameBannerTower),
-    isPreview: false,
-    allegiance,
-    pendingSoldiers: [],
-    secondsUntilNextSoldier: 0,
-  };
-}
+//   allegiance: Allegiance;
+//   assets: Assets;
+// }): BannerTower {
+//   return {
+//     position,
+//     azukiGltf: cloneGltf(assets.azukiBannerTower),
+//     edamameGltf: cloneGltf(assets.edamameBannerTower),
+//     isPreview: false,
+//     allegiance,
+//     pendingSoldiers: [],
+//     secondsUntilNextSoldier: 0,
+//   };
+// }
 
 // function startOrContinueWalkingAnimation(
 //   elapsedTimeInSeconds: number,
@@ -1220,17 +1223,21 @@ function continueIdleThenStabAnimation(
 }
 
 function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
-  if (resources.azukiKing.health <= 0) {
+  const azukiKing = resources.battle.getAzukiKing();
+  if (azukiKing.health <= 0) {
     alertOnceAfterDelay("Edamame wins!");
 
     if (
-      resources.scene.children.some(
-        (child) => child === resources.azukiKing.gltf.scene
-      )
+      // resources.scene.children.some(
+      //   (child) => child === resources.azukiKing.gltf.scene
+      // )
+
+      // TODO: Fix this
+      !hasAlerted
     ) {
       const azukiExplosion = getSoldierExplosion(
         Allegiance.Azuki,
-        resources.azukiKing.gltf.scene
+        azukiKing.gltf.scene
       );
       resources.soldierExplosions.push(azukiExplosion);
       resources.scene.remove(resources.azukiKing.gltf.scene);
@@ -1747,7 +1754,7 @@ function tickSoldierExplosions(
         : resources.assets.explodingEdamameFrames;
     explosion.scene = explosionFrames[zeroIndexedFrameNumber].clone(true);
     explosion.scene.position.copy(explosion.position);
-    explosion.scene.quaternion.copy(explosion.orientation);
+    explosion.scene.quaternion.copy(explosion.quaternion);
     resources.scene.add(explosion.scene);
   }
 }
@@ -1767,11 +1774,11 @@ function inTowerTerritory(
   );
 }
 
-function getActiveBannerTowerGltf(tower: BannerTower): GLTF {
-  return tower.allegiance === Allegiance.Azuki
-    ? tower.azukiGltf
-    : tower.edamameGltf;
-}
+// function getActiveBannerTowerGltf(tower: BannerTower): GLTF {
+//   return tower.allegiance === Allegiance.Azuki
+//     ? tower.azukiGltf
+//     : tower.edamameGltf;
+// }
 
 function applyKingSlashDamage(
   allegiance: Allegiance,
@@ -1833,33 +1840,36 @@ function isKing(soldier: Soldier): soldier is King {
 
 function getSoldierExplosion(
   allegiance: Allegiance,
-  soldier: Object3D
+  position: Triple,
+  orientation: Orientation
 ): SoldierExplosion {
+  const quaternion = new Quaternion();
+  TripleManager.setQuaternionFromOrientation(quaternion, orientation);
   return {
     allegiance,
-    position: soldier.position.clone(),
-    orientation: soldier.quaternion.clone(),
+    position: new Vector3(position[0], position[1], position[2]),
+    quaternion,
     timeInSeconds: 0,
     scene: null,
   };
 }
 
-function getAzukiBannerTowerEnclosingGroundCursor(
-  resources: Resources
-): null | BannerTower {
-  const { groundCursor } = resources;
-  if (groundCursor === null) {
-    return null;
-  }
+// function getAzukiBannerTowerEnclosingGroundCursor(
+//   resources: Resources
+// ): null | BannerTower {
+//   const { groundCursor } = resources;
+//   if (groundCursor === null) {
+//     return null;
+//   }
 
-  for (const tower of resources.towers) {
-    if (
-      tower.allegiance === Allegiance.Azuki &&
-      inTowerTerritory(groundCursor, tower.position)
-    ) {
-      return tower;
-    }
-  }
+//   for (const tower of resources.towers) {
+//     if (
+//       tower.allegiance === Allegiance.Azuki &&
+//       inTowerTerritory(groundCursor, tower.position)
+//     ) {
+//       return tower;
+//     }
+//   }
 
-  return null;
-}
+//   return null;
+// }

@@ -1,7 +1,18 @@
-import { Object3D, Vector3 } from "three";
+import { Object3D, Quaternion, Vector3 } from "three";
 import { Orientation, Triple } from "./battleStateData";
 
 export class TripleManager {
+  static setQuaternionFromOrientation(
+    quaternion: Quaternion,
+    orientation: Orientation
+  ): void {
+    const temp = new Object3D();
+    temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), orientation.yaw);
+    temp.rotateX(orientation.pitch);
+    temp.rotateZ(orientation.roll);
+    quaternion.copy(temp.quaternion);
+  }
+
   constructor(public readonly raw: Triple) {}
 
   translateZ(orientation: Orientation, amount: number): void {
