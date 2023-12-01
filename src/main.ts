@@ -611,7 +611,7 @@ export function main(assets: Assets): void {
       lastWorldTime += MILLISECS_PER_TICK;
     }
 
-    oncePerFrameBeforeRender();
+    // oncePerFrameBeforeRender();
 
     updateThreeScene();
     render();
@@ -812,82 +812,82 @@ export function main(assets: Assets): void {
     tickSoldierExplosions(elapsedTimeInSeconds, resources);
   }
 
-  function oncePerFrameBeforeRender(): void {
-    // if (!azukiKing.dragonfly.isBeingRidden) {
-    //   azukiKing.gltf.scene.quaternion.setFromAxisAngle(
-    //     new Vector3(0, 1, 0),
-    //     azukiKing.yRot
-    //   );
-    // }
-    // updateThreeJsProperties(azukiKing);
-    // for (const unit of units) {
-    //   for (const soldier of unit.soldiers) {
-    //     updateThreeJsProperties(soldier);
-    //   }
-    // }
-    // for (const tower of towers) {
-    //   getActiveBannerTowerGltf(tower).scene.position.copy(tower.position);
-    // }
-    // if (resources.azukiKing.dragonfly.isBeingRidden) {
-    //   // TODO
-    //   camera.position.copy(player.gltf.scene.position);
-    //   camera.quaternion.copy(player.gltf.scene.quaternion);
-    //   camera.translateY(5);
-    //   camera.translateZ(10);
-    //   camera.rotateX(-(mouse.y - 0.5) * Math.PI);
-    // } else {
-    //   camera.position.copy(player.gltf.scene.position);
-    //   camera.quaternion.copy(player.gltf.scene.quaternion);
-    //   camera.translateY(5);
-    //   camera.translateZ(5);
-    //   camera.rotateX(-(mouse.y - 0.5) * Math.PI);
-    // }
-    // const raycaster = new Raycaster();
-    // raycaster.set(
-    //   camera.position,
-    //   new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
-    // );
-    // const hits = raycaster.intersectObject(grasslike, true);
-    // if (hits.length === 0) {
-    //   resources.groundCursor = null;
-    // } else {
-    //   resources.groundCursor = hits[0].point;
-    // }
-    // if (plannedDeployment.plannedUnit !== null) {
-    //   for (const soldier of plannedDeployment.plannedUnit.soldiers) {
-    //     scene.remove(soldier.gltf.scene);
-    //   }
-    // }
-    // if (resources.groundCursor !== null) {
-    //   cursor.position.copy(resources.groundCursor);
-    //   if (plannedDeployment.start !== null) {
-    //     const temp_fromStartToCursor = resources.groundCursor
-    //       .clone()
-    //       .sub(plannedDeployment.start);
-    //     const fromStartToCursorLength = temp_fromStartToCursor.length();
-    //     const RANK_GAP = 8;
-    //     const width = Math.max(
-    //       1,
-    //       Math.floor(fromStartToCursorLength / RANK_GAP)
-    //     );
-    //     plannedDeployment.plannedUnit = getUnit({
-    //       start: plannedDeployment.start,
-    //       forward: temp_fromStartToCursor
-    //         .clone()
-    //         .normalize()
-    //         .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
-    //       dimensions: [width, 1],
-    //       gap: [8, 8 * (Math.sqrt(3) / 2)],
-    //       assets,
-    //       allegiance: Allegiance.Azuki,
-    //     });
-    //     for (const soldier of plannedDeployment.plannedUnit.soldiers) {
-    //       scene.add(soldier.gltf.scene);
-    //       updateThreeJsProperties(soldier);
-    //     }
-    //   }
-    // }
-  }
+  // function oncePerFrameBeforeRender(): void {
+  // if (!azukiKing.dragonfly.isBeingRidden) {
+  //   azukiKing.gltf.scene.quaternion.setFromAxisAngle(
+  //     new Vector3(0, 1, 0),
+  //     azukiKing.yRot
+  //   );
+  // }
+  // updateThreeJsProperties(azukiKing);
+  // for (const unit of units) {
+  //   for (const soldier of unit.soldiers) {
+  //     updateThreeJsProperties(soldier);
+  //   }
+  // }
+  // for (const tower of towers) {
+  //   getActiveBannerTowerGltf(tower).scene.position.copy(tower.position);
+  // }
+  // if (resources.azukiKing.dragonfly.isBeingRidden) {
+  //   // TODO
+  //   camera.position.copy(player.gltf.scene.position);
+  //   camera.quaternion.copy(player.gltf.scene.quaternion);
+  //   camera.translateY(5);
+  //   camera.translateZ(10);
+  //   camera.rotateX(-(mouse.y - 0.5) * Math.PI);
+  // } else {
+  //   camera.position.copy(player.gltf.scene.position);
+  //   camera.quaternion.copy(player.gltf.scene.quaternion);
+  //   camera.translateY(5);
+  //   camera.translateZ(5);
+  //   camera.rotateX(-(mouse.y - 0.5) * Math.PI);
+  // }
+  // const raycaster = new Raycaster();
+  // raycaster.set(
+  //   camera.position,
+  //   new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
+  // );
+  // const hits = raycaster.intersectObject(grasslike, true);
+  // if (hits.length === 0) {
+  //   resources.groundCursor = null;
+  // } else {
+  //   resources.groundCursor = hits[0].point;
+  // }
+  // if (plannedDeployment.plannedUnit !== null) {
+  //   for (const soldier of plannedDeployment.plannedUnit.soldiers) {
+  //     scene.remove(soldier.gltf.scene);
+  //   }
+  // }
+  // if (resources.groundCursor !== null) {
+  //   cursor.position.copy(resources.groundCursor);
+  //   if (plannedDeployment.start !== null) {
+  //     const temp_fromStartToCursor = resources.groundCursor
+  //       .clone()
+  //       .sub(plannedDeployment.start);
+  //     const fromStartToCursorLength = temp_fromStartToCursor.length();
+  //     const RANK_GAP = 8;
+  //     const width = Math.max(
+  //       1,
+  //       Math.floor(fromStartToCursorLength / RANK_GAP)
+  //     );
+  //     plannedDeployment.plannedUnit = getUnit({
+  //       start: plannedDeployment.start,
+  //       forward: temp_fromStartToCursor
+  //         .clone()
+  //         .normalize()
+  //         .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
+  //       dimensions: [width, 1],
+  //       gap: [8, 8 * (Math.sqrt(3) / 2)],
+  //       assets,
+  //       allegiance: Allegiance.Azuki,
+  //     });
+  //     for (const soldier of plannedDeployment.plannedUnit.soldiers) {
+  //       scene.add(soldier.gltf.scene);
+  //       updateThreeJsProperties(soldier);
+  //     }
+  //   }
+  // }
+  // }
 
   function updateThreeScene(): void {
     cubeCamera.update(renderer, scene);
