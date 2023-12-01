@@ -2,7 +2,7 @@ import { Vector3 } from "three";
 import {
   Allegiance,
   BannerTower,
-  BattleState,
+  BattleStateData,
   King,
   Ref,
   Soldier,
@@ -10,9 +10,9 @@ import {
   Triple,
   Unit,
   UnitOrderKind,
-} from "./battleState";
+} from "./battleStateData";
 
-export function getDefaultBattleState(): BattleState {
+export function getDefaultBattleState(): BattleStateData {
   const entities = [];
 
   const azukiKing = getDefaultAzukiKing();

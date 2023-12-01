@@ -24,7 +24,7 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { Allegiance, BattleState } from "./battleState";
+import { Allegiance, BattleStateData } from "./battleStateData";
 
 export class San {
   constructor(private readonly data: SanData) {}

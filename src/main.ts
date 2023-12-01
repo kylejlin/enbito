@@ -24,9 +24,9 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { BattleState, King, Ref } from "./battleState";
+import { BattleStateData, King, Ref } from "./battleStateData";
 import { San, getDefaultSanData } from "./san";
-import { BattleManager } from "./battleManager";
+import { BattleState } from "./battleState";
 import { getDefaultBattleState } from "./getBattleState";
 
 function getDummyVector3(): Vector3 {
@@ -39,7 +39,7 @@ interface Resources {
   mouse: MouseState;
   keys: KeySet;
 
-  battle: BattleManager;
+  battle: BattleState;
 
   plannedDeployment: PlannedDeployment;
   groundCursor: null | Vector3;
@@ -534,7 +534,7 @@ export function main(assets: Assets): void {
   scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = {
-    battle: new BattleManager(getDefaultBattleState()),
+    battle: new BattleState(getDefaultBattleState()),
     san: new San(getDefaultSanData(assets)),
     mouse,
     keys,
