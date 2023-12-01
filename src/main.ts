@@ -1661,16 +1661,19 @@ function tickBannerTowers(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
-  for (const tower of resources.towers) {
-    tickBannerTower(elapsedTimeInSeconds, tower, resources);
+  const { battle } = resources;
+  for (const towerId of battle.data.activeTowerIds) {
+    tickBannerTower(elapsedTimeInSeconds, towerId, resources);
   }
 }
 
 function tickBannerTower(
   elapsedTimeInSeconds: number,
-  tower: BannerTower,
-  { assets, scene, units, towers }: Resources
+  towerId: Ref,
+  { assets, battle }: Resources
 ): void {
+  const tower = battle.getBannerTower(towerId);
+
   if (tower.isPreview) {
     return;
   }
@@ -1678,7 +1681,8 @@ function tickBannerTower(
   let uniqueOccupier: typeof UNOCCUPIED | typeof CONTESTED | Allegiance =
     UNOCCUPIED;
 
-  for (const unit of units) {
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
     if (
       uniqueOccupier === CONTESTED ||
       uniqueOccupier === unit.allegiance ||
@@ -1687,9 +1691,10 @@ function tickBannerTower(
       break;
     }
 
-    const { soldiers } = unit;
-    for (const soldier of soldiers) {
-      if (inTowerTerritory(soldier.gltf.scene.position, tower.position)) {
+    const { soldierIds } = unit;
+    for (const soldierId of soldierIds) {
+      const soldier = battle.getSoldier(soldierId);
+      if (inTowerTerritory(soldier.position, tower.position)) {
         if (uniqueOccupier === UNOCCUPIED) {
           uniqueOccupier = unit.allegiance;
         } else if (uniqueOccupier !== unit.allegiance) {
@@ -1705,19 +1710,23 @@ function tickBannerTower(
     uniqueOccupier !== CONTESTED &&
     tower.allegiance !== uniqueOccupier
   ) {
-    scene.remove(getActiveBannerTowerGltf(tower).scene);
-    tower.allegiance = uniqueOccupier;
-    scene.add(getActiveBannerTowerGltf(tower).scene);
+    // scene.remove(getActiveBannerTowerGltf(tower).scene);
+    // tower.allegiance = uniqueOccupier;
+    // scene.add(getActiveBannerTowerGltf(tower).scene);
   }
 
   tower.secondsUntilNextSoldier -= elapsedTimeInSeconds;
-  if (tower.secondsUntilNextSoldier <= 0 && tower.pendingSoldiers.length > 0) {
-    const [soldier, unit, { isLastInUnit }] = tower.pendingSoldiers.shift()!;
-    soldier.gltf.scene.position.copy(tower.position);
-    unit.soldiers.push(soldier);
-    scene.add(soldier.gltf.scene);
-    if (isLastInUnit) {
-      unit.areSoldiersStillBeingAdded = false;
+  if (tower.secondsUntilNextSoldier <= 0 && tower.pendingUnits.length > 0) {
+    const pendingUnit = tower.pendingUnits[0];
+    const assemblingUnit = battle.getUnit(pendingUnit.unitId);
+    const soldier = pendingUnit.soldiers.shift()!;
+    geoUtils.setTriple(soldier.position, tower.position);
+    const soldierId = battle.addEntity(soldier);
+    assemblingUnit.soldierIds.push(soldierId);
+    // scene.add(soldier.gltf.scene);
+    if (pendingUnit.soldiers.length) {
+      assemblingUnit.areSoldiersStillBeingAdded = false;
+      tower.pendingUnits.shift();
     }
     tower.secondsUntilNextSoldier = SOLDIER_DEPLOYMENT_DELAY_SECONDS;
   }

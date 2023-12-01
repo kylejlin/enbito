@@ -65,3 +65,9 @@ export function lengthSq(a: Triple): number {
   const [x, y, z] = a;
   return x * x + y * y + z * z;
 }
+
+export function setTriple(out: Triple, source: Triple): void {
+  out[0] = source[0];
+  out[1] = source[1];
+  out[2] = source[2];
+}
