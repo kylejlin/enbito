@@ -52,10 +52,7 @@ export interface King extends Soldier {
 
 export interface KingDragonfly {
   position: Triple;
-
-  yaw: number;
-  pitch: number;
-  roll: number;
+  orientation: Orientation;
 
   isBeingRidden: boolean;
   isLanding: boolean;
@@ -68,6 +65,12 @@ export interface KingDragonfly {
    * sufficiently low speed.
    */
   dismountTimer: number;
+}
+
+export interface Orientation {
+  yaw: number;
+  pitch: number;
+  roll: number;
 }
 
 export type UnitOrder = AdvanceOrder | AssembleOrder;
