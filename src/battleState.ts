@@ -10,6 +10,12 @@ import {
 export class BattleState {
   constructor(public readonly data: BattleStateData) {}
 
+  public addEntity(entity: unknown): Ref {
+    const id: Ref = { isEntityId: true, value: this.data.entities.length };
+    this.data.entities.push(entity);
+    return id;
+  }
+
   public getAzukiKing(): King {
     return this.data.entities[this.data.azukiKingId.value] as King;
   }

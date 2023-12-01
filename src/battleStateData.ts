@@ -105,7 +105,7 @@ export interface BannerTower {
 }
 
 export interface BannerTowerPendingUnit {
-  soldierIds: Ref[];
+  soldiers: PlannedSoldier[];
   unitId: Ref;
 }
 

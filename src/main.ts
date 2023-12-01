@@ -34,6 +34,8 @@ import {
   SoldierAnimationKind,
   SoldierAnimationState,
   Triple,
+  Unit,
+  UnitOrderKind,
 } from "./battleStateData";
 import { San, getDefaultSanData } from "./san";
 import { BattleState } from "./battleState";
@@ -1274,43 +1276,33 @@ function tickPlannedDeployment(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
-  const { keys } = resources;
+  const { keys, battle } = resources;
   const { plannedDeployment } = resources.battle.data;
-  const selectedTower = getAzukiBannerTowerEnclosingGroundCursor(resources);
-  if (plannedDeployment.setUnit !== null && keys.f && selectedTower !== null) {
-    for (const soldier of plannedDeployment.setUnit.soldiers) {
-      scene.remove(soldier.gltf.scene);
-    }
+  const selectedTowerId = getAzukiBannerTowerEnclosingGroundCursor(resources);
+  if (
+    plannedDeployment.plannedUnit !== null &&
+    keys.f &&
+    selectedTowerId !== null
+  ) {
+    const selectedTower = battle.getBannerTower(selectedTowerId);
+    // for (const soldier of plannedDeployment.setUnit.soldiers) {
+    //   scene.remove(soldier.gltf.scene);
+    // }
 
     const pendingUnit: Unit = {
       order: { kind: UnitOrderKind.Assemble },
-      soldiers: [],
-      forward: plannedDeployment.setUnit.forward,
+      soldierIds: [],
+      forward: plannedDeployment.plannedUnit.forward,
       isPreview: false,
-      allegiance: plannedDeployment.setUnit.allegiance,
+      allegiance: plannedDeployment.plannedUnit.allegiance,
       areSoldiersStillBeingAdded: true,
     };
-    units.push(pendingUnit);
-    selectedTower.pendingSoldiers.push(
-      ...plannedDeployment.setUnit.soldiers.map(
-        (
-          soldier,
-          soldierIndex,
-          { length: soldierCount }
-        ): [Soldier, Unit, { isLastInUnit: boolean }] => {
-          soldier.assemblyPoint.copy(soldier.gltf.scene.position);
-          return [
-            soldier,
-            pendingUnit,
-            {
-              isLastInUnit: soldierIndex === soldierCount - 1,
-            },
-          ];
-        }
-      )
-    );
-
-    plannedDeployment.setUnit = null;
+    const assemblingUnitId = battle.addEntity(pendingUnit);
+    selectedTower.pendingUnits.push({
+      unitId: assemblingUnitId,
+      soldiers: plannedDeployment.plannedUnit.soldiers,
+    });
+    plannedDeployment.plannedUnit = null;
   }
 }
 
