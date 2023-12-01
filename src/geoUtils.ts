@@ -61,7 +61,7 @@ export function sub(minuend: Triple, subtrahend: Triple): Triple {
   ];
 }
 
-export function lengthSq(a: Triple): number {
+export function lengthSquared(a: Triple): number {
   const [x, y, z] = a;
   return x * x + y * y + z * z;
 }

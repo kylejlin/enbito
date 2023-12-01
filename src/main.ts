@@ -35,6 +35,7 @@ import {
   Soldier,
   SoldierAnimationKind,
   SoldierAnimationState,
+  SoldierExplosion,
   Triple,
   Unit,
   UnitOrderKind,
@@ -1534,7 +1535,7 @@ function tickUnitWithAssembleOrder(
     let isReadyForCombat = false;
 
     const difference = geoUtils.sub(soldier.assemblyPoint, soldier.position);
-    if (geoUtils.lengthSq(difference) < 0.1) {
+    if (geoUtils.lengthSquared(difference) < 0.1) {
       const desiredYRot = Math.atan2(unit.forward[0], unit.forward[2]);
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
       soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
@@ -1736,39 +1737,40 @@ function tickSoldierExplosions(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
-  const { soldierExplosions } = resources;
+  const { battle } = resources;
+  const { soldierExplosions } = battle.data;
   for (let i = 0; i < soldierExplosions.length; ++i) {
     const explosion = soldierExplosions[i];
     explosion.timeInSeconds += elapsedTimeInSeconds;
 
     if (explosion.timeInSeconds > SOLDIER_EXPLOSION_DURATION) {
-      if (explosion.scene !== null) {
-        resources.scene.remove(explosion.scene);
-      }
+      // if (explosion.scene !== null) {
+      //   resources.scene.remove(explosion.scene);
+      // }
       soldierExplosions.splice(i, 1);
       continue;
     }
 
-    const zeroIndexedFrameNumber = Math.min(
-      Math.floor(
-        (explosion.timeInSeconds / SOLDIER_EXPLOSION_DURATION) *
-          SOLDIER_EXPLOSION_FRAME_COUNT
-      ),
-      SOLDIER_EXPLOSION_FRAME_COUNT - 1
-    );
+    // const zeroIndexedFrameNumber = Math.min(
+    //   Math.floor(
+    //     (explosion.timeInSeconds / SOLDIER_EXPLOSION_DURATION) *
+    //       SOLDIER_EXPLOSION_FRAME_COUNT
+    //   ),
+    //   SOLDIER_EXPLOSION_FRAME_COUNT - 1
+    // );
 
-    if (explosion.scene !== null) {
-      resources.scene.remove(explosion.scene);
-    }
+    // if (explosion.scene !== null) {
+    //   resources.scene.remove(explosion.scene);
+    // }
 
-    const explosionFrames =
-      explosion.allegiance === Allegiance.Azuki
-        ? resources.assets.explodingAzukiFrames
-        : resources.assets.explodingEdamameFrames;
-    explosion.scene = explosionFrames[zeroIndexedFrameNumber].clone(true);
-    explosion.scene.position.copy(explosion.position);
-    explosion.scene.quaternion.copy(explosion.quaternion);
-    resources.scene.add(explosion.scene);
+    // const explosionFrames =
+    //   explosion.allegiance === Allegiance.Azuki
+    //     ? resources.assets.explodingAzukiFrames
+    //     : resources.assets.explodingEdamameFrames;
+    // explosion.scene = explosionFrames[zeroIndexedFrameNumber].clone(true);
+    // explosion.scene.position.copy(explosion.position);
+    // explosion.scene.quaternion.copy(explosion.quaternion);
+    // resources.scene.add(explosion.scene);
   }
 }
 
@@ -1811,9 +1813,11 @@ function applyKingSlashDamage(
 
     for (const soldierId of unit.soldierIds) {
       const soldier = battle.getSoldier(soldierId);
-      const differenceSquared = new TripleManager(
-        soldier.position
-      ).distanceToSquared(position);
+      const differenceSquared = geoUtils.distanceToSquared(
+        soldier.position,
+        position
+      );
+
       const angleDifference = normalizeAngleBetweenNegPiAndPosPi(
         yRot -
           Math.atan2(
@@ -1847,29 +1851,19 @@ function normalizeAngleBetweenNegPiAndPosPi(angle: number): number {
   return out;
 }
 
-function isKing(soldier: Soldier): soldier is King {
-  return !!(soldier as King).isKing;
-}
-
 function getSoldierExplosion(
   allegiance: Allegiance,
   position: Triple,
   orientation: Orientation
 ): SoldierExplosion {
-  const quaternion = new Quaternion();
-  TripleManager.setQuaternionFromOrientation(quaternion, orientation);
   return {
     allegiance,
-    position: new Vector3(position[0], position[1], position[2]),
-    quaternion,
+    position: [position[0], position[1], position[2]],
+    orientation,
     timeInSeconds: 0,
-    scene: null,
   };
 }
 
-function fromThreeVector(groundCursor: Vector3): Triple | null {
-  throw new Error("Function not implemented.");
-}
 function getAzukiBannerTowerEnclosingGroundCursor(
   resources: Resources
 ): null | Ref {
