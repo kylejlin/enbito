@@ -13,6 +13,7 @@ import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
 
 export interface Assets {
+  mcon: ModelConstants;
   environment: DataTexture;
   azukiSpear: GLTF;
   azukiSpearWalkClip: AnimationClip;
@@ -89,6 +90,11 @@ export interface Assets {
     Group,
     Group
   ];
+}
+
+export interface ModelConstants {
+  azukiSpearWalkClipDuration: number;
+  azukiKingSlashClipDuration: number;
 }
 
 export function loadAssets(): Promise<Assets> {
@@ -243,7 +249,13 @@ export function loadAssets(): Promise<Assets> {
         "Slash"
       );
 
+      const mcon: ModelConstants = {
+        azukiSpearWalkClipDuration: azukiSpearWalkClip.duration,
+        azukiKingSlashClipDuration: azukiKingSlashClip.duration,
+      };
+
       return {
+        mcon,
         environment,
         azukiSpear,
         azukiSpearWalkClip,

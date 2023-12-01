@@ -1,4 +1,4 @@
-import { Assets } from "./assets";
+import { Assets, ModelConstants } from "./assets";
 import {
   WebGLRenderer,
   PerspectiveCamera,
@@ -24,7 +24,14 @@ import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { BattleStateData, King, Ref } from "./battleStateData";
+import {
+  Allegiance,
+  BattleStateData,
+  King,
+  Ref,
+  SoldierAnimationKind,
+  SoldierAnimationState,
+} from "./battleStateData";
 import { San, getDefaultSanData } from "./san";
 import { BattleState } from "./battleState";
 import { getDefaultBattleState } from "./getBattleState";
@@ -748,63 +755,59 @@ export function main(assets: Assets): void {
         startOrContinueWalkingAnimation(
           elapsedTimeInSeconds,
           azukiKing.animation,
-          azukiKing.walkAction.timeScale,
-          assets
+          assets.mcon
         );
       } else {
         stopWalkingAnimation(
           elapsedTimeInSeconds,
-          player.animation,
-          player.walkAction.timeScale,
-          assets
+          azukiKing.animation,
+          assets.mcon
         );
       }
 
       if (
-        player.animation.kind === SoldierAnimationKind.Slash ||
-        (keys.space && player.animation.kind === SoldierAnimationKind.Idle)
+        azukiKing.animation.kind === SoldierAnimationKind.Slash ||
+        (keys.space && azukiKing.animation.kind === SoldierAnimationKind.Idle)
       ) {
+        const slashActionTimeScale = 1;
         const finishesSlashCycleThisTick =
-          player.animation.timeInSeconds + elapsedTimeInSeconds >=
-          assets.azukiKingSlashClip.duration / player.slashAction.timeScale;
+          azukiKing.animation.timeInSeconds + elapsedTimeInSeconds >=
+          assets.azukiKingSlashClip.duration / slashActionTimeScale;
         const dealsDamageThisTick = startOrContinueSlashAnimation(
           elapsedTimeInSeconds,
-          player.animation,
-          player.slashAction.timeScale,
-          assets
+          azukiKing.animation,
+          assets.mcon
         );
         if (dealsDamageThisTick) {
-          applyKingSlashDamage(
-            Allegiance.Azuki,
-            player.yRot,
-            player.gltf.scene.position,
-            units
-          );
+          applyKingSlashDamage(Allegiance.Azuki, resources.battle);
         }
         if (finishesSlashCycleThisTick && !keys.space) {
-          player.animation = {
+          azukiKing.animation = {
             kind: SoldierAnimationKind.Idle,
             timeInSeconds: 0,
           };
         }
       }
 
-      if (player.animation.kind === SoldierAnimationKind.Walk) {
-        player.gltf.scene.translateZ(-3 * elapsedTimeInSeconds);
+      if (azukiKing.animation.kind === SoldierAnimationKind.Walk) {
+        new TripleManager(azukiKing.position).translateZ(
+          { yaw: azukiKing.yRot, pitch: 0, roll: 0 },
+          -3 * elapsedTimeInSeconds
+        );
       }
     }
 
     dragonflyMixer.update(elapsedTimeInSeconds);
     dragonfly.translateZ(30 * -elapsedTimeInSeconds);
 
-    resources.azukiKing.dragonfly.mixer.update(elapsedTimeInSeconds);
+    // azukiKing.dragonfly.mixer.update(elapsedTimeInSeconds);
 
     cursorMixer.update((1 * elapsedTimeInMillisecs) / 1000);
     cursor.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
     cursor.rotateY(
       Math.atan2(
-        player.gltf.scene.position.x - cursor.position.x,
-        player.gltf.scene.position.z - cursor.position.z
+        azukiKing.position[0] - cursor.position.x,
+        azukiKing.position[2] - cursor.position.z
       )
     );
 
@@ -816,87 +819,80 @@ export function main(assets: Assets): void {
   }
 
   function oncePerFrameBeforeRender(): void {
-    if (!resources.azukiKing.dragonfly.isBeingRidden) {
-      player.gltf.scene.quaternion.setFromAxisAngle(
-        new Vector3(0, 1, 0),
-        player.yRot
-      );
-    }
-    updateThreeJsProperties(player);
-
-    for (const unit of units) {
-      for (const soldier of unit.soldiers) {
-        updateThreeJsProperties(soldier);
-      }
-    }
-
-    for (const tower of towers) {
-      getActiveBannerTowerGltf(tower).scene.position.copy(tower.position);
-    }
-
-    if (resources.azukiKing.dragonfly.isBeingRidden) {
-      // TODO
-      camera.position.copy(player.gltf.scene.position);
-      camera.quaternion.copy(player.gltf.scene.quaternion);
-      camera.translateY(5);
-      camera.translateZ(10);
-      camera.rotateX(-(mouse.y - 0.5) * Math.PI);
-    } else {
-      camera.position.copy(player.gltf.scene.position);
-      camera.quaternion.copy(player.gltf.scene.quaternion);
-      camera.translateY(5);
-      camera.translateZ(5);
-      camera.rotateX(-(mouse.y - 0.5) * Math.PI);
-    }
-
-    const raycaster = new Raycaster();
-    raycaster.set(
-      camera.position,
-      new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
-    );
-    const hits = raycaster.intersectObject(grasslike, true);
-    if (hits.length === 0) {
-      resources.groundCursor = null;
-    } else {
-      resources.groundCursor = hits[0].point;
-    }
-
-    if (plannedDeployment.plannedUnit !== null) {
-      for (const soldier of plannedDeployment.plannedUnit.soldiers) {
-        scene.remove(soldier.gltf.scene);
-      }
-    }
-
-    if (resources.groundCursor !== null) {
-      cursor.position.copy(resources.groundCursor);
-
-      if (plannedDeployment.start !== null) {
-        const temp_fromStartToCursor = resources.groundCursor
-          .clone()
-          .sub(plannedDeployment.start);
-        const fromStartToCursorLength = temp_fromStartToCursor.length();
-        const RANK_GAP = 8;
-        const width = Math.max(
-          1,
-          Math.floor(fromStartToCursorLength / RANK_GAP)
-        );
-        plannedDeployment.plannedUnit = getUnit({
-          start: plannedDeployment.start,
-          forward: temp_fromStartToCursor
-            .clone()
-            .normalize()
-            .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
-          dimensions: [width, 1],
-          gap: [8, 8 * (Math.sqrt(3) / 2)],
-          assets,
-          allegiance: Allegiance.Azuki,
-        });
-        for (const soldier of plannedDeployment.plannedUnit.soldiers) {
-          scene.add(soldier.gltf.scene);
-          updateThreeJsProperties(soldier);
-        }
-      }
-    }
+    // if (!azukiKing.dragonfly.isBeingRidden) {
+    //   azukiKing.gltf.scene.quaternion.setFromAxisAngle(
+    //     new Vector3(0, 1, 0),
+    //     azukiKing.yRot
+    //   );
+    // }
+    // updateThreeJsProperties(azukiKing);
+    // for (const unit of units) {
+    //   for (const soldier of unit.soldiers) {
+    //     updateThreeJsProperties(soldier);
+    //   }
+    // }
+    // for (const tower of towers) {
+    //   getActiveBannerTowerGltf(tower).scene.position.copy(tower.position);
+    // }
+    // if (resources.azukiKing.dragonfly.isBeingRidden) {
+    //   // TODO
+    //   camera.position.copy(player.gltf.scene.position);
+    //   camera.quaternion.copy(player.gltf.scene.quaternion);
+    //   camera.translateY(5);
+    //   camera.translateZ(10);
+    //   camera.rotateX(-(mouse.y - 0.5) * Math.PI);
+    // } else {
+    //   camera.position.copy(player.gltf.scene.position);
+    //   camera.quaternion.copy(player.gltf.scene.quaternion);
+    //   camera.translateY(5);
+    //   camera.translateZ(5);
+    //   camera.rotateX(-(mouse.y - 0.5) * Math.PI);
+    // }
+    // const raycaster = new Raycaster();
+    // raycaster.set(
+    //   camera.position,
+    //   new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
+    // );
+    // const hits = raycaster.intersectObject(grasslike, true);
+    // if (hits.length === 0) {
+    //   resources.groundCursor = null;
+    // } else {
+    //   resources.groundCursor = hits[0].point;
+    // }
+    // if (plannedDeployment.plannedUnit !== null) {
+    //   for (const soldier of plannedDeployment.plannedUnit.soldiers) {
+    //     scene.remove(soldier.gltf.scene);
+    //   }
+    // }
+    // if (resources.groundCursor !== null) {
+    //   cursor.position.copy(resources.groundCursor);
+    //   if (plannedDeployment.start !== null) {
+    //     const temp_fromStartToCursor = resources.groundCursor
+    //       .clone()
+    //       .sub(plannedDeployment.start);
+    //     const fromStartToCursorLength = temp_fromStartToCursor.length();
+    //     const RANK_GAP = 8;
+    //     const width = Math.max(
+    //       1,
+    //       Math.floor(fromStartToCursorLength / RANK_GAP)
+    //     );
+    //     plannedDeployment.plannedUnit = getUnit({
+    //       start: plannedDeployment.start,
+    //       forward: temp_fromStartToCursor
+    //         .clone()
+    //         .normalize()
+    //         .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
+    //       dimensions: [width, 1],
+    //       gap: [8, 8 * (Math.sqrt(3) / 2)],
+    //       assets,
+    //       allegiance: Allegiance.Azuki,
+    //     });
+    //     for (const soldier of plannedDeployment.plannedUnit.soldiers) {
+    //       scene.add(soldier.gltf.scene);
+    //       updateThreeJsProperties(soldier);
+    //     }
+    //   }
+    // }
   }
 
   function updateThreeScene(): void {
@@ -916,40 +912,39 @@ export function main(assets: Assets): void {
   }
 
   function trySetDeploymentEnd(): void {
-    if (
-      !(plannedDeployment.start !== null && resources.groundCursor !== null)
-    ) {
-      return;
-    }
-
-    if (plannedDeployment.setUnit === null) {
-      const temp_fromStartToCursor = resources.groundCursor
-        .clone()
-        .sub(plannedDeployment.start);
-      const fromStartToCursorLength = temp_fromStartToCursor.length();
-      const RANK_GAP = 8;
-      const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
-      plannedDeployment.setUnit = getUnit({
-        start: plannedDeployment.start,
-        forward: temp_fromStartToCursor
-          .clone()
-          .normalize()
-          .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
-        dimensions: [width, 1],
-        gap: [RANK_GAP, 0],
-        assets,
-        allegiance: Allegiance.Azuki,
-      });
-      for (const soldier of plannedDeployment.setUnit.soldiers) {
-        scene.add(soldier.gltf.scene);
-        updateThreeJsProperties(soldier);
-      }
-      plannedDeployment.start = null;
-    } else {
-      // TODO
-      // For now, setting a second unit is a no-op.
-      plannedDeployment.start = null;
-    }
+    //   if (
+    //     !(plannedDeployment.start !== null && resources.groundCursor !== null)
+    //   ) {
+    //     return;
+    //   }
+    //   if (plannedDeployment.setUnitId === null) {
+    //     const temp_fromStartToCursor = resources.groundCursor
+    //       .clone()
+    //       .sub(plannedDeployment.start);
+    //     const fromStartToCursorLength = temp_fromStartToCursor.length();
+    //     const RANK_GAP = 8;
+    //     const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
+    //     plannedDeployment.setUnitId = getUnit({
+    //       start: plannedDeployment.start,
+    //       forward: temp_fromStartToCursor
+    //         .clone()
+    //         .normalize()
+    //         .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
+    //       dimensions: [width, 1],
+    //       gap: [RANK_GAP, 0],
+    //       assets,
+    //       allegiance: Allegiance.Azuki,
+    //     });
+    //     for (const soldier of plannedDeployment.setUnit.soldiers) {
+    //       scene.add(soldier.gltf.scene);
+    //       updateThreeJsProperties(soldier);
+    //     }
+    //     plannedDeployment.start = null;
+    //   } else {
+    //     // TODO
+    //     // For now, setting a second unit is a no-op.
+    //     plannedDeployment.start = null;
+    //   }
   }
 }
 
@@ -1069,13 +1064,29 @@ function getBannerTower({
   };
 }
 
+// function startOrContinueWalkingAnimation(
+//   elapsedTimeInSeconds: number,
+//   animation: SoldierAnimationState,
+//   timeScale: number,
+//   assets: Assets
+// ): void {
+//   const scaledWalkClipDuration = assets.azukiSpearWalkClip.duration / timeScale;
+//   if (animation.kind !== SoldierAnimationKind.Walk) {
+//     animation.kind = SoldierAnimationKind.Walk;
+//     animation.timeInSeconds = 0;
+//   } else {
+//     animation.timeInSeconds =
+//       (animation.timeInSeconds + elapsedTimeInSeconds) % scaledWalkClipDuration;
+//   }
+// }
+
 function startOrContinueWalkingAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
-  timeScale: number,
-  assets: Assets
+  mcon: ModelConstants
 ): void {
-  const scaledWalkClipDuration = assets.azukiSpearWalkClip.duration / timeScale;
+  const timeScale = 1;
+  const scaledWalkClipDuration = mcon.azukiSpearWalkClipDuration / timeScale;
   if (animation.kind !== SoldierAnimationKind.Walk) {
     animation.kind = SoldierAnimationKind.Walk;
     animation.timeInSeconds = 0;
@@ -1089,11 +1100,10 @@ function startOrContinueWalkingAnimation(
 function startOrContinueSlashAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
-  timeScale: number,
-  assets: Assets
+  mcon: ModelConstants
 ): boolean {
-  const scaledSlashClipDuration =
-    assets.azukiKingSlashClip.duration / timeScale;
+  const timeScale = 1;
+  const scaledSlashClipDuration = mcon.azukiKingSlashClipDuration / timeScale;
   if (animation.kind !== SoldierAnimationKind.Slash) {
     animation.kind = SoldierAnimationKind.Slash;
     animation.timeInSeconds = 0;
@@ -1116,10 +1126,10 @@ function startOrContinueSlashAnimation(
 function stopWalkingAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
-  timeScale: number,
-  assets: Assets
+  mcon: ModelConstants
 ): void {
-  const scaledWalkClipDuration = assets.azukiSpearWalkClip.duration / timeScale;
+  const timeScale = 1;
+  const scaledWalkClipDuration = mcon.azukiSpearWalkClipDuration / timeScale;
   if (animation.kind === SoldierAnimationKind.Walk) {
     const halfwayPoint = 0.5 * scaledWalkClipDuration;
     const reachesHalfwayPointThisTick =
@@ -1765,24 +1775,30 @@ function getActiveBannerTowerGltf(tower: BannerTower): GLTF {
 
 function applyKingSlashDamage(
   allegiance: Allegiance,
-  yRot: number,
-  position: Vector3,
-  units: Unit[]
+  battle: BattleState
 ): void {
+  const king =
+    allegiance === Allegiance.Azuki
+      ? battle.getAzukiKing()
+      : battle.getEdamameKing();
+  const { yRot, position } = king;
   const slashRangeSquared = 6 ** 2;
-  for (const unit of units) {
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
     if (unit.allegiance === allegiance) {
       continue;
     }
 
-    for (const soldier of unit.soldiers) {
-      const differenceSquared =
-        soldier.gltf.scene.position.distanceToSquared(position);
+    for (const soldierId of unit.soldierIds) {
+      const soldier = battle.getSoldier(soldierId);
+      const differenceSquared = new TripleManager(
+        soldier.position
+      ).distanceToSquared(position);
       const angleDifference = normalizeAngleBetweenNegPiAndPosPi(
         yRot -
           Math.atan2(
-            soldier.gltf.scene.position.x - position.x,
-            soldier.gltf.scene.position.z - position.z
+            soldier.position[0] - position[0],
+            soldier.position[2] - position[2]
           ) +
           Math.PI
       );
