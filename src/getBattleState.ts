@@ -11,6 +11,7 @@ import {
   Unit,
   UnitOrderKind,
 } from "./battleStateData";
+import { toThreeVec } from "./geoUtils";
 
 export function getDefaultBattleState(): BattleStateData {
   const entities = [];
@@ -219,6 +220,9 @@ export function getDefaultBattleState(): BattleStateData {
       { isEntityId: true, value: entities.indexOf(edamameTower5) },
       { isEntityId: true, value: entities.indexOf(edamameTower6) },
     ],
+
+    plannedDeployment: { start: null, plannedUnit: null },
+    soldierExplosions: [],
   };
 }
 
@@ -338,10 +342,6 @@ function getSoldier(
     yRot: 0,
     assemblyPoint: [0, 0, 0],
   };
-}
-
-function toThreeVec([x, y, z]: Triple): Vector3 {
-  return new Vector3(x, y, z);
 }
 
 function getBannerTower({

@@ -4,6 +4,9 @@ export interface BattleStateData {
   edamameKingId: Ref;
   activeUnitIds: Ref[];
   activeTowerIds: Ref[];
+
+  plannedDeployment: PlannedDeployment;
+  soldierExplosions: SoldierExplosion[];
 }
 
 export enum UnitOrderKind {
@@ -89,6 +92,7 @@ export interface Unit {
   forward: Triple;
   isPreview: boolean;
   allegiance: Allegiance;
+  // TODO: Check if this is needed.
   areSoldiersStillBeingAdded: boolean;
 }
 
@@ -103,4 +107,32 @@ export interface BannerTower {
 export interface BannerTowerPendingUnit {
   soldierIds: Ref[];
   unitId: Ref;
+}
+
+export interface PlannedDeployment {
+  start: null | Triple;
+  plannedUnit: null | PlannedUnit;
+}
+
+export interface PlannedUnit {
+  order: UnitOrder;
+  soldiers: PlannedSoldier[];
+  forward: Triple;
+  allegiance: Allegiance;
+  // TODO: Check if this is needed.
+  areSoldiersStillBeingAdded: boolean;
+}
+
+export interface PlannedSoldier {
+  position: Triple;
+  health: number;
+  yRot: number;
+  assemblyPoint: Triple;
+}
+
+export interface SoldierExplosion {
+  allegiance: Allegiance;
+  position: Triple;
+  orientation: Orientation;
+  timeInSeconds: number;
 }

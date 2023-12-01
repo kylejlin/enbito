@@ -38,7 +38,7 @@ import {
 import { San, getDefaultSanData } from "./san";
 import { BattleState } from "./battleState";
 import { getDefaultBattleState } from "./getBattleState";
-import { TripleManager } from "./tripleManager";
+import * as geoUtils from "./geoUtils";
 
 function getDummyVector3(): Vector3 {
   return new Vector3();
@@ -52,9 +52,7 @@ interface Resources {
 
   battle: BattleState;
 
-  plannedDeployment: PlannedDeployment;
-  groundCursor: null | Vector3;
-  soldierExplosions: SoldierExplosion[];
+  groundCursor: null | Triple;
 
   san: San;
 }
@@ -76,12 +74,6 @@ interface KeySet {
   v: boolean;
   space: boolean;
   _1: boolean;
-}
-
-interface PlannedDeployment {
-  start: null | Vector3;
-  plannedUnitId: null | Ref;
-  setUnitId: null | Ref;
 }
 
 const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
@@ -140,12 +132,6 @@ export function main(assets: Assets): void {
       }
     }
   });
-
-  const plannedDeployment: PlannedDeployment = {
-    start: null,
-    setUnitId: null,
-    plannedUnitId: null,
-  };
 
   const keys: KeySet = {
     w: false,
@@ -526,8 +512,6 @@ export function main(assets: Assets): void {
   //   scene.add(getActiveBannerTowerGltf(tower).scene);
   // }
 
-  const soldierExplosions: SoldierExplosion[] = [];
-
   const cursorGltf = cloneGltf(assets.azukiSpear);
   const cursor = cursorGltf.scene;
   cursor.position.set(3, 0, 0);
@@ -551,11 +535,10 @@ export function main(assets: Assets): void {
     keys,
     groundCursor: null,
     assets,
-    soldierExplosions,
-    plannedDeployment,
   };
 
   const azukiKing = resources.battle.getAzukiKing();
+  const edamameKing = resources.battle.getEdamameKing();
 
   addSky();
   addEnvironment();
@@ -694,7 +677,8 @@ export function main(assets: Assets): void {
           // player.dragonfly.gltf.scene.rotateX(player.dragonfly.pitch);
           // player.dragonfly.gltf.scene.rotateZ(player.dragonfly.roll);
 
-          new TripleManager(azukiKing.dragonfly.position).translateZ(
+          geoUtils.translateZ(
+            azukiKing.dragonfly.position,
             azukiKing.dragonfly.orientation,
             azukiKing.dragonfly.speed * -elapsedTimeInSeconds
           );
@@ -731,7 +715,8 @@ export function main(assets: Assets): void {
         // azukiKing.dragonfly.gltf.scene.rotateX(azukiKing.dragonfly.pitch);
         // azukiKing.dragonfly.gltf.scene.rotateZ(azukiKing.dragonfly.roll);
 
-        new TripleManager(azukiKing.dragonfly.position).translateZ(
+        geoUtils.translateZ(
+          azukiKing.dragonfly.position,
           azukiKing.dragonfly.orientation,
           azukiKing.dragonfly.speed * -elapsedTimeInSeconds
         );
@@ -793,7 +778,8 @@ export function main(assets: Assets): void {
       }
 
       if (azukiKing.animation.kind === SoldierAnimationKind.Walk) {
-        new TripleManager(azukiKing.position).translateZ(
+        geoUtils.translateZ(
+          azukiKing.position,
           { yaw: azukiKing.yRot, pitch: 0, roll: 0 },
           -3 * elapsedTimeInSeconds
         );
@@ -911,7 +897,9 @@ export function main(assets: Assets): void {
       return;
     }
 
-    resources.plannedDeployment.start = resources.groundCursor.clone();
+    resources.battle.data.plannedDeployment.start = geoUtils.cloneTriple(
+      resources.groundCursor
+    );
   }
 
   function trySetDeploymentEnd(): void {
@@ -949,14 +937,6 @@ export function main(assets: Assets): void {
     //     plannedDeployment.start = null;
     //   }
   }
-}
-
-interface SoldierExplosion {
-  allegiance: Allegiance;
-  position: Vector3;
-  quaternion: Quaternion;
-  timeInSeconds: number;
-  scene: null | Object3D;
 }
 
 // function getUnit({
@@ -1224,6 +1204,9 @@ function continueIdleThenStabAnimation(
 
 function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   const azukiKing = resources.battle.getAzukiKing();
+  const edamameKing = resources.battle.getEdamameKing();
+  const { keys, mouse } = resources;
+
   if (azukiKing.health <= 0) {
     alertOnceAfterDelay("Edamame wins!");
 
@@ -1237,51 +1220,53 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     ) {
       const azukiExplosion = getSoldierExplosion(
         Allegiance.Azuki,
-        azukiKing.gltf.scene
+        azukiKing.position,
+        { yaw: azukiKing.yRot, pitch: 0, roll: 0 }
       );
-      resources.soldierExplosions.push(azukiExplosion);
-      resources.scene.remove(resources.azukiKing.gltf.scene);
+      resources.battle.data.soldierExplosions.push(azukiExplosion);
+      // resources.scene.remove(resources.azukiKing.gltf.scene);
     }
   }
 
-  if (resources.edamameKing.health <= 0) {
+  if (edamameKing.health <= 0) {
     alertOnceAfterDelay("Azuki wins!");
 
     if (
-      resources.scene.children.some(
-        (child) => child === resources.edamameKing.gltf.scene
-      )
+      // TODO: Fix this
+      !hasAlerted
     ) {
       const edamameExplosion = getSoldierExplosion(
         Allegiance.Edamame,
-        resources.edamameKing.gltf.scene
+        edamameKing.position,
+        { yaw: edamameKing.yRot, pitch: 0, roll: 0 }
       );
-      resources.soldierExplosions.push(edamameExplosion);
-      resources.scene.remove(resources.edamameKing.gltf.scene);
+      resources.battle.data.soldierExplosions.push(edamameExplosion);
+      // resources.scene.remove(resources.edamameKing.gltf.scene);
     }
   }
 
-  if (resources.keys.t) {
-    resources.azukiKing.dragonfly.speed += 10 * elapsedTimeInSeconds;
+  if (keys.t) {
+    azukiKing.dragonfly.speed += 10 * elapsedTimeInSeconds;
   }
-  if (resources.keys.g) {
-    resources.azukiKing.dragonfly.speed = Math.max(
+  if (keys.g) {
+    azukiKing.dragonfly.speed = Math.max(
       DRAGONFLY_MIN_SPEED,
-      resources.azukiKing.dragonfly.speed - 10 * elapsedTimeInSeconds
+      azukiKing.dragonfly.speed - 10 * elapsedTimeInSeconds
     );
   }
   if (
-    resources.keys.r &&
-    resources.azukiKing.gltf.scene.position.distanceToSquared(
-      resources.azukiKing.dragonfly.gltf.scene.position
+    keys.r &&
+    geoUtils.distanceToSquared(
+      azukiKing.position,
+      azukiKing.dragonfly.position
     ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED &&
-    resources.mouse.isLocked
+    mouse.isLocked
   ) {
-    resources.mouse.x = 0.5;
-    resources.mouse.y = 0.5;
-    resources.azukiKing.dragonfly.isBeingRidden = true;
-    resources.azukiKing.dragonfly.isLanding = false;
-    resources.azukiKing.dragonfly.speed = DRAGONFLY_MIN_SPEED;
+    mouse.x = 0.5;
+    mouse.y = 0.5;
+    azukiKing.dragonfly.isBeingRidden = true;
+    azukiKing.dragonfly.isLanding = false;
+    azukiKing.dragonfly.speed = DRAGONFLY_MIN_SPEED;
   }
 }
 
@@ -1289,7 +1274,8 @@ function tickPlannedDeployment(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
-  const { plannedDeployment, keys, scene, units } = resources;
+  const { keys } = resources;
+  const { plannedDeployment } = resources.battle.data;
   const selectedTower = getAzukiBannerTowerEnclosingGroundCursor(resources);
   if (plannedDeployment.setUnit !== null && keys.f && selectedTower !== null) {
     for (const soldier of plannedDeployment.setUnit.soldiers) {
@@ -1760,13 +1746,13 @@ function tickSoldierExplosions(
 }
 
 function inTowerTerritory(
-  possibleOccupierPosition: Vector3,
-  towerPosition: Vector3
+  possibleOccupierPosition: Triple,
+  towerPosition: Triple
 ): boolean {
-  const localX = possibleOccupierPosition.x - towerPosition.x;
-  const localZ = possibleOccupierPosition.z - towerPosition.z;
+  const localX = possibleOccupierPosition[0] - towerPosition[0];
+  const localZ = possibleOccupierPosition[2] - towerPosition[2];
   return (
-    possibleOccupierPosition.y < 1 &&
+    possibleOccupierPosition[1] < 1 &&
     -10 <= localX &&
     localX <= 10 &&
     -10 <= localZ &&
@@ -1854,22 +1840,26 @@ function getSoldierExplosion(
   };
 }
 
-// function getAzukiBannerTowerEnclosingGroundCursor(
-//   resources: Resources
-// ): null | BannerTower {
-//   const { groundCursor } = resources;
-//   if (groundCursor === null) {
-//     return null;
-//   }
+function fromThreeVector(groundCursor: Vector3): Triple | null {
+  throw new Error("Function not implemented.");
+}
+function getAzukiBannerTowerEnclosingGroundCursor(
+  resources: Resources
+): null | Ref {
+  const { groundCursor } = resources;
+  if (groundCursor === null) {
+    return null;
+  }
 
-//   for (const tower of resources.towers) {
-//     if (
-//       tower.allegiance === Allegiance.Azuki &&
-//       inTowerTerritory(groundCursor, tower.position)
-//     ) {
-//       return tower;
-//     }
-//   }
+  for (const towerId of resources.battle.data.activeTowerIds) {
+    const tower = resources.battle.getBannerTower(towerId);
+    if (
+      tower.allegiance === Allegiance.Azuki &&
+      inTowerTerritory(groundCursor, tower.position)
+    ) {
+      return towerId;
+    }
+  }
 
-//   return null;
-// }
+  return null;
+}

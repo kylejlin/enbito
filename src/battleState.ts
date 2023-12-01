@@ -1,4 +1,11 @@
-import { BattleStateData, King, Ref, Soldier, Unit } from "./battleStateData";
+import {
+  BannerTower,
+  BattleStateData,
+  King,
+  Ref,
+  Soldier,
+  Unit,
+} from "./battleStateData";
 
 export class BattleState {
   constructor(public readonly data: BattleStateData) {}
@@ -17,5 +24,9 @@ export class BattleState {
 
   public getSoldier(id: Ref): Soldier {
     return this.data.entities[id.value] as Soldier;
+  }
+
+  public getBannerTower(id: Ref): BannerTower {
+    return this.data.entities[id.value] as BannerTower;
   }
 }
