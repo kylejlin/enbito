@@ -5,7 +5,7 @@ import * as geoUtils from "./geoUtils";
 export function updateThreeScene(battle: BattleState, san: San): void {
   // We use "b" and "s" prefixes to differentiate between the BattleState
   // and San.
-  const { scene, sky, camera } = san.data;
+  const { scene, sky, camera, grass } = san.data;
   scene.remove(...scene.children);
 
   const bAzukiKing = battle.getAzukiKing();
@@ -14,6 +14,7 @@ export function updateThreeScene(battle: BattleState, san: San): void {
   const sEdamameKing = san.data.edamameKing;
 
   scene.add(sky);
+  scene.add(grass);
 
   if (bAzukiKing.dragonfly.isBeingRidden) {
     geoUtils.setQuaternionFromOrientation(

@@ -219,19 +219,6 @@ export function main(assets: Assets): void {
 
   // camera.position.set(0, 2, 0);
 
-  const texture = assets.grass.clone();
-  texture.wrapS = RepeatWrapping;
-  texture.wrapT = RepeatWrapping;
-  const grasslikeSize = 100000;
-  texture.repeat.set(grasslikeSize, grasslikeSize);
-  const grasslike = new Mesh(
-    new PlaneGeometry(grasslikeSize, grasslikeSize),
-    new MeshBasicMaterial({ map: texture })
-  );
-  grasslike.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
-  grasslike.position.set(-1, 0, -1);
-  san.data.scene.add(grasslike);
-
   const cubeRenderTarget = new WebGLCubeRenderTarget(256);
   cubeRenderTarget.texture.type = HalfFloatType;
 

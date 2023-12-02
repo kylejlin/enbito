@@ -36,6 +36,7 @@ export interface SanData {
   renderer: WebGLRenderer;
 
   sky: Sky;
+  grass: Mesh;
 
   azukiKing: SanKing;
   edamameKing: SanKing;
@@ -99,6 +100,7 @@ export function getDefaultSanData(assets: Assets): SanData {
     renderer,
 
     sky: getDefaultSky(renderer, scene, camera),
+    grass: getDefaultGrass(assets),
 
     azukiKing: getDefaultSanKing(assets, Allegiance.Azuki),
     edamameKing: getDefaultSanKing(assets, Allegiance.Edamame),
@@ -178,4 +180,19 @@ export function getDefaultSky(
   onControllerChange();
 
   return sky;
+}
+
+export function getDefaultGrass(assets: Assets): Mesh {
+  const texture = assets.grass.clone();
+  texture.wrapS = RepeatWrapping;
+  texture.wrapT = RepeatWrapping;
+  const grasslikeSize = 100000;
+  texture.repeat.set(grasslikeSize, grasslikeSize);
+  const grass = new Mesh(
+    new PlaneGeometry(grasslikeSize, grasslikeSize),
+    new MeshBasicMaterial({ map: texture })
+  );
+  grass.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
+  grass.position.set(-1, 0, -1);
+  return grass;
 }
