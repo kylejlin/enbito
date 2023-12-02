@@ -30,8 +30,16 @@ export function updateThreeScene(battle: BattleState, san: San): void {
   }
   sAzukiKing.gltf.scene.position.set(...bAzukiKing.position);
 
+  updateCamera(battle, san);
+}
+
+function updateCamera(battle: BattleState, san: San): void {
+  const { camera } = san.data;
+
+  const bAzukiKing = battle.getAzukiKing();
+  const sAzukiKing = san.data.azukiKing;
+
   if (bAzukiKing.dragonfly.isBeingRidden) {
-    // TODO
     camera.position.copy(sAzukiKing.gltf.scene.position);
     camera.quaternion.copy(sAzukiKing.gltf.scene.quaternion);
     camera.translateY(5);
