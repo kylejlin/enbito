@@ -246,6 +246,7 @@ function getDefaultAzukiKing(): King {
       dismountTimer: 0,
     },
     attackTargetId: null,
+    cameraPitch: 0,
   };
 }
 
@@ -269,6 +270,7 @@ function getDefaultEdamameKing(): King {
       dismountTimer: 0,
     },
     attackTargetId: null,
+    cameraPitch: 0,
   };
 }
 

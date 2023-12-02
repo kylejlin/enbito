@@ -51,6 +51,7 @@ export interface King extends Soldier {
   isKing: true;
   // TODO: Refactor
   dragonfly: KingDragonfly;
+  cameraPitch: number;
 }
 
 export interface KingDragonfly {

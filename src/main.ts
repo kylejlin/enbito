@@ -571,6 +571,7 @@ export function main(assets: Assets): void {
     if (azukiKing.dragonfly.isBeingRidden) {
       // TODO
     } else {
+      azukiKing.cameraPitch = -(mouse.y - 0.5) * Math.PI;
       azukiKing.yRot = -(mouse.x - 0.5) * Math.PI * 2;
     }
   }
