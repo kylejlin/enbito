@@ -1,7 +1,7 @@
 import { BattleState } from "./battleState";
-import { San } from "./san";
+import { San, SanKing } from "./san";
 import * as geoUtils from "./geoUtils";
-import { SoldierAnimationKind } from "./battleStateData";
+import { King, SoldierAnimationKind } from "./battleStateData";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -29,37 +29,44 @@ function updateAzukiKing(battle: BattleState, san: San): void {
   const sAzukiKing = san.data.azukiKing;
   const sEdamameKing = san.data.edamameKing;
 
-  if (bAzukiKing.dragonfly.isBeingRidden) {
+  updateKingTransform(bAzukiKing, sAzukiKing);
+  updateKingAnimation(bAzukiKing, sAzukiKing);
+  scene.add(sAzukiKing.gltf.scene);
+}
+
+function updateKingTransform(bKing: King, sKing: SanKing): void {
+  if (bKing.dragonfly.isBeingRidden) {
     geoUtils.setQuaternionFromOrientation(
-      sAzukiKing.gltf.scene.quaternion,
-      bAzukiKing.dragonfly.orientation
+      sKing.gltf.scene.quaternion,
+      bKing.dragonfly.orientation
     );
   } else {
-    geoUtils.setQuaternionFromOrientation(sAzukiKing.gltf.scene.quaternion, {
-      yaw: bAzukiKing.yRot,
+    geoUtils.setQuaternionFromOrientation(sKing.gltf.scene.quaternion, {
+      yaw: bKing.yRot,
       pitch: 0,
       roll: 0,
     });
   }
-  sAzukiKing.gltf.scene.position.set(...bAzukiKing.position);
-  if (bAzukiKing.animation.kind === SoldierAnimationKind.Walk) {
-    sAzukiKing.walkAction.play();
+  sKing.gltf.scene.position.set(...bKing.position);
+}
 
-    sAzukiKing.slashAction.stop();
+function updateKingAnimation(bKing: King, sKing: SanKing): void {
+  if (bKing.animation.kind === SoldierAnimationKind.Walk) {
+    sKing.walkAction.play();
 
-    sAzukiKing.mixer.setTime(bAzukiKing.animation.timeInSeconds);
-  } else if (bAzukiKing.animation.kind === SoldierAnimationKind.Slash) {
-    sAzukiKing.slashAction.play();
+    sKing.slashAction.stop();
 
-    sAzukiKing.walkAction.stop();
+    sKing.mixer.setTime(bKing.animation.timeInSeconds);
+  } else if (bKing.animation.kind === SoldierAnimationKind.Slash) {
+    sKing.slashAction.play();
 
-    sAzukiKing.mixer.setTime(bAzukiKing.animation.timeInSeconds);
+    sKing.walkAction.stop();
+
+    sKing.mixer.setTime(bKing.animation.timeInSeconds);
   } else {
-    sAzukiKing.walkAction.stop();
-    sAzukiKing.slashAction.stop();
+    sKing.walkAction.stop();
+    sKing.slashAction.stop();
   }
-
-  scene.add(sAzukiKing.gltf.scene);
 }
 
 function updateCamera(battle: BattleState, san: San): void {
