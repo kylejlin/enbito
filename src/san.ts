@@ -35,6 +35,8 @@ export interface SanData {
   camera: PerspectiveCamera;
   renderer: WebGLRenderer;
 
+  sky: Sky;
+
   azukiKing: SanKing;
   edamameKing: SanKing;
   azukiSpears: SanSpear[];
@@ -82,15 +84,21 @@ export function getDefaultSanData(assets: Assets): SanData {
   renderer.toneMapping = ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.5;
 
+  const scene = new Scene();
+
+  const camera = new PerspectiveCamera(
+    57,
+    window.innerWidth / window.innerHeight,
+    undefined,
+    10000
+  );
+
   return {
-    camera: new PerspectiveCamera(
-      57,
-      window.innerWidth / window.innerHeight,
-      undefined,
-      10000
-    ),
-    scene: new Scene(),
+    camera,
+    scene,
     renderer,
+
+    sky: getDefaultSky(renderer, scene, camera),
 
     azukiKing: getDefaultSanKing(assets, Allegiance.Azuki),
     edamameKing: getDefaultSanKing(assets, Allegiance.Edamame),
@@ -126,4 +134,48 @@ export function getDefaultSanKing(
     slashAction,
     slashClip,
   };
+}
+
+export function getDefaultSky(
+  renderer: SanData["renderer"],
+  scene: SanData["scene"],
+  camera: SanData["camera"]
+): Sky {
+  // Based on https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_sky.html
+  const sky = new Sky();
+  sky.scale.setScalar(450000);
+
+  const sun = new Vector3();
+
+  const effectController = {
+    turbidity: 10,
+    rayleigh: 3,
+    mieCoefficient: 0.005,
+    mieDirectionalG: 0.7,
+    elevation: 2,
+    azimuth: 180,
+    exposure: renderer.toneMappingExposure,
+  };
+
+  function onControllerChange() {
+    const uniforms = sky.material.uniforms;
+    uniforms["turbidity"].value = effectController.turbidity;
+    uniforms["rayleigh"].value = effectController.rayleigh;
+    uniforms["mieCoefficient"].value = effectController.mieCoefficient;
+    uniforms["mieDirectionalG"].value = effectController.mieDirectionalG;
+
+    const phi = MathUtils.degToRad(90 - effectController.elevation);
+    const theta = MathUtils.degToRad(effectController.azimuth);
+
+    sun.setFromSphericalCoords(1, phi, theta);
+
+    uniforms["sunPosition"].value.copy(sun);
+
+    renderer.toneMappingExposure = effectController.exposure;
+    renderer.render(scene, camera);
+  }
+
+  onControllerChange();
+
+  return sky;
 }

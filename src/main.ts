@@ -43,6 +43,7 @@ import { San, getDefaultSanData } from "./san";
 import { BattleState } from "./battleState";
 import { getDefaultBattleState } from "./getBattleState";
 import * as geoUtils from "./geoUtils";
+import { updateThreeScene } from "./updateThreeScene";
 
 function getDummyVector3(): Vector3 {
   return new Vector3();
@@ -530,7 +531,6 @@ export function main(assets: Assets): void {
 
   const azukiKing = resources.battle.getAzukiKing();
 
-  addSky();
   addEnvironment();
 
   onAnimationFrame();
@@ -548,47 +548,6 @@ export function main(assets: Assets): void {
     renderer.render(scene, camera);
   }
 
-  function addSky(): void {
-    // Based on https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_sky.html
-    const sky = new Sky();
-    sky.scale.setScalar(450000);
-    san.data.scene.add(sky);
-
-    const sun = new Vector3();
-
-    const effectController = {
-      turbidity: 10,
-      rayleigh: 3,
-      mieCoefficient: 0.005,
-      mieDirectionalG: 0.7,
-      elevation: 2,
-      azimuth: 180,
-      exposure: san.data.renderer.toneMappingExposure,
-    };
-
-    function onControllerChange() {
-      const { renderer, scene, camera } = san.data;
-
-      const uniforms = sky.material.uniforms;
-      uniforms["turbidity"].value = effectController.turbidity;
-      uniforms["rayleigh"].value = effectController.rayleigh;
-      uniforms["mieCoefficient"].value = effectController.mieCoefficient;
-      uniforms["mieDirectionalG"].value = effectController.mieDirectionalG;
-
-      const phi = MathUtils.degToRad(90 - effectController.elevation);
-      const theta = MathUtils.degToRad(effectController.azimuth);
-
-      sun.setFromSphericalCoords(1, phi, theta);
-
-      uniforms["sunPosition"].value.copy(sun);
-
-      renderer.toneMappingExposure = effectController.exposure;
-      renderer.render(scene, camera);
-    }
-
-    onControllerChange();
-  }
-
   function onAnimationFrame(): void {
     const now = Date.now();
     worldTime = now;
@@ -602,7 +561,7 @@ export function main(assets: Assets): void {
 
     // oncePerFrameBeforeRender();
 
-    updateThreeScene();
+    updateThreeScene(resources.battle, resources.san);
     render();
 
     requestAnimationFrame(onAnimationFrame);
@@ -877,10 +836,6 @@ export function main(assets: Assets): void {
   //   }
   // }
   // }
-
-  function updateThreeScene(): void {
-    // TODO
-  }
 
   function addEnvironment(): void {
     san.data.scene.environment = assets.environment;
