@@ -7,7 +7,7 @@ frame_start = 1
 frame_end = 29
 
 # Filename
-filename = "/Users/kyle/enbito/public/models/azuki_spear_frames/stab/stab"
+filename = "/Users/kyle/enbito/public/models/edamame_spear_frames/walk/walk"
 
 for f in range(frame_start, frame_end + 1):
     bpy.context.scene.frame_set(f)
