@@ -27,11 +27,14 @@ import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Allegiance, BattleStateData } from "./battleStateData";
 
 export class San {
-  constructor(private readonly data: SanData) {}
+  constructor(public readonly data: SanData) {}
 }
 
 export interface SanData {
   scene: Scene;
+  camera: PerspectiveCamera;
+  renderer: WebGLRenderer;
+
   azukiKing: SanKing;
   edamameKing: SanKing;
   azukiSpears: SanSpear[];
@@ -74,8 +77,21 @@ export interface SoldierExplosion {
 }
 
 export function getDefaultSanData(assets: Assets): SanData {
+  const renderer = new WebGLRenderer();
+  renderer.useLegacyLights = false;
+  renderer.toneMapping = ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.5;
+
   return {
+    camera: new PerspectiveCamera(
+      57,
+      window.innerWidth / window.innerHeight,
+      undefined,
+      10000
+    ),
     scene: new Scene(),
+    renderer,
+
     azukiKing: getDefaultSanKing(assets, Allegiance.Azuki),
     edamameKing: getDefaultSanKing(assets, Allegiance.Edamame),
     azukiSpears: [],

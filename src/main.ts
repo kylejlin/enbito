@@ -11,7 +11,6 @@ import {
   ACESFilmicToneMapping,
   WebGLCubeRenderTarget,
   HalfFloatType,
-  CubeCamera,
   PlaneGeometry,
   AnimationMixer,
   AnimationClip,
@@ -103,6 +102,8 @@ function alertOnceAfterDelay(message: string): void {
 }
 
 export function main(assets: Assets): void {
+  const san = new San(getDefaultSanData(assets));
+
   let worldTime = Date.now();
   let lastWorldTime = worldTime;
   const MILLISECS_PER_TICK = 10;
@@ -205,30 +206,17 @@ export function main(assets: Assets): void {
     }
   });
 
-  const scene = new Scene();
-  const camera = new PerspectiveCamera(
-    57,
-    window.innerWidth / window.innerHeight,
-    undefined,
-    10000
-  );
-
-  const renderer = new WebGLRenderer();
-  renderer.useLegacyLights = false;
-  renderer.toneMapping = ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 0.5;
-
-  renderer.setSize(window.innerWidth, window.innerHeight);
+  san.data.renderer.setSize(window.innerWidth, window.innerHeight);
   resizeCameraAndRerender();
   window.addEventListener("resize", resizeCameraAndRerender);
 
-  document.body.appendChild(renderer.domElement);
+  document.body.appendChild(san.data.renderer.domElement);
 
-  const cameraQuat = new Quaternion();
-  cameraQuat.setFromAxisAngle(new Vector3(1, 0, 0), (3 * Math.PI) / 2);
-  camera.setRotationFromQuaternion(cameraQuat);
+  // const cameraQuat = new Quaternion();
+  // cameraQuat.setFromAxisAngle(new Vector3(1, 0, 0), (3 * Math.PI) / 2);
+  // camera.setRotationFromQuaternion(cameraQuat);
 
-  camera.position.set(0, 2, 0);
+  // camera.position.set(0, 2, 0);
 
   const texture = assets.grass.clone();
   texture.wrapS = RepeatWrapping;
@@ -241,12 +229,10 @@ export function main(assets: Assets): void {
   );
   grasslike.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
   grasslike.position.set(-1, 0, -1);
-  scene.add(grasslike);
+  san.data.scene.add(grasslike);
 
   const cubeRenderTarget = new WebGLCubeRenderTarget(256);
   cubeRenderTarget.texture.type = HalfFloatType;
-
-  const cubeCamera = new CubeCamera(1, 1000, cubeRenderTarget);
 
   // TODO: Delete START
   const dragonflyGltf = cloneGltf(assets.dragonfly);
@@ -259,7 +245,7 @@ export function main(assets: Assets): void {
   dragonflyFlyAction.timeScale = 5;
   dragonflyFlyAction.play();
 
-  scene.add(dragonfly);
+  san.data.scene.add(dragonfly);
   dragonfly.position.set(30, 30, -600);
   dragonfly.rotateY(Math.PI);
   dragonfly.scale.multiplyScalar(0.6);
@@ -529,13 +515,13 @@ export function main(assets: Assets): void {
   const cursorWalkAction = cursorMixer.clipAction(cursorWalkClip);
   cursorWalkAction.play();
 
-  scene.add(cursor);
+  san.data.scene.add(cursor);
 
-  scene.add(new AmbientLight(0x888888, 10));
+  san.data.scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = {
     battle: new BattleState(getDefaultBattleState()),
-    san: new San(getDefaultSanData(assets)),
+    san,
     mouse,
     keys,
     groundCursor: null,
@@ -543,7 +529,6 @@ export function main(assets: Assets): void {
   };
 
   const azukiKing = resources.battle.getAzukiKing();
-  const edamameKing = resources.battle.getEdamameKing();
 
   addSky();
   addEnvironment();
@@ -551,6 +536,7 @@ export function main(assets: Assets): void {
   onAnimationFrame();
 
   function resizeCameraAndRerender(): void {
+    const { camera, renderer } = san.data;
     camera.aspect = window.innerWidth / window.innerHeight;
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
@@ -558,6 +544,7 @@ export function main(assets: Assets): void {
   }
 
   function render(): void {
+    const { renderer, scene, camera } = san.data;
     renderer.render(scene, camera);
   }
 
@@ -565,7 +552,7 @@ export function main(assets: Assets): void {
     // Based on https://github.com/mrdoob/three.js/blob/master/examples/webgl_shaders_sky.html
     const sky = new Sky();
     sky.scale.setScalar(450000);
-    scene.add(sky);
+    san.data.scene.add(sky);
 
     const sun = new Vector3();
 
@@ -576,10 +563,12 @@ export function main(assets: Assets): void {
       mieDirectionalG: 0.7,
       elevation: 2,
       azimuth: 180,
-      exposure: renderer.toneMappingExposure,
+      exposure: san.data.renderer.toneMappingExposure,
     };
 
     function onControllerChange() {
+      const { renderer, scene, camera } = san.data;
+
       const uniforms = sky.material.uniforms;
       uniforms["turbidity"].value = effectController.turbidity;
       uniforms["rayleigh"].value = effectController.rayleigh;
@@ -890,11 +879,11 @@ export function main(assets: Assets): void {
   // }
 
   function updateThreeScene(): void {
-    cubeCamera.update(renderer, scene);
+    // TODO
   }
 
   function addEnvironment(): void {
-    scene.environment = assets.environment;
+    san.data.scene.environment = assets.environment;
   }
 
   function trySetDeploymentStart(wasKey1Down: boolean): void {
