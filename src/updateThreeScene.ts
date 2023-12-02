@@ -32,6 +32,10 @@ function updateAzukiKing(battle: BattleState, san: San): void {
   updateKingTransform(bAzukiKing, sAzukiKing);
   updateKingAnimation(bAzukiKing, sAzukiKing);
   scene.add(sAzukiKing.gltf.scene);
+
+  updateKingTransform(bEdamameKing, sEdamameKing);
+  updateKingAnimation(bEdamameKing, sEdamameKing);
+  scene.add(sEdamameKing.gltf.scene);
 }
 
 function updateKingTransform(bKing: King, sKing: SanKing): void {

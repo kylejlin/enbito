@@ -259,7 +259,7 @@ function getDefaultEdamameKing(): King {
       timeInSeconds: 0,
     },
     health: 100,
-    yRot: 0,
+    yRot: Math.PI,
     assemblyPoint: [0, 0, 0],
     dragonfly: {
       position: [0, 2.5, -105],
