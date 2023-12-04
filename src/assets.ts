@@ -214,6 +214,11 @@ export function loadAssets(): Promise<Assets> {
       getEdamameExplodingFrame("000028"),
       getEdamameExplodingFrame("000029"),
     ]),
+    new Promise<GLTF>((resolve) => {
+      new GLTFLoader().load("./models/azuki_spear_baked.glb", (gltf) => {
+        resolve(gltf);
+      });
+    }),
   ]).then(
     ([
       environment,
@@ -227,7 +232,9 @@ export function loadAssets(): Promise<Assets> {
       edamameKing,
       explodingAzukiFrames,
       explodingEdamameFrames,
+      azukiSpearBaked,
     ]): Assets => {
+      console.log({ azukiSpearBaked });
       const azukiSpearWalkClip = AnimationClip.findByName(
         azukiSpear.animations,
         "Walk"
