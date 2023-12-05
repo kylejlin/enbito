@@ -11,6 +11,7 @@ import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
+import { Tuple29 } from "./tuple29";
 
 export interface Assets {
   mcon: ModelConstants;
@@ -37,37 +38,6 @@ export interface Assets {
   explodingEdamameFrames: Tuple29<Group>;
 }
 
-export type Tuple29<T> = [
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T,
-  T
-];
 export interface ModelConstants {
   azukiSpearWalkClipDuration: number;
   azukiKingSlashClipDuration: number;
