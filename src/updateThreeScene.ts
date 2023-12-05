@@ -20,6 +20,7 @@ export function updateThreeScene(battle: BattleState, san: San): void {
 
   updateAzukiKing(battle, san);
   updateCamera(battle, san);
+  updateUnits(battle, san);
 }
 
 function updateAzukiKing(battle: BattleState, san: San): void {
@@ -89,5 +90,15 @@ function updateCamera(battle: BattleState, san: San): void {
     camera.translateY(5);
     camera.translateZ(5);
     camera.rotateX(bAzukiKing.cameraPitch);
+  }
+}
+
+function updateUnits(battle: BattleState, san: San): void {
+  const { scene } = san.data;
+
+  const { activeUnitIds } = battle.data;
+  for (const unitId of activeUnitIds) {
+    const bUnit = battle.getUnit(unitId);
+    // TODO
   }
 }

@@ -32,6 +32,7 @@ export interface Assets {
   azukiSpearStabFrames: Tuple29<GLTF>;
   edamameSpearWalkFrames: Tuple29<GLTF>;
   edamameSpearStabFrames: Tuple29<GLTF>;
+  // TODO Rename to `azukiExplodingFrames` to be more consistent.
   explodingAzukiFrames: Tuple29<Group>;
   explodingEdamameFrames: Tuple29<Group>;
 }
