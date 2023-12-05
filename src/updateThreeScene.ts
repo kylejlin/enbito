@@ -2,6 +2,7 @@ import { BattleState } from "./battleState";
 import { San, SanKing } from "./san";
 import * as geoUtils from "./geoUtils";
 import { King, SoldierAnimationKind } from "./battleStateData";
+import { InstancedMesh, Object3D, Scene, Vector3 } from "three";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -94,11 +95,75 @@ function updateCamera(battle: BattleState, san: San): void {
 }
 
 function updateUnits(battle: BattleState, san: San): void {
-  const { scene } = san.data;
+  const {
+    scene,
+    azukiSpearWalkFrames,
+    azukiSpearStabFrames,
+    edamameSpearWalkFrames,
+    edamameSpearStabFrames,
+  } = san.data;
+
+  setCountsToZero(azukiSpearWalkFrames);
+  setCountsToZero(azukiSpearStabFrames);
+  setCountsToZero(edamameSpearWalkFrames);
+  setCountsToZero(edamameSpearStabFrames);
+
+  const temp = new Object3D();
 
   const { activeUnitIds } = battle.data;
   for (const unitId of activeUnitIds) {
     const bUnit = battle.getUnit(unitId);
-    // TODO
+    for (const soldierId of bUnit.soldierIds) {
+      const bSoldier = battle.getSoldier(soldierId);
+      temp.position.set(
+        bSoldier.position[0],
+        bSoldier.position[1],
+        bSoldier.position[2]
+      );
+      temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), bSoldier.yRot);
+      console.log({ pos: bSoldier.position });
+
+      // TODO
+      const instancedMesh = azukiSpearWalkFrames[0];
+
+      temp.updateMatrix();
+      instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
+      ++instancedMesh.count;
+    }
+  }
+
+  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+    azukiSpearWalkFrames,
+    scene
+  );
+  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+    azukiSpearStabFrames,
+    scene
+  );
+  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+    edamameSpearWalkFrames,
+    scene
+  );
+  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+    edamameSpearStabFrames,
+    scene
+  );
+}
+
+function setCountsToZero(meshs: InstancedMesh[]): void {
+  for (const mesh of meshs) {
+    mesh.count = 0;
+  }
+}
+
+function addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+  meshes: InstancedMesh[],
+  scene: Scene
+): void {
+  for (const mesh of meshes) {
+    if (mesh.count > 0) {
+      mesh.instanceMatrix.needsUpdate = true;
+      scene.add(mesh);
+    }
   }
 }
