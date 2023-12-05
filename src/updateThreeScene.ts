@@ -1,7 +1,12 @@
 import { BattleState } from "./battleState";
 import { San, SanKing } from "./san";
 import * as geoUtils from "./geoUtils";
-import { King, SoldierAnimationKind } from "./battleStateData";
+import {
+  Allegiance,
+  King,
+  SoldierAnimationKind,
+  SoldierAnimationState,
+} from "./battleStateData";
 import { InstancedMesh, Object3D, Scene, Vector3 } from "three";
 
 // In this file, we use "b" and "s" prefixes to
@@ -121,10 +126,12 @@ function updateUnits(battle: BattleState, san: San): void {
         bSoldier.position[2]
       );
       temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), bSoldier.yRot);
-      console.log({ pos: bSoldier.position });
 
-      // TODO
-      const instancedMesh = azukiSpearWalkFrames[0];
+      const instancedMesh = getSpearInstancedMesh(
+        bSoldier.animation,
+        bUnit.allegiance,
+        san
+      );
 
       temp.updateMatrix();
       instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
@@ -166,4 +173,63 @@ function addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
       scene.add(mesh);
     }
   }
+}
+
+function getSpearInstancedMesh(
+  bAnimation: SoldierAnimationState,
+  bAllegiance: Allegiance,
+  san: San
+): InstancedMesh {
+  const {
+    azukiSpearWalkFrames,
+    azukiSpearStabFrames,
+    edamameSpearWalkFrames,
+    edamameSpearStabFrames,
+  } = san.data;
+  const { azukiSpearWalkClipDuration, azukiSpearStabClipDuration } =
+    san.data.mcon;
+  const walkFrameCount = azukiSpearWalkFrames.length;
+  const stabFrameCount = azukiSpearStabFrames.length;
+
+  if (bAnimation.kind === SoldierAnimationKind.Walk) {
+    const frameNumber = Math.min(
+      Math.floor(
+        (bAnimation.timeInSeconds / azukiSpearWalkClipDuration) * walkFrameCount
+      ),
+      walkFrameCount - 1
+    );
+    console.log({ walk: frameNumber });
+    return bAllegiance === Allegiance.Azuki
+      ? azukiSpearWalkFrames[frameNumber]
+      : edamameSpearWalkFrames[frameNumber];
+  }
+
+  if (bAnimation.kind === SoldierAnimationKind.Stab) {
+    const frameNumber = Math.min(
+      Math.floor(
+        (bAnimation.timeInSeconds / azukiSpearStabClipDuration) * stabFrameCount
+      ),
+      stabFrameCount - 1
+    );
+    console.log({ stab: frameNumber });
+    return bAllegiance === Allegiance.Azuki
+      ? azukiSpearStabFrames[frameNumber]
+      : edamameSpearStabFrames[frameNumber];
+  }
+
+  if (bAnimation.kind === SoldierAnimationKind.Idle) {
+    return bAllegiance === Allegiance.Azuki
+      ? azukiSpearWalkFrames[0]
+      : edamameSpearWalkFrames[0];
+  }
+
+  if (bAnimation.kind === SoldierAnimationKind.Slash) {
+    throw new Error("Spearmen cannot slash.");
+  }
+
+  // We have to include this line to satisfy the TypeScript compiler.
+  // The compiler doesn't recognize this branch as impossible,
+  // but it _does_ recognize that `bAnimation.kind` has type `never` in this branch.
+  // So, as a workaround, we return `bAnimation.kind`.
+  return bAnimation.kind;
 }

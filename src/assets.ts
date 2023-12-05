@@ -40,6 +40,7 @@ export interface Assets {
 
 export interface ModelConstants {
   azukiSpearWalkClipDuration: number;
+  azukiSpearStabClipDuration: number;
   azukiKingSlashClipDuration: number;
 }
 
@@ -332,6 +333,7 @@ export function loadAssets(): Promise<Assets> {
 
       const mcon: ModelConstants = {
         azukiSpearWalkClipDuration: azukiSpearWalkClip.duration,
+        azukiSpearStabClipDuration: azukiSpearStabClip.duration,
         azukiKingSlashClipDuration: azukiKingSlashClip.duration,
       };
 

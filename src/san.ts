@@ -1,4 +1,4 @@
-import { Assets } from "./assets";
+import { Assets, ModelConstants } from "./assets";
 import {
   WebGLRenderer,
   PerspectiveCamera,
@@ -51,6 +51,8 @@ export interface SanData {
   edamameSpearStabFrames: Tuple29<InstancedMesh>;
   azukiBannerTowers: BannerTower[];
   edamameBannerTowers: BannerTower[];
+
+  mcon: ModelConstants;
 }
 
 export interface SanSpear {
@@ -117,6 +119,8 @@ export function getDefaultSanData(assets: Assets): SanData {
     edamameSpearStabFrames: getDefaultSanEdamameSpearStabFrames(assets),
     azukiBannerTowers: [],
     edamameBannerTowers: [],
+
+    mcon: assets.mcon,
   };
 }
 
@@ -210,7 +214,8 @@ export function getDefaultSanAzukiSpearWalkFrames(
   assets: Assets
 ): Tuple29<InstancedMesh> {
   return assets.azukiSpearWalkFrames.map((frame: GLTF): InstancedMesh => {
-    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    const source = cloneGltf(frame).scene.children[0]
+      .children[0] as SkinnedMesh;
     return new InstancedMesh(
       source.geometry,
       source.material,
@@ -223,7 +228,8 @@ export function getDefaultSanAzukiSpearStabFrames(
   assets: Assets
 ): Tuple29<InstancedMesh> {
   return assets.azukiSpearStabFrames.map((frame: GLTF): InstancedMesh => {
-    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    const source = cloneGltf(frame).scene.children[0]
+      .children[0] as SkinnedMesh;
     return new InstancedMesh(
       source.geometry,
       source.material,
@@ -236,7 +242,8 @@ export function getDefaultSanEdamameSpearWalkFrames(
   assets: Assets
 ): Tuple29<InstancedMesh> {
   return assets.edamameSpearWalkFrames.map((frame: GLTF): InstancedMesh => {
-    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    const source = cloneGltf(frame).scene.children[0]
+      .children[0] as SkinnedMesh;
     return new InstancedMesh(
       source.geometry,
       source.material,
@@ -249,7 +256,8 @@ export function getDefaultSanEdamameSpearStabFrames(
   assets: Assets
 ): Tuple29<InstancedMesh> {
   return assets.edamameSpearStabFrames.map((frame: GLTF): InstancedMesh => {
-    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    const source = cloneGltf(frame).scene.children[0]
+      .children[0] as SkinnedMesh;
     return new InstancedMesh(
       source.geometry,
       source.material,
