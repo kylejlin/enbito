@@ -19,12 +19,17 @@ import {
   Raycaster,
   AmbientLight,
   Object3D,
+  InstancedMesh,
+  SkinnedMesh,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Allegiance, BattleStateData } from "./battleStateData";
+import { Tuple29 } from "./tuple29";
+
+export const MAX_SOLDIER_LIMIT = 10e3;
 
 export class San {
   constructor(public readonly data: SanData) {}
@@ -40,8 +45,10 @@ export interface SanData {
 
   azukiKing: SanKing;
   edamameKing: SanKing;
-  azukiSpears: SanSpear[];
-  edamameSpears: SanSpear[];
+  azukiSpearWalkFrames: Tuple29<InstancedMesh>;
+  azukiSpearStabFrames: Tuple29<InstancedMesh>;
+  edamameSpearWalkFrames: Tuple29<InstancedMesh>;
+  edamameSpearStabFrames: Tuple29<InstancedMesh>;
   azukiBannerTowers: BannerTower[];
   edamameBannerTowers: BannerTower[];
 }
@@ -104,8 +111,10 @@ export function getDefaultSanData(assets: Assets): SanData {
 
     azukiKing: getDefaultSanKing(assets, Allegiance.Azuki),
     edamameKing: getDefaultSanKing(assets, Allegiance.Edamame),
-    azukiSpears: [],
-    edamameSpears: [],
+    azukiSpearWalkFrames: getDefaultSanAzukiSpearWalkFrames(assets),
+    azukiSpearStabFrames: getDefaultSanAzukiSpearStabFrames(assets),
+    edamameSpearWalkFrames: getDefaultSanEdamameSpearWalkFrames(assets),
+    edamameSpearStabFrames: getDefaultSanEdamameSpearStabFrames(assets),
     azukiBannerTowers: [],
     edamameBannerTowers: [],
   };
@@ -195,4 +204,56 @@ export function getDefaultGrass(assets: Assets): Mesh {
   grass.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
   grass.position.set(-1, 0, -1);
   return grass;
+}
+
+export function getDefaultSanAzukiSpearWalkFrames(
+  assets: Assets
+): Tuple29<InstancedMesh> {
+  return assets.azukiSpearWalkFrames.map((frame: GLTF): InstancedMesh => {
+    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    return new InstancedMesh(
+      source.geometry,
+      source.material,
+      MAX_SOLDIER_LIMIT
+    );
+  }) as Tuple29<InstancedMesh>;
+}
+
+export function getDefaultSanAzukiSpearStabFrames(
+  assets: Assets
+): Tuple29<InstancedMesh> {
+  return assets.azukiSpearStabFrames.map((frame: GLTF): InstancedMesh => {
+    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    return new InstancedMesh(
+      source.geometry,
+      source.material,
+      MAX_SOLDIER_LIMIT
+    );
+  }) as Tuple29<InstancedMesh>;
+}
+
+export function getDefaultSanEdamameSpearWalkFrames(
+  assets: Assets
+): Tuple29<InstancedMesh> {
+  return assets.edamameSpearWalkFrames.map((frame: GLTF): InstancedMesh => {
+    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    return new InstancedMesh(
+      source.geometry,
+      source.material,
+      MAX_SOLDIER_LIMIT
+    );
+  }) as Tuple29<InstancedMesh>;
+}
+
+export function getDefaultSanEdamameSpearStabFrames(
+  assets: Assets
+): Tuple29<InstancedMesh> {
+  return assets.edamameSpearStabFrames.map((frame: GLTF): InstancedMesh => {
+    const source = frame.scene.children[0].children[0] as SkinnedMesh;
+    return new InstancedMesh(
+      source.geometry,
+      source.material,
+      MAX_SOLDIER_LIMIT
+    );
+  }) as Tuple29<InstancedMesh>;
 }
