@@ -28,70 +28,45 @@ export interface Assets {
   edamameBannerTower: GLTF;
   azukiKing: GLTF;
   edamameKing: GLTF;
-  explodingAzukiFrames: [
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group
-  ];
-  explodingEdamameFrames: [
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group,
-    Group
-  ];
+  azukiSpearWalkFrames: Tuple29<GLTF>;
+  azukiSpearStabFrames: Tuple29<GLTF>;
+  edamameSpearWalkFrames: Tuple29<GLTF>;
+  edamameSpearStabFrames: Tuple29<GLTF>;
+  explodingAzukiFrames: Tuple29<Group>;
+  explodingEdamameFrames: Tuple29<Group>;
 }
 
+export type Tuple29<T> = [
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T
+];
 export interface ModelConstants {
   azukiSpearWalkClipDuration: number;
   azukiKingSlashClipDuration: number;
@@ -152,6 +127,130 @@ export function loadAssets(): Promise<Assets> {
         resolve(gltf);
       });
     }),
+    Promise.all([
+      getAzukiSpearWalkFrame("f0001"),
+      getAzukiSpearWalkFrame("f0002"),
+      getAzukiSpearWalkFrame("f0003"),
+      getAzukiSpearWalkFrame("f0004"),
+      getAzukiSpearWalkFrame("f0005"),
+      getAzukiSpearWalkFrame("f0006"),
+      getAzukiSpearWalkFrame("f0007"),
+      getAzukiSpearWalkFrame("f0008"),
+      getAzukiSpearWalkFrame("f0009"),
+      getAzukiSpearWalkFrame("f0010"),
+      getAzukiSpearWalkFrame("f0011"),
+      getAzukiSpearWalkFrame("f0012"),
+      getAzukiSpearWalkFrame("f0013"),
+      getAzukiSpearWalkFrame("f0014"),
+      getAzukiSpearWalkFrame("f0015"),
+      getAzukiSpearWalkFrame("f0016"),
+      getAzukiSpearWalkFrame("f0017"),
+      getAzukiSpearWalkFrame("f0018"),
+      getAzukiSpearWalkFrame("f0019"),
+      getAzukiSpearWalkFrame("f0020"),
+      getAzukiSpearWalkFrame("f0021"),
+      getAzukiSpearWalkFrame("f0022"),
+      getAzukiSpearWalkFrame("f0023"),
+      getAzukiSpearWalkFrame("f0024"),
+      getAzukiSpearWalkFrame("f0025"),
+      getAzukiSpearWalkFrame("f0026"),
+      getAzukiSpearWalkFrame("f0027"),
+      getAzukiSpearWalkFrame("f0028"),
+      getAzukiSpearWalkFrame("f0029"),
+    ]),
+    Promise.all([
+      getAzukiSpearWalkFrame("f0001"),
+      getAzukiSpearStabFrame("f0002"),
+      getAzukiSpearStabFrame("f0003"),
+      getAzukiSpearStabFrame("f0004"),
+      getAzukiSpearStabFrame("f0005"),
+      getAzukiSpearStabFrame("f0006"),
+      getAzukiSpearStabFrame("f0007"),
+      getAzukiSpearStabFrame("f0008"),
+      getAzukiSpearStabFrame("f0009"),
+      getAzukiSpearStabFrame("f0010"),
+      getAzukiSpearStabFrame("f0011"),
+      getAzukiSpearStabFrame("f0012"),
+      getAzukiSpearStabFrame("f0013"),
+      getAzukiSpearStabFrame("f0014"),
+      getAzukiSpearStabFrame("f0015"),
+      getAzukiSpearStabFrame("f0016"),
+      getAzukiSpearStabFrame("f0017"),
+      getAzukiSpearStabFrame("f0018"),
+      getAzukiSpearStabFrame("f0019"),
+      getAzukiSpearStabFrame("f0020"),
+      getAzukiSpearStabFrame("f0021"),
+      getAzukiSpearStabFrame("f0022"),
+      getAzukiSpearStabFrame("f0023"),
+      getAzukiSpearStabFrame("f0024"),
+      getAzukiSpearStabFrame("f0025"),
+      getAzukiSpearStabFrame("f0026"),
+      getAzukiSpearStabFrame("f0027"),
+      getAzukiSpearStabFrame("f0028"),
+      getAzukiSpearStabFrame("f0029"),
+    ]),
+    Promise.all([
+      getEdamameSpearWalkFrame("f0001"),
+      getEdamameSpearWalkFrame("f0002"),
+      getEdamameSpearWalkFrame("f0003"),
+      getEdamameSpearWalkFrame("f0004"),
+      getEdamameSpearWalkFrame("f0005"),
+      getEdamameSpearWalkFrame("f0006"),
+      getEdamameSpearWalkFrame("f0007"),
+      getEdamameSpearWalkFrame("f0008"),
+      getEdamameSpearWalkFrame("f0009"),
+      getEdamameSpearWalkFrame("f0010"),
+      getEdamameSpearWalkFrame("f0011"),
+      getEdamameSpearWalkFrame("f0012"),
+      getEdamameSpearWalkFrame("f0013"),
+      getEdamameSpearWalkFrame("f0014"),
+      getEdamameSpearWalkFrame("f0015"),
+      getEdamameSpearWalkFrame("f0016"),
+      getEdamameSpearWalkFrame("f0017"),
+      getEdamameSpearWalkFrame("f0018"),
+      getEdamameSpearWalkFrame("f0019"),
+      getEdamameSpearWalkFrame("f0020"),
+      getEdamameSpearWalkFrame("f0021"),
+      getEdamameSpearWalkFrame("f0022"),
+      getEdamameSpearWalkFrame("f0023"),
+      getEdamameSpearWalkFrame("f0024"),
+      getEdamameSpearWalkFrame("f0025"),
+      getEdamameSpearWalkFrame("f0026"),
+      getEdamameSpearWalkFrame("f0027"),
+      getEdamameSpearWalkFrame("f0028"),
+      getEdamameSpearWalkFrame("f0029"),
+    ]),
+    Promise.all([
+      getEdamameSpearWalkFrame("f0001"),
+      getEdamameSpearStabFrame("f0002"),
+      getEdamameSpearStabFrame("f0003"),
+      getEdamameSpearStabFrame("f0004"),
+      getEdamameSpearStabFrame("f0005"),
+      getEdamameSpearStabFrame("f0006"),
+      getEdamameSpearStabFrame("f0007"),
+      getEdamameSpearStabFrame("f0008"),
+      getEdamameSpearStabFrame("f0009"),
+      getEdamameSpearStabFrame("f0010"),
+      getEdamameSpearStabFrame("f0011"),
+      getEdamameSpearStabFrame("f0012"),
+      getEdamameSpearStabFrame("f0013"),
+      getEdamameSpearStabFrame("f0014"),
+      getEdamameSpearStabFrame("f0015"),
+      getEdamameSpearStabFrame("f0016"),
+      getEdamameSpearStabFrame("f0017"),
+      getEdamameSpearStabFrame("f0018"),
+      getEdamameSpearStabFrame("f0019"),
+      getEdamameSpearStabFrame("f0020"),
+      getEdamameSpearStabFrame("f0021"),
+      getEdamameSpearStabFrame("f0022"),
+      getEdamameSpearStabFrame("f0023"),
+      getEdamameSpearStabFrame("f0024"),
+      getEdamameSpearStabFrame("f0025"),
+      getEdamameSpearStabFrame("f0026"),
+      getEdamameSpearStabFrame("f0027"),
+      getEdamameSpearStabFrame("f0028"),
+      getEdamameSpearStabFrame("f0029"),
+    ]),
     Promise.all([
       getAzukiExplodingFrame("000001"),
       getAzukiExplodingFrame("000002"),
@@ -230,6 +329,10 @@ export function loadAssets(): Promise<Assets> {
       edamameBannerTower,
       azukiKing,
       edamameKing,
+      azukiSpearWalkFrames,
+      azukiSpearStabFrames,
+      edamameSpearWalkFrames,
+      edamameSpearStabFrames,
       explodingAzukiFrames,
       explodingEdamameFrames,
       azukiSpearBaked,
@@ -277,11 +380,59 @@ export function loadAssets(): Promise<Assets> {
         edamameBannerTower,
         azukiKing,
         edamameKing,
+        azukiSpearWalkFrames,
+        azukiSpearStabFrames,
+        edamameSpearWalkFrames,
+        edamameSpearStabFrames,
         explodingAzukiFrames,
         explodingEdamameFrames,
       };
     }
   );
+}
+
+function getAzukiSpearWalkFrame(id: string): Promise<GLTF> {
+  return new Promise<GLTF>((resolve) => {
+    new GLTFLoader().load(
+      `./models/azuki_spear_frames/walk/walk.${id}.glb`,
+      (gltf) => {
+        resolve(gltf);
+      }
+    );
+  });
+}
+
+function getAzukiSpearStabFrame(id: string): Promise<GLTF> {
+  return new Promise<GLTF>((resolve) => {
+    new GLTFLoader().load(
+      `./models/azuki_spear_frames/stab/stab.${id}.glb`,
+      (gltf) => {
+        resolve(gltf);
+      }
+    );
+  });
+}
+
+function getEdamameSpearWalkFrame(id: string): Promise<GLTF> {
+  return new Promise<GLTF>((resolve) => {
+    new GLTFLoader().load(
+      `./models/edamame_spear_frames/walk/walk.${id}.glb`,
+      (gltf) => {
+        resolve(gltf);
+      }
+    );
+  });
+}
+
+function getEdamameSpearStabFrame(id: string): Promise<GLTF> {
+  return new Promise<GLTF>((resolve) => {
+    new GLTFLoader().load(
+      `./models/edamame_spear_frames/stab/stab.${id}.glb`,
+      (gltf) => {
+        resolve(gltf);
+      }
+    );
+  });
 }
 
 function getAzukiExplodingFrame(id: string): Promise<Group> {
