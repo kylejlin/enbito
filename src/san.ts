@@ -222,7 +222,8 @@ export function getDefaultSanAzukiSpearWalkFrames(
       .children[0] as SkinnedMesh;
     console.log({ source });
     return new InstancedMesh(
-      getTransformedGeometry(source),
+      // getTransformedGeometry(source),
+      source.geometry,
       source.material,
       // new MeshBasicMaterial(),
       MAX_SOLDIER_LIMIT
