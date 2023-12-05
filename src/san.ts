@@ -220,11 +220,11 @@ export function getDefaultSanAzukiSpearWalkFrames(
   return assets.azukiSpearWalkFrames.map((frame: GLTF): InstancedMesh => {
     const source = cloneGltf(frame).scene.children[0]
       .children[0] as SkinnedMesh;
-    console.log(source);
+    console.log({ source });
     return new InstancedMesh(
       getTransformedGeometry(source),
-      // source.material,
-      new MeshBasicMaterial(),
+      source.material,
+      // new MeshBasicMaterial(),
       MAX_SOLDIER_LIMIT
     );
   }) as Tuple29<InstancedMesh>;
@@ -232,7 +232,7 @@ export function getDefaultSanAzukiSpearWalkFrames(
 
 function getTransformedGeometry(mesh: SkinnedMesh): BufferGeometry {
   const out = new BufferGeometry();
-  // out.setAttribute("uv", mesh.geometry.getAttribute("uv"));
+  out.setAttribute("uv", mesh.geometry.getAttribute("uv"));
   const vertices: number[] = [];
   const positionCount = (
     mesh.geometry.getAttribute("position") as BufferAttribute
@@ -240,45 +240,80 @@ function getTransformedGeometry(mesh: SkinnedMesh): BufferGeometry {
   for (let i = 0; i < positionCount; ++i) {
     const transformed = getTransformedSkinVertex(mesh, i);
     vertices.push(transformed.x, transformed.y, transformed.z);
+
+    // const v = new Vector3().fromBufferAttribute(
+    //   mesh.geometry.getAttribute("position"),
+    //   i
+    // );
+    // vertices.push(v.x, v.y, v.z);
   }
+
   out.setAttribute(
     "position",
     new BufferAttribute(new Float32Array(vertices), 3)
   );
+
+  // out.setAttribute(
+  //   "position",
+  //   new BufferAttribute(
+  //     (
+  //       mesh.geometry.getAttribute("position").array as Float32Array
+  //     ).slice() as Float32Array,
+  //     3
+  //   )
+  // );
+
+  // out.setAttribute("position", mesh.geometry.getAttribute("position"));
+  out.setAttribute("normal", mesh.geometry.getAttribute("normal"));
+  out.setAttribute("uv", mesh.geometry.getAttribute("uv"));
+  out.setAttribute("skinIndex", mesh.geometry.getAttribute("skinIndex"));
+  out.setAttribute("skinWeight", mesh.geometry.getAttribute("skinWeight"));
+
+  out.index = mesh.geometry.index;
+
   return out;
+  // return mesh.geometry;
 }
 
 // Based on https://stackoverflow.com/questions/31620194/how-to-calculate-transformed-skin-vertices
 function getTransformedSkinVertex(skin: SkinnedMesh, index: number): Vector3 {
-  var skinIndices = new Vector4().fromBufferAttribute(
-    skin.geometry.getAttribute("skinIndex") as BufferAttribute,
+  // var skinIndices = new Vector4().fromBufferAttribute(
+  //   skin.geometry.getAttribute("skinIndex") as BufferAttribute,
+  //   index
+  // );
+  // var skinWeights = new Vector4().fromBufferAttribute(
+  //   skin.geometry.getAttribute("skinWeight") as BufferAttribute,
+  //   index
+  // );
+  // var skinVertex = new Vector3()
+  //   .fromBufferAttribute(skin.geometry.getAttribute("position"), index)
+  //   .applyMatrix4(skin.bindMatrix);
+  // var result = new Vector3(),
+  //   temp = new Vector3(),
+  //   tempMatrix = new Matrix4();
+  // const properties = ["x", "y", "z", "w"] as const;
+  // for (var i = 0; i < 4; i++) {
+  //   var boneIndex = skinIndices[properties[i]];
+  //   tempMatrix.multiplyMatrices(
+  //     skin.skeleton.bones[boneIndex].matrixWorld,
+  //     skin.skeleton.boneInverses[boneIndex]
+  //   );
+  //   result.add(
+  //     temp
+  //       .copy(skinVertex)
+  //       .applyMatrix4(tempMatrix)
+  //       .multiplyScalar(skinWeights[properties[i]])
+  //   );
+  // }
+  // return result.applyMatrix4(skin.bindMatrixInverse);
+
+  const original = new Vector3().fromBufferAttribute(
+    skin.geometry.getAttribute("position"),
     index
   );
-  var skinWeights = new Vector4().fromBufferAttribute(
-    skin.geometry.getAttribute("skinWeight") as BufferAttribute,
-    index
-  );
-  var skinVertex = new Vector3()
-    .fromBufferAttribute(skin.geometry.getAttribute("position"), index)
-    .applyMatrix4(skin.bindMatrix);
-  var result = new Vector3(),
-    temp = new Vector3(),
-    tempMatrix = new Matrix4();
-  const properties = ["x", "y", "z", "w"] as const;
-  for (var i = 0; i < 4; i++) {
-    var boneIndex = skinIndices[properties[i]];
-    tempMatrix.multiplyMatrices(
-      skin.skeleton.bones[boneIndex].matrixWorld,
-      skin.skeleton.boneInverses[boneIndex]
-    );
-    result.add(
-      temp
-        .copy(skinVertex)
-        .applyMatrix4(tempMatrix)
-        .multiplyScalar(skinWeights[properties[i]])
-    );
-  }
-  return result.applyMatrix4(skin.bindMatrixInverse);
+  const out = skin.applyBoneTransform(index % 300, original.clone());
+  return out;
+  // return original;
 }
 
 export function getDefaultSanAzukiSpearStabFrames(
