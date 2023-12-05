@@ -198,7 +198,6 @@ function getSpearInstancedMesh(
       ),
       walkFrameCount - 1
     );
-    console.log({ walk: frameNumber });
     return bAllegiance === Allegiance.Azuki
       ? azukiSpearWalkFrames[frameNumber]
       : edamameSpearWalkFrames[frameNumber];
@@ -211,7 +210,6 @@ function getSpearInstancedMesh(
       ),
       stabFrameCount - 1
     );
-    console.log({ stab: frameNumber });
     return bAllegiance === Allegiance.Azuki
       ? azukiSpearStabFrames[frameNumber]
       : edamameSpearStabFrames[frameNumber];
