@@ -277,6 +277,60 @@ function getTransformedGeometry(mesh: SkinnedMesh): BufferGeometry {
 
 // Based on https://stackoverflow.com/questions/31620194/how-to-calculate-transformed-skin-vertices
 function getTransformedSkinVertex(skin: SkinnedMesh, index: number): Vector3 {
+  // Based on https://github.com/cioddi/three.js/blob/ee801b27432651d18392478af3e4f8aa3d931883/examples/js/exporters/STLExporter.js
+  const boneTransform = (function () {
+    var clone = new Vector3(),
+      result = new Vector3(),
+      skinIndices = new Vector4(),
+      skinWeights = new Vector4();
+    var temp = new Vector3(),
+      tempMatrix = new Matrix4();
+    const properties = ["x", "y", "z", "w"] as const;
+
+    return function (object: SkinnedMesh, vertex: Vector3, index: number) {
+      if (object.geometry.isBufferGeometry) {
+        var index4 = index * 4;
+        skinIndices.fromArray(
+          object.geometry.attributes.skinIndex.array,
+          index4
+        );
+        skinWeights.fromArray(
+          object.geometry.attributes.skinWeight.array,
+          index4
+        );
+      } else if (object.geometry.isBufferGeometry) {
+        skinIndices.fromBufferAttribute(
+          object.geometry.getAttribute("skinIndices") as BufferAttribute,
+          index
+        );
+        skinWeights.fromBufferAttribute(
+          object.geometry.getAttribute("skinWeights") as BufferAttribute,
+          index
+        );
+      }
+
+      var clone = vertex.clone().applyMatrix4(object.bindMatrix);
+      result.set(0, 0, 0);
+
+      for (var i = 0; i < 4; i++) {
+        var skinWeight = skinWeights[properties[i]];
+
+        if (skinWeight != 0) {
+          var boneIndex = skinIndices[properties[i]];
+          tempMatrix.multiplyMatrices(
+            object.skeleton.bones[boneIndex].matrixWorld,
+            object.skeleton.boneInverses[boneIndex]
+          );
+          result.add(
+            temp.copy(clone).applyMatrix4(tempMatrix).multiplyScalar(skinWeight)
+          );
+        }
+      }
+
+      return clone.copy(result.applyMatrix4(object.bindMatrixInverse));
+    };
+  })();
+
   // var skinIndices = new Vector4().fromBufferAttribute(
   //   skin.geometry.getAttribute("skinIndex") as BufferAttribute,
   //   index
@@ -307,13 +361,19 @@ function getTransformedSkinVertex(skin: SkinnedMesh, index: number): Vector3 {
   // }
   // return result.applyMatrix4(skin.bindMatrixInverse);
 
+  // const original = new Vector3().fromBufferAttribute(
+  //   skin.geometry.getAttribute("position"),
+  //   index
+  // );
+  // const out = skin.applyBoneTransform(index, original.clone());
+  // return out;
+
   const original = new Vector3().fromBufferAttribute(
     skin.geometry.getAttribute("position"),
     index
   );
-  const out = skin.applyBoneTransform(index % 300, original.clone());
+  const out = boneTransform(skin, original.clone(), index);
   return out;
-  // return original;
 }
 
 export function getDefaultSanAzukiSpearStabFrames(
