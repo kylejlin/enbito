@@ -93,7 +93,7 @@ const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
 const MAX_LANDING_SPEED = 30;
 const DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED = 5 ** 2;
 const DRAGONFLY_MIN_SPEED = 5;
-const STAB_TIME_SCALE = 0.15;
+const STAB_TIME_SCALE = 1;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
