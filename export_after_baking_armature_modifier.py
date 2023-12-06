@@ -263,53 +263,57 @@ bpy.ops.export_scene.gltf(
     export_current_frame=True,
 )
 bpy.ops.ed.undo()
-f = 25
-bpy.context.scene.frame_set(f)
-bpy.ops.object.modifier_apply(modifier="Armature")
-bpy.ops.export_scene.gltf(
-    filepath="%s.f%04d.glb" % (filename, f),
-    export_animations=False,
-    export_skins=False,
-    export_current_frame=True,
-)
-bpy.ops.ed.undo()
-f = 26
-bpy.context.scene.frame_set(f)
-bpy.ops.object.modifier_apply(modifier="Armature")
-bpy.ops.export_scene.gltf(
-    filepath="%s.f%04d.glb" % (filename, f),
-    export_animations=False,
-    export_skins=False,
-    export_current_frame=True,
-)
-bpy.ops.ed.undo()
-f = 27
-bpy.context.scene.frame_set(f)
-bpy.ops.object.modifier_apply(modifier="Armature")
-bpy.ops.export_scene.gltf(
-    filepath="%s.f%04d.glb" % (filename, f),
-    export_animations=False,
-    export_skins=False,
-    export_current_frame=True,
-)
-bpy.ops.ed.undo()
-f = 28
-bpy.context.scene.frame_set(f)
-bpy.ops.object.modifier_apply(modifier="Armature")
-bpy.ops.export_scene.gltf(
-    filepath="%s.f%04d.glb" % (filename, f),
-    export_animations=False,
-    export_skins=False,
-    export_current_frame=True,
-)
-bpy.ops.ed.undo()
-f = 29
-bpy.context.scene.frame_set(f)
-bpy.ops.object.modifier_apply(modifier="Armature")
-bpy.ops.export_scene.gltf(
-    filepath="%s.f%04d.glb" % (filename, f),
-    export_animations=False,
-    export_skins=False,
-    export_current_frame=True,
-)
-bpy.ops.ed.undo()
+
+# Comment out the below code if you are exporting
+# the Slow Stab (which doesn't change from frame 25-29).
+
+# f = 25
+# bpy.context.scene.frame_set(f)
+# bpy.ops.object.modifier_apply(modifier="Armature")
+# bpy.ops.export_scene.gltf(
+#     filepath="%s.f%04d.glb" % (filename, f),
+#     export_animations=False,
+#     export_skins=False,
+#     export_current_frame=True,
+# )
+# bpy.ops.ed.undo()
+# f = 26
+# bpy.context.scene.frame_set(f)
+# bpy.ops.object.modifier_apply(modifier="Armature")
+# bpy.ops.export_scene.gltf(
+#     filepath="%s.f%04d.glb" % (filename, f),
+#     export_animations=False,
+#     export_skins=False,
+#     export_current_frame=True,
+# )
+# bpy.ops.ed.undo()
+# f = 27
+# bpy.context.scene.frame_set(f)
+# bpy.ops.object.modifier_apply(modifier="Armature")
+# bpy.ops.export_scene.gltf(
+#     filepath="%s.f%04d.glb" % (filename, f),
+#     export_animations=False,
+#     export_skins=False,
+#     export_current_frame=True,
+# )
+# bpy.ops.ed.undo()
+# f = 28
+# bpy.context.scene.frame_set(f)
+# bpy.ops.object.modifier_apply(modifier="Armature")
+# bpy.ops.export_scene.gltf(
+#     filepath="%s.f%04d.glb" % (filename, f),
+#     export_animations=False,
+#     export_skins=False,
+#     export_current_frame=True,
+# )
+# bpy.ops.ed.undo()
+# f = 29
+# bpy.context.scene.frame_set(f)
+# bpy.ops.object.modifier_apply(modifier="Armature")
+# bpy.ops.export_scene.gltf(
+#     filepath="%s.f%04d.glb" % (filename, f),
+#     export_animations=False,
+#     export_skins=False,
+#     export_current_frame=True,
+# )
+# bpy.ops.ed.undo()

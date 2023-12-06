@@ -1,3 +1,30 @@
+export type Tuple24<T> = [
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T,
+  T
+];
+
 export type Tuple29<T> = [
   T,
   T,

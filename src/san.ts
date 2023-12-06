@@ -21,7 +21,7 @@ import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Allegiance } from "./battleStateData";
-import { Tuple29 } from "./tuple29";
+import { Tuple24, Tuple29 } from "./nTuple";
 
 export const MAX_SOLDIER_LIMIT = 10e3;
 
@@ -40,9 +40,9 @@ export interface SanData {
   azukiKing: SanKing;
   edamameKing: SanKing;
   azukiSpearWalkFrames: Tuple29<InstancedMesh>;
-  azukiSpearStabFrames: Tuple29<InstancedMesh>;
+  azukiSpearStabFrames: Tuple24<InstancedMesh>;
   edamameSpearWalkFrames: Tuple29<InstancedMesh>;
-  edamameSpearStabFrames: Tuple29<InstancedMesh>;
+  edamameSpearStabFrames: Tuple24<InstancedMesh>;
   azukiBannerTowers: BannerTower[];
   edamameBannerTowers: BannerTower[];
 
@@ -220,7 +220,7 @@ export function getDefaultSanAzukiSpearWalkFrames(
 
 export function getDefaultSanAzukiSpearStabFrames(
   assets: Assets
-): Tuple29<InstancedMesh> {
+): Tuple24<InstancedMesh> {
   return assets.azukiSpearStabFrames.map((frame: GLTF): InstancedMesh => {
     const source = cloneGltf(frame).scene.children[0]
       .children[0] as SkinnedMesh;
@@ -229,7 +229,7 @@ export function getDefaultSanAzukiSpearStabFrames(
       source.material,
       MAX_SOLDIER_LIMIT
     );
-  }) as Tuple29<InstancedMesh>;
+  }) as Tuple24<InstancedMesh>;
 }
 
 export function getDefaultSanEdamameSpearWalkFrames(
@@ -248,7 +248,7 @@ export function getDefaultSanEdamameSpearWalkFrames(
 
 export function getDefaultSanEdamameSpearStabFrames(
   assets: Assets
-): Tuple29<InstancedMesh> {
+): Tuple24<InstancedMesh> {
   return assets.edamameSpearStabFrames.map((frame: GLTF): InstancedMesh => {
     const source = cloneGltf(frame).scene.children[0]
       .children[0] as SkinnedMesh;
@@ -257,5 +257,5 @@ export function getDefaultSanEdamameSpearStabFrames(
       source.material,
       MAX_SOLDIER_LIMIT
     );
-  }) as Tuple29<InstancedMesh>;
+  }) as Tuple24<InstancedMesh>;
 }

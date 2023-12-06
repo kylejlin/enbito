@@ -11,18 +11,25 @@ import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { OBJLoader } from "three/addons/loaders/OBJLoader.js";
 import { MTLLoader } from "three/addons/loaders/MTLLoader.js";
-import { Tuple29 } from "./tuple29";
+import { Tuple24, Tuple29 } from "./nTuple";
+
+export const BLENDER_FPS = 24;
 
 export interface Assets {
   mcon: ModelConstants;
   environment: DataTexture;
+
+  // TODO: Delete this section
+  // Section start
   azukiSpear: GLTF;
   azukiSpearWalkClip: AnimationClip;
   azukiSpearStabClip: AnimationClip;
-  azukiKingSlashClip: AnimationClip;
   edamameSpear: GLTF;
   edamameSpearWalkClip: AnimationClip;
   edamameSpearStabClip: AnimationClip;
+  // Section end
+
+  azukiKingSlashClip: AnimationClip;
   dragonfly: GLTF;
   grass: Texture;
   azukiBannerTower: GLTF;
@@ -30,9 +37,9 @@ export interface Assets {
   azukiKing: GLTF;
   edamameKing: GLTF;
   azukiSpearWalkFrames: Tuple29<GLTF>;
-  azukiSpearStabFrames: Tuple29<GLTF>;
+  azukiSpearStabFrames: Tuple24<GLTF>;
   edamameSpearWalkFrames: Tuple29<GLTF>;
-  edamameSpearStabFrames: Tuple29<GLTF>;
+  edamameSpearStabFrames: Tuple24<GLTF>;
   // TODO Rename to `azukiExplodingFrames` to be more consistent.
   explodingAzukiFrames: Tuple29<Group>;
   explodingEdamameFrames: Tuple29<Group>;
@@ -155,11 +162,6 @@ export function loadAssets(): Promise<Assets> {
       getAzukiSpearStabFrame("f0022"),
       getAzukiSpearStabFrame("f0023"),
       getAzukiSpearStabFrame("f0024"),
-      getAzukiSpearStabFrame("f0025"),
-      getAzukiSpearStabFrame("f0026"),
-      getAzukiSpearStabFrame("f0027"),
-      getAzukiSpearStabFrame("f0028"),
-      getAzukiSpearStabFrame("f0029"),
     ]),
     Promise.all([
       getEdamameSpearWalkFrame("f0001"),
@@ -217,11 +219,6 @@ export function loadAssets(): Promise<Assets> {
       getEdamameSpearStabFrame("f0022"),
       getEdamameSpearStabFrame("f0023"),
       getEdamameSpearStabFrame("f0024"),
-      getEdamameSpearStabFrame("f0025"),
-      getEdamameSpearStabFrame("f0026"),
-      getEdamameSpearStabFrame("f0027"),
-      getEdamameSpearStabFrame("f0028"),
-      getEdamameSpearStabFrame("f0029"),
     ]),
     Promise.all([
       getAzukiExplodingFrame("000001"),
@@ -332,8 +329,8 @@ export function loadAssets(): Promise<Assets> {
       );
 
       const mcon: ModelConstants = {
-        azukiSpearWalkClipDuration: azukiSpearWalkClip.duration,
-        azukiSpearStabClipDuration: azukiSpearStabClip.duration,
+        azukiSpearWalkClipDuration: azukiSpearWalkFrames.length / BLENDER_FPS,
+        azukiSpearStabClipDuration: azukiSpearStabFrames.length / BLENDER_FPS,
         azukiKingSlashClipDuration: azukiKingSlashClip.duration,
       };
 
