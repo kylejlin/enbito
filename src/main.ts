@@ -1072,9 +1072,9 @@ function stopWalkingAndStartStabAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
   timeScale: number,
-  assets: Assets
+  mcon: ModelConstants
 ): void {
-  const scaledWalkClipDuration = assets.azukiSpearWalkClip.duration / timeScale;
+  const scaledWalkClipDuration = mcon.azukiSpearWalkClipDuration / timeScale;
   if (animation.kind === SoldierAnimationKind.Walk) {
     const halfwayPoint = 0.5 * scaledWalkClipDuration;
     const reachesHalfwayPointThisTick =
@@ -1098,10 +1098,10 @@ const STAB_DAMAGE_POINT_LOCATION_FACTOR = 12 / 24;
 function continueStabThenIdleAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
-  assets: Assets
+  mcon: ModelConstants
 ): boolean {
   const damageTime =
-    assets.azukiSpearStabClip.duration * STAB_DAMAGE_POINT_LOCATION_FACTOR;
+    mcon.azukiSpearStabClipDuration * STAB_DAMAGE_POINT_LOCATION_FACTOR;
   const newTimeInSeconds =
     animation.timeInSeconds + elapsedTimeInSeconds * STAB_TIME_SCALE;
   const dealsDamageThisTick =
@@ -1109,10 +1109,10 @@ function continueStabThenIdleAnimation(
 
   animation.timeInSeconds = newTimeInSeconds;
 
-  if (animation.timeInSeconds >= assets.azukiSpearStabClip.duration) {
+  if (animation.timeInSeconds >= mcon.azukiSpearStabClipDuration) {
     animation.kind = SoldierAnimationKind.Idle;
     animation.timeInSeconds =
-      (animation.timeInSeconds - assets.azukiSpearStabClip.duration) /
+      (animation.timeInSeconds - mcon.azukiSpearStabClipDuration) /
       STAB_TIME_SCALE;
   }
 
@@ -1123,7 +1123,7 @@ function continueStabThenIdleAnimation(
 function continueIdleThenStabAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
-  assets: Assets
+  mcon: ModelConstants
 ): boolean {
   animation.timeInSeconds += elapsedTimeInSeconds;
   if (animation.timeInSeconds >= STAB_COOLDOWN) {
@@ -1133,7 +1133,7 @@ function continueIdleThenStabAnimation(
 
     return (
       animation.timeInSeconds >=
-      assets.azukiSpearStabClip.duration * STAB_DAMAGE_POINT_LOCATION_FACTOR
+      mcon.azukiSpearStabClipDuration * STAB_DAMAGE_POINT_LOCATION_FACTOR
     );
   }
 
@@ -1412,7 +1412,7 @@ function tickUnitWithAdvanceOrder(
           elapsedTimeInSeconds,
           soldier.animation,
           1,
-          assets
+          assets.mcon
         );
       }
 
@@ -1431,7 +1431,7 @@ function tickUnitWithAdvanceOrder(
           const dealsDamageThisTick = continueStabThenIdleAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
-            assets
+            assets.mcon
           );
           if (dealsDamageThisTick) {
             attackTarget.health -= STAB_DAMAGE;
@@ -1440,7 +1440,7 @@ function tickUnitWithAdvanceOrder(
           const dealsDamageThisTick = continueIdleThenStabAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
-            assets
+            assets.mcon
           );
           if (dealsDamageThisTick) {
             attackTarget.health -= STAB_DAMAGE;
