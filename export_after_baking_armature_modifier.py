@@ -16,7 +16,7 @@ frame_start = 1
 frame_end = 29
 
 # Filename
-filename = "/Users/kyle/enbito/public/models/azuki_spear_frames/walk/walk"
+filename = "/Users/kyle/enbito/public/models/azuki_spear_frames/stab/stab"
 
 # For some reason, the script doesn't work if I
 # use a for-loop.
