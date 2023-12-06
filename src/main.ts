@@ -93,6 +93,7 @@ const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
 const MAX_LANDING_SPEED = 30;
 const DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED = 5 ** 2;
 const DRAGONFLY_MIN_SPEED = 5;
+const STAB_TIME_SCALE = 0.5;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -1097,20 +1098,21 @@ const STAB_DAMAGE_POINT_LOCATION_FACTOR = 4 / 8;
 function continueStabThenIdleAnimation(
   elapsedTimeInSeconds: number,
   animation: SoldierAnimationState,
-  timeScale: number,
   assets: Assets
 ): boolean {
-  const scaledStabClipDuration = assets.azukiSpearStabClip.duration / timeScale;
-  const damageTime = scaledStabClipDuration * STAB_DAMAGE_POINT_LOCATION_FACTOR;
+  const damageTime =
+    assets.azukiSpearStabClip.duration * STAB_DAMAGE_POINT_LOCATION_FACTOR;
   const dealsDamageThisTick =
     animation.timeInSeconds < damageTime &&
     animation.timeInSeconds + elapsedTimeInSeconds >= damageTime;
 
-  animation.timeInSeconds = animation.timeInSeconds + elapsedTimeInSeconds;
+  animation.timeInSeconds += elapsedTimeInSeconds * STAB_TIME_SCALE;
 
-  if (animation.timeInSeconds >= scaledStabClipDuration) {
+  if (animation.timeInSeconds >= assets.azukiSpearStabClip.duration) {
     animation.kind = SoldierAnimationKind.Idle;
-    animation.timeInSeconds = animation.timeInSeconds - scaledStabClipDuration;
+    animation.timeInSeconds =
+      (animation.timeInSeconds - assets.azukiSpearStabClip.duration) /
+      STAB_TIME_SCALE;
   }
 
   return dealsDamageThisTick;
@@ -1125,14 +1127,12 @@ function continueIdleThenStabAnimation(
   animation.timeInSeconds += elapsedTimeInSeconds;
   if (animation.timeInSeconds >= STAB_COOLDOWN) {
     animation.kind = SoldierAnimationKind.Stab;
-    animation.timeInSeconds = animation.timeInSeconds - STAB_COOLDOWN;
+    animation.timeInSeconds =
+      (animation.timeInSeconds - STAB_COOLDOWN) * STAB_TIME_SCALE;
 
-    const timeScale = 1;
-    const scaledStabClipDuration =
-      assets.azukiSpearStabClip.duration / timeScale;
     return (
       animation.timeInSeconds >=
-      scaledStabClipDuration * STAB_DAMAGE_POINT_LOCATION_FACTOR
+      assets.azukiSpearStabClip.duration * STAB_DAMAGE_POINT_LOCATION_FACTOR
     );
   }
 
@@ -1430,7 +1430,6 @@ function tickUnitWithAdvanceOrder(
           const dealsDamageThisTick = continueStabThenIdleAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
-            1,
             assets
           );
           if (dealsDamageThisTick) {
