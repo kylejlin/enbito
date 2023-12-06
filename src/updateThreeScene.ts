@@ -113,35 +113,6 @@ function updateUnits(battle: BattleState, san: San): void {
   const { activeUnitIds } = battle.data;
   for (const unitId of activeUnitIds) {
     const bUnit = battle.getUnit(unitId);
-    if (!(window as any).x) {
-      let bSoldier = battle.getSoldier(bUnit.soldierIds[0]);
-      let i = 0;
-      while (bSoldier.attackTargetId === null) {
-        ++i;
-        if (i >= bUnit.soldierIds.length) {
-          break;
-        }
-        bSoldier = battle.getSoldier(bUnit.soldierIds[i]);
-      }
-      if (bSoldier.attackTargetId !== null) {
-        const stabFrameCount = san.data.azukiSpearStabFrames.length;
-        const frameNumber = Math.min(
-          Math.floor(
-            (bSoldier.animation.timeInSeconds /
-              san.data.mcon.azukiSpearStabClipDuration) *
-              stabFrameCount
-          ),
-          stabFrameCount - 1
-        );
-        if (bSoldier.animation.kind === SoldierAnimationKind.Stab) {
-          console.log({
-            currentStabFrame: frameNumber,
-            currentTime: bSoldier.animation.timeInSeconds,
-            stabFrameCount,
-          });
-        }
-      }
-    }
     for (const soldierId of bUnit.soldierIds) {
       const bSoldier = battle.getSoldier(soldierId);
       temp.position.set(
