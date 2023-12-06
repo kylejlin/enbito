@@ -1102,11 +1102,12 @@ function continueStabThenIdleAnimation(
 ): boolean {
   const damageTime =
     assets.azukiSpearStabClip.duration * STAB_DAMAGE_POINT_LOCATION_FACTOR;
+  const newTimeInSeconds =
+    animation.timeInSeconds + elapsedTimeInSeconds * STAB_TIME_SCALE;
   const dealsDamageThisTick =
-    animation.timeInSeconds < damageTime &&
-    animation.timeInSeconds + elapsedTimeInSeconds >= damageTime;
+    animation.timeInSeconds < damageTime && newTimeInSeconds >= damageTime;
 
-  animation.timeInSeconds += elapsedTimeInSeconds * STAB_TIME_SCALE;
+  animation.timeInSeconds = newTimeInSeconds;
 
   if (animation.timeInSeconds >= assets.azukiSpearStabClip.duration) {
     animation.kind = SoldierAnimationKind.Idle;
