@@ -23,7 +23,8 @@ export function getDefaultBattleState(): BattleStateData {
   entities.push(edamameKing);
 
   const azukiLegion = getUnit(entities, {
-    start: [-50, 0, 100],
+    start: [-50, 0, 50],
+    // start: [-50, 0, 100],
     forward: [0, 0, 1],
     dimensions: [10, 10],
     gap: [8, 8 * (Math.sqrt(3) / 2)],
@@ -229,7 +230,8 @@ export function getDefaultBattleState(): BattleStateData {
 function getDefaultAzukiKing(): King {
   return {
     isKing: true,
-    position: [0, 0, 100],
+    // position: [0, 0, 100],
+    position: [0, 0, 5],
     animation: {
       kind: SoldierAnimationKind.Idle,
       timeInSeconds: 0,
