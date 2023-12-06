@@ -199,8 +199,7 @@ function getSpearInstancedMesh(
       walkFrameCount - 1
     );
     return bAllegiance === Allegiance.Azuki
-      ? // TODO: Fix
-        edamameSpearWalkFrames[frameNumber]
+      ? azukiSpearWalkFrames[frameNumber]
       : edamameSpearWalkFrames[frameNumber];
   }
 
