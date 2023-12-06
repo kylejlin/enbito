@@ -93,7 +93,7 @@ const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
 const MAX_LANDING_SPEED = 30;
 const DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED = 5 ** 2;
 const DRAGONFLY_MIN_SPEED = 5;
-const STAB_TIME_SCALE = 1.5;
+const STAB_TIME_SCALE = 2;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -1092,7 +1092,7 @@ function stopWalkingAndStartStabAnimation(
   }
 }
 
-const STAB_DAMAGE_POINT_LOCATION_FACTOR = 12 / 24;
+const STAB_DAMAGE_POINT_LOCATION_FACTOR = 10 / 24;
 
 /** Returns whether the animation crosses the damage point during this tick. */
 function continueStabThenIdleAnimation(
