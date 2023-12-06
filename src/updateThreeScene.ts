@@ -13,13 +13,8 @@ import { InstancedMesh, Object3D, Scene, Vector3 } from "three";
 // differentiate between the BattleState and San.
 
 export function updateThreeScene(battle: BattleState, san: San): void {
-  const { scene, sky, camera, grass } = san.data;
+  const { scene, sky, grass } = san.data;
   scene.remove(...scene.children);
-
-  const bAzukiKing = battle.getAzukiKing();
-  const bEdamameKing = battle.getEdamameKing();
-  const sAzukiKing = san.data.azukiKing;
-  const sEdamameKing = san.data.edamameKing;
 
   scene.add(sky);
   scene.add(grass);
@@ -30,7 +25,7 @@ export function updateThreeScene(battle: BattleState, san: San): void {
 }
 
 function updateAzukiKing(battle: BattleState, san: San): void {
-  const { scene, sky, camera, grass } = san.data;
+  const { scene } = san.data;
   const bAzukiKing = battle.getAzukiKing();
   const bEdamameKing = battle.getEdamameKing();
   const sAzukiKing = san.data.azukiKing;

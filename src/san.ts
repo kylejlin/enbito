@@ -3,34 +3,24 @@ import {
   WebGLRenderer,
   PerspectiveCamera,
   Scene,
-  Quaternion,
   Vector3,
   MeshBasicMaterial,
   Mesh,
   MathUtils,
   ACESFilmicToneMapping,
-  WebGLCubeRenderTarget,
-  HalfFloatType,
-  CubeCamera,
   PlaneGeometry,
   AnimationMixer,
   AnimationClip,
   AnimationAction,
-  Raycaster,
-  AmbientLight,
   Object3D,
   InstancedMesh,
   SkinnedMesh,
-  Vector4,
-  Matrix4,
-  BufferAttribute,
-  BufferGeometry,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { Allegiance, BattleStateData } from "./battleStateData";
+import { Allegiance } from "./battleStateData";
 import { Tuple29 } from "./tuple29";
 
 export const MAX_SOLDIER_LIMIT = 10e3;
@@ -220,161 +210,12 @@ export function getDefaultSanAzukiSpearWalkFrames(
   return assets.azukiSpearWalkFrames.map((frame: GLTF): InstancedMesh => {
     const source = cloneGltf(frame).scene.children[0]
       .children[0] as SkinnedMesh;
-    console.log({ source });
     return new InstancedMesh(
-      // getTransformedGeometry(source),
       source.geometry,
       source.material,
-      // new MeshBasicMaterial(),
       MAX_SOLDIER_LIMIT
     );
   }) as Tuple29<InstancedMesh>;
-}
-
-function getTransformedGeometry(mesh: SkinnedMesh): BufferGeometry {
-  const out = new BufferGeometry();
-  out.setAttribute("uv", mesh.geometry.getAttribute("uv"));
-  const vertices: number[] = [];
-  const positionCount = (
-    mesh.geometry.getAttribute("position") as BufferAttribute
-  ).count;
-  for (let i = 0; i < positionCount; ++i) {
-    const transformed = getTransformedSkinVertex(mesh, i);
-    vertices.push(transformed.x, transformed.y, transformed.z);
-
-    // const v = new Vector3().fromBufferAttribute(
-    //   mesh.geometry.getAttribute("position"),
-    //   i
-    // );
-    // vertices.push(v.x, v.y, v.z);
-  }
-
-  out.setAttribute(
-    "position",
-    new BufferAttribute(new Float32Array(vertices), 3)
-  );
-
-  // out.setAttribute(
-  //   "position",
-  //   new BufferAttribute(
-  //     (
-  //       mesh.geometry.getAttribute("position").array as Float32Array
-  //     ).slice() as Float32Array,
-  //     3
-  //   )
-  // );
-
-  // out.setAttribute("position", mesh.geometry.getAttribute("position"));
-  out.setAttribute("normal", mesh.geometry.getAttribute("normal"));
-  out.setAttribute("uv", mesh.geometry.getAttribute("uv"));
-  out.setAttribute("skinIndex", mesh.geometry.getAttribute("skinIndex"));
-  out.setAttribute("skinWeight", mesh.geometry.getAttribute("skinWeight"));
-
-  out.index = mesh.geometry.index;
-
-  return out;
-  // return mesh.geometry;
-}
-
-// Based on https://stackoverflow.com/questions/31620194/how-to-calculate-transformed-skin-vertices
-function getTransformedSkinVertex(skin: SkinnedMesh, index: number): Vector3 {
-  // Based on https://github.com/cioddi/three.js/blob/ee801b27432651d18392478af3e4f8aa3d931883/examples/js/exporters/STLExporter.js
-  const boneTransform = (function () {
-    var clone = new Vector3(),
-      result = new Vector3(),
-      skinIndices = new Vector4(),
-      skinWeights = new Vector4();
-    var temp = new Vector3(),
-      tempMatrix = new Matrix4();
-    const properties = ["x", "y", "z", "w"] as const;
-
-    return function (object: SkinnedMesh, vertex: Vector3, index: number) {
-      if (object.geometry.isBufferGeometry) {
-        var index4 = index * 4;
-        skinIndices.fromArray(
-          object.geometry.attributes.skinIndex.array,
-          index4
-        );
-        skinWeights.fromArray(
-          object.geometry.attributes.skinWeight.array,
-          index4
-        );
-      } else if (object.geometry.isBufferGeometry) {
-        skinIndices.fromBufferAttribute(
-          object.geometry.getAttribute("skinIndices") as BufferAttribute,
-          index
-        );
-        skinWeights.fromBufferAttribute(
-          object.geometry.getAttribute("skinWeights") as BufferAttribute,
-          index
-        );
-      }
-
-      var clone = vertex.clone().applyMatrix4(object.bindMatrix);
-      result.set(0, 0, 0);
-
-      for (var i = 0; i < 4; i++) {
-        var skinWeight = skinWeights[properties[i]];
-
-        if (skinWeight != 0) {
-          var boneIndex = skinIndices[properties[i]];
-          tempMatrix.multiplyMatrices(
-            object.skeleton.bones[boneIndex].matrixWorld,
-            object.skeleton.boneInverses[boneIndex]
-          );
-          result.add(
-            temp.copy(clone).applyMatrix4(tempMatrix).multiplyScalar(skinWeight)
-          );
-        }
-      }
-
-      return clone.copy(result.applyMatrix4(object.bindMatrixInverse));
-    };
-  })();
-
-  // var skinIndices = new Vector4().fromBufferAttribute(
-  //   skin.geometry.getAttribute("skinIndex") as BufferAttribute,
-  //   index
-  // );
-  // var skinWeights = new Vector4().fromBufferAttribute(
-  //   skin.geometry.getAttribute("skinWeight") as BufferAttribute,
-  //   index
-  // );
-  // var skinVertex = new Vector3()
-  //   .fromBufferAttribute(skin.geometry.getAttribute("position"), index)
-  //   .applyMatrix4(skin.bindMatrix);
-  // var result = new Vector3(),
-  //   temp = new Vector3(),
-  //   tempMatrix = new Matrix4();
-  // const properties = ["x", "y", "z", "w"] as const;
-  // for (var i = 0; i < 4; i++) {
-  //   var boneIndex = skinIndices[properties[i]];
-  //   tempMatrix.multiplyMatrices(
-  //     skin.skeleton.bones[boneIndex].matrixWorld,
-  //     skin.skeleton.boneInverses[boneIndex]
-  //   );
-  //   result.add(
-  //     temp
-  //       .copy(skinVertex)
-  //       .applyMatrix4(tempMatrix)
-  //       .multiplyScalar(skinWeights[properties[i]])
-  //   );
-  // }
-  // return result.applyMatrix4(skin.bindMatrixInverse);
-
-  // const original = new Vector3().fromBufferAttribute(
-  //   skin.geometry.getAttribute("position"),
-  //   index
-  // );
-  // const out = skin.applyBoneTransform(index, original.clone());
-  // return out;
-
-  const original = new Vector3().fromBufferAttribute(
-    skin.geometry.getAttribute("position"),
-    index
-  );
-  const out = boneTransform(skin, original.clone(), index);
-  return out;
 }
 
 export function getDefaultSanAzukiSpearStabFrames(
