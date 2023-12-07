@@ -9,14 +9,8 @@
 
 import bpy
 
-# First frame to export
-frame_start = 1
-
-# Last frame to export
-frame_end = 29
-
 # Filename
-filename = "/Users/kyle/enbito/public/models/azuki_spear_frames/stab/stab"
+filename = "/Users/kyle/enbito/public/models/edamame_spear_frames/stab/stab"
 
 # For some reason, the script doesn't work if I
 # use a for-loop.
