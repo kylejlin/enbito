@@ -6,6 +6,7 @@ import {
   King,
   SoldierAnimationKind,
   SoldierAnimationState,
+  SoldierExplosion,
 } from "./battleStateData";
 import { InstancedMesh, Object3D, Scene, Vector3 } from "three";
 
@@ -22,6 +23,7 @@ export function updateThreeScene(battle: BattleState, san: San): void {
   updateAzukiKing(battle, san);
   updateCamera(battle, san);
   updateUnits(battle, san);
+  updateSoldierExplosions(battle, san);
 }
 
 function updateAzukiKing(battle: BattleState, san: San): void {
@@ -122,7 +124,7 @@ function updateUnits(battle: BattleState, san: San): void {
       );
       temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), bSoldier.yRot);
 
-      const instancedMesh = getSpearInstancedMesh(
+      const instancedMesh = getSpearFrameInstancedMesh(
         bSoldier.animation,
         bUnit.allegiance,
         san
@@ -170,7 +172,7 @@ function addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
   }
 }
 
-function getSpearInstancedMesh(
+function getSpearFrameInstancedMesh(
   bAnimation: SoldierAnimationState,
   bAllegiance: Allegiance,
   san: San
@@ -225,4 +227,61 @@ function getSpearInstancedMesh(
   // but it _does_ recognize that `bAnimation.kind` has type `never` in this branch.
   // So, as a workaround, we return `bAnimation.kind`.
   return bAnimation.kind;
+}
+
+function updateSoldierExplosions(battle: BattleState, san: San): void {
+  const { azukiUnarmedExplosionFrames, edamameUnarmedExplosionFrames, scene } =
+    san.data;
+  const bSoldierExplosions = battle.data.soldierExplosions;
+
+  setCountsToZero(azukiUnarmedExplosionFrames);
+  setCountsToZero(edamameUnarmedExplosionFrames);
+
+  const temp = new Object3D();
+  for (const bExplosion of bSoldierExplosions) {
+    temp.position.set(
+      bExplosion.position[0],
+      bExplosion.position[1],
+      bExplosion.position[2]
+    );
+    geoUtils.setQuaternionFromOrientation(
+      temp.quaternion,
+      bExplosion.orientation
+    );
+
+    const instancedMesh = getExplosionFrameInstancedMesh(bExplosion, san);
+
+    temp.updateMatrix();
+    instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
+    ++instancedMesh.count;
+  }
+
+  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+    azukiUnarmedExplosionFrames,
+    scene
+  );
+  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+    edamameUnarmedExplosionFrames,
+    scene
+  );
+}
+
+function getExplosionFrameInstancedMesh(
+  bExplosion: SoldierExplosion,
+  san: San
+): InstancedMesh {
+  const { azukiUnarmedExplosionFrames, edamameUnarmedExplosionFrames } =
+    san.data;
+  const { soldierExplosionClipDuration } = san.data.mcon;
+  const frameCount = azukiUnarmedExplosionFrames.length;
+
+  const frameNumber = Math.min(
+    Math.floor(
+      (bExplosion.timeInSeconds / soldierExplosionClipDuration) * frameCount
+    ),
+    frameCount - 1
+  );
+  return bExplosion.allegiance === Allegiance.Azuki
+    ? azukiUnarmedExplosionFrames[frameNumber]
+    : edamameUnarmedExplosionFrames[frameNumber];
 }

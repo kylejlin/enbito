@@ -10,7 +10,8 @@ import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Tuple24, Tuple29 } from "./nTuple";
 
-export const BLENDER_FPS = 24;
+export const BLENDER_DEFAULT_FPS = 24;
+export const BLENDER_SOLDIER_EXPLOSION_FPS = 1.5 * 24;
 
 export interface Assets {
   mcon: ModelConstants;
@@ -45,6 +46,7 @@ export interface ModelConstants {
   azukiSpearWalkClipDuration: number;
   azukiSpearStabClipDuration: number;
   azukiKingSlashClipDuration: number;
+  soldierExplosionClipDuration: number;
 }
 
 export function loadAssets(): Promise<Assets> {
@@ -325,9 +327,13 @@ export function loadAssets(): Promise<Assets> {
       );
 
       const mcon: ModelConstants = {
-        azukiSpearWalkClipDuration: azukiSpearWalkFrames.length / BLENDER_FPS,
-        azukiSpearStabClipDuration: azukiSpearStabFrames.length / BLENDER_FPS,
+        azukiSpearWalkClipDuration:
+          azukiSpearWalkFrames.length / BLENDER_DEFAULT_FPS,
+        azukiSpearStabClipDuration:
+          azukiSpearStabFrames.length / BLENDER_DEFAULT_FPS,
         azukiKingSlashClipDuration: azukiKingSlashClip.duration,
+        soldierExplosionClipDuration:
+          azukiUnarmedExplosionFrames.length / BLENDER_SOLDIER_EXPLOSION_FPS,
       };
 
       return {
