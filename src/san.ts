@@ -43,6 +43,8 @@ export interface SanData {
   azukiSpearStabFrames: Tuple24<InstancedMesh>;
   edamameSpearWalkFrames: Tuple29<InstancedMesh>;
   edamameSpearStabFrames: Tuple24<InstancedMesh>;
+  azukiUnarmedExplosionFrames: Tuple29<InstancedMesh>;
+  edamameUnarmedExplosionFrames: Tuple29<InstancedMesh>;
   azukiBannerTowers: BannerTower[];
   edamameBannerTowers: BannerTower[];
 
@@ -111,6 +113,10 @@ export function getDefaultSanData(assets: Assets): SanData {
     azukiSpearStabFrames: getDefaultSanAzukiSpearStabFrames(assets),
     edamameSpearWalkFrames: getDefaultSanEdamameSpearWalkFrames(assets),
     edamameSpearStabFrames: getDefaultSanEdamameSpearStabFrames(assets),
+    azukiUnarmedExplosionFrames:
+      getDefaultSanAzukiUnarmedExplosionFrames(assets),
+    edamameUnarmedExplosionFrames:
+      getDefaultSanEdamameUnarmedExplosionFrames(assets),
     azukiBannerTowers: [],
     edamameBannerTowers: [],
 
@@ -258,4 +264,36 @@ export function getDefaultSanEdamameSpearStabFrames(
       MAX_SOLDIER_LIMIT
     );
   }) as Tuple24<InstancedMesh>;
+}
+
+export function getDefaultSanAzukiUnarmedExplosionFrames(
+  assets: Assets
+): Tuple29<InstancedMesh> {
+  return assets.azukiUnarmedExplosionFrames.map(
+    (frame: GLTF): InstancedMesh => {
+      const source = cloneGltf(frame).scene.children[0]
+        .children[0] as SkinnedMesh;
+      return new InstancedMesh(
+        source.geometry,
+        source.material,
+        MAX_SOLDIER_LIMIT
+      );
+    }
+  ) as Tuple29<InstancedMesh>;
+}
+
+export function getDefaultSanEdamameUnarmedExplosionFrames(
+  assets: Assets
+): Tuple29<InstancedMesh> {
+  return assets.edamameUnarmedExplosionFrames.map(
+    (frame: GLTF): InstancedMesh => {
+      const source = cloneGltf(frame).scene.children[0]
+        .children[0] as SkinnedMesh;
+      return new InstancedMesh(
+        source.geometry,
+        source.material,
+        MAX_SOLDIER_LIMIT
+      );
+    }
+  ) as Tuple29<InstancedMesh>;
 }
