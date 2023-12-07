@@ -11,7 +11,7 @@ import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { Tuple24, Tuple29 } from "./nTuple";
 
 export const BLENDER_DEFAULT_FPS = 24;
-export const BLENDER_SOLDIER_EXPLOSION_FPS = 1.5 * 24;
+export const BLENDER_SOLDIER_EXPLOSION_FPS = 24;
 
 export interface Assets {
   mcon: ModelConstants;

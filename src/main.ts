@@ -85,8 +85,6 @@ const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
 const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
 const STAB_DAMAGE = 60;
 const STAB_COOLDOWN = 1;
-const SOLDIER_EXPLOSION_DURATION = 1;
-const SOLDIER_EXPLOSION_FRAME_COUNT = 29;
 const SLASH_DAMAGE = 40;
 const SOLDIER_DEPLOYMENT_DELAY_SECONDS = 1;
 const ASSEMBLING_TROOP_SPEEDUP_FACTOR = 2;
@@ -1669,13 +1667,14 @@ function tickSoldierExplosions(
   elapsedTimeInSeconds: number,
   resources: Resources
 ): void {
+  const { soldierExplosionClipDuration } = resources.assets.mcon;
   const { battle } = resources;
   const { soldierExplosions } = battle.data;
   for (let i = 0; i < soldierExplosions.length; ++i) {
     const explosion = soldierExplosions[i];
     explosion.timeInSeconds += elapsedTimeInSeconds;
 
-    if (explosion.timeInSeconds > SOLDIER_EXPLOSION_DURATION) {
+    if (explosion.timeInSeconds > soldierExplosionClipDuration) {
       // if (explosion.scene !== null) {
       //   resources.scene.remove(explosion.scene);
       // }
