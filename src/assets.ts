@@ -8,7 +8,7 @@ import {
 } from "three";
 import { RGBELoader } from "three/addons/loaders/RGBELoader.js";
 import { GLTF, GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { Tuple24, Tuple29 } from "./nTuple";
+import { Tuple21, Tuple24, Tuple29 } from "./nTuple";
 
 export const BLENDER_DEFAULT_FPS = 24;
 export const BLENDER_SOLDIER_EXPLOSION_FPS = 24;
@@ -38,8 +38,8 @@ export interface Assets {
   azukiSpearStabFrames: Tuple24<GLTF>;
   edamameSpearWalkFrames: Tuple29<GLTF>;
   edamameSpearStabFrames: Tuple24<GLTF>;
-  azukiUnarmedExplosionFrames: Tuple29<GLTF>;
-  edamameUnarmedExplosionFrames: Tuple29<GLTF>;
+  azukiUnarmedExplosionFrames: Tuple21<GLTF>;
+  edamameUnarmedExplosionFrames: Tuple21<GLTF>;
 }
 
 export interface ModelConstants {
@@ -240,14 +240,6 @@ export function loadAssets(): Promise<Assets> {
       getAzukiExplodingFrame("f0019"),
       getAzukiExplodingFrame("f0020"),
       getAzukiExplodingFrame("f0021"),
-      getAzukiExplodingFrame("f0022"),
-      getAzukiExplodingFrame("f0023"),
-      getAzukiExplodingFrame("f0024"),
-      getAzukiExplodingFrame("f0025"),
-      getAzukiExplodingFrame("f0026"),
-      getAzukiExplodingFrame("f0027"),
-      getAzukiExplodingFrame("f0028"),
-      getAzukiExplodingFrame("f0029"),
     ]),
     Promise.all([
       getEdamameExplodingFrame("f0001"),
@@ -271,14 +263,6 @@ export function loadAssets(): Promise<Assets> {
       getEdamameExplodingFrame("f0019"),
       getEdamameExplodingFrame("f0020"),
       getEdamameExplodingFrame("f0021"),
-      getEdamameExplodingFrame("f0022"),
-      getEdamameExplodingFrame("f0023"),
-      getEdamameExplodingFrame("f0024"),
-      getEdamameExplodingFrame("f0025"),
-      getEdamameExplodingFrame("f0026"),
-      getEdamameExplodingFrame("f0027"),
-      getEdamameExplodingFrame("f0028"),
-      getEdamameExplodingFrame("f0029"),
     ]),
     new Promise<GLTF>((resolve) => {
       new GLTFLoader().load("./models/azuki_spear_baked.glb", (gltf) => {

@@ -21,7 +21,7 @@ import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Allegiance } from "./battleStateData";
-import { Tuple24, Tuple29 } from "./nTuple";
+import { Tuple21, Tuple24, Tuple29 } from "./nTuple";
 
 export const MAX_SOLDIER_LIMIT = 10e3;
 
@@ -43,8 +43,8 @@ export interface SanData {
   azukiSpearStabFrames: Tuple24<InstancedMesh>;
   edamameSpearWalkFrames: Tuple29<InstancedMesh>;
   edamameSpearStabFrames: Tuple24<InstancedMesh>;
-  azukiUnarmedExplosionFrames: Tuple29<InstancedMesh>;
-  edamameUnarmedExplosionFrames: Tuple29<InstancedMesh>;
+  azukiUnarmedExplosionFrames: Tuple21<InstancedMesh>;
+  edamameUnarmedExplosionFrames: Tuple21<InstancedMesh>;
   azukiBannerTowers: BannerTower[];
   edamameBannerTowers: BannerTower[];
 
@@ -268,7 +268,7 @@ export function getDefaultSanEdamameSpearStabFrames(
 
 export function getDefaultSanAzukiUnarmedExplosionFrames(
   assets: Assets
-): Tuple29<InstancedMesh> {
+): Tuple21<InstancedMesh> {
   return assets.azukiUnarmedExplosionFrames.map(
     (frame: GLTF): InstancedMesh => {
       const source = cloneGltf(frame).scene.children[0]
@@ -279,12 +279,12 @@ export function getDefaultSanAzukiUnarmedExplosionFrames(
         MAX_SOLDIER_LIMIT
       );
     }
-  ) as Tuple29<InstancedMesh>;
+  ) as Tuple21<InstancedMesh>;
 }
 
 export function getDefaultSanEdamameUnarmedExplosionFrames(
   assets: Assets
-): Tuple29<InstancedMesh> {
+): Tuple21<InstancedMesh> {
   return assets.edamameUnarmedExplosionFrames.map(
     (frame: GLTF): InstancedMesh => {
       const source = cloneGltf(frame).scene.children[0]
@@ -295,5 +295,5 @@ export function getDefaultSanEdamameUnarmedExplosionFrames(
         MAX_SOLDIER_LIMIT
       );
     }
-  ) as Tuple29<InstancedMesh>;
+  ) as Tuple21<InstancedMesh>;
 }
