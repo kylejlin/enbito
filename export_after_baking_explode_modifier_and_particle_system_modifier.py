@@ -11,7 +11,7 @@
 import bpy
 
 # Filename
-filename = "/Users/kyle/enbito/public/models/azuki_unarmed_frames/explode/explode"
+filename = "/Users/kyle/enbito/public/models/edamame_unarmed_frames/explode/explode"
 
 def blender_frame_to_output_frame(blender_frame):
     return (blender_frame - 1) / 2 + 1
