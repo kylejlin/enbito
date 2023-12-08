@@ -1,14 +1,17 @@
 import { BattleState } from "./battleState";
-import { San, SanKing } from "./san";
+import { GltfCache, San, SanKing } from "./san";
 import * as geoUtils from "./geoUtils";
 import {
   Allegiance,
   King,
+  Orientation,
   SoldierAnimationKind,
   SoldierAnimationState,
   SoldierExplosion,
 } from "./battleStateData";
 import { InstancedMesh, Object3D, Scene, Vector3 } from "three";
+import { add } from "three/examples/jsm/libs/tween.module.js";
+import { cloneGltf } from "./cloneGltf";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -23,6 +26,7 @@ export function updateThreeScene(battle: BattleState, san: San): void {
   updateAzukiKing(battle, san);
   updateCamera(battle, san);
   updateUnits(battle, san);
+  updateBannerTowers(battle, san);
   updateSoldierExplosions(battle, san);
 }
 
@@ -284,4 +288,49 @@ function getExplosionFrameInstancedMesh(
   return bExplosion.allegiance === Allegiance.Azuki
     ? azukiUnarmedExplosionFrames[frameNumber]
     : edamameUnarmedExplosionFrames[frameNumber];
+}
+
+function updateBannerTowers(battle: BattleState, san: San): void {
+  const bTowerIds = battle.data.activeTowerIds;
+  for (const bTowerId of bTowerIds) {
+    const bTower = battle.getBannerTower(bTowerId);
+    const sMeshCache = getBannerTowerGltfCache(bTower.allegiance, san);
+    writeToGltfCache(
+      bTower.position,
+      { yaw: 0, pitch: 0, roll: 0 },
+      sMeshCache
+    );
+  }
+
+  addGltfCacheToScene(san.data.azukiBannerTowers, san.data.scene);
+  addGltfCacheToScene(san.data.edamameBannerTowers, san.data.scene);
+}
+
+function getBannerTowerGltfCache(allegiance: Allegiance, san: San): GltfCache {
+  return allegiance === Allegiance.Azuki
+    ? san.data.azukiBannerTowers
+    : san.data.edamameBannerTowers;
+}
+
+function writeToGltfCache(
+  position: [number, number, number],
+  orientation: Orientation,
+  cache: GltfCache
+): void {
+  const { gltfs, count } = cache;
+  while (count >= gltfs.length) {
+    gltfs.push(cloneGltf(gltfs[0]));
+  }
+
+  const instance = gltfs[count].scene;
+  instance.position.set(position[0], position[1], position[2]);
+  geoUtils.setQuaternionFromOrientation(instance.quaternion, orientation);
+  ++cache.count;
+}
+
+function addGltfCacheToScene(meshCache: GltfCache, scene: Scene): void {
+  const { gltfs, count } = meshCache;
+  for (let i = 0; i < count; ++i) {
+    scene.add(gltfs[i].scene);
+  }
 }

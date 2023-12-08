@@ -45,8 +45,8 @@ export interface SanData {
   edamameSpearStabFrames: Tuple24<InstancedMesh>;
   azukiUnarmedExplosionFrames: Tuple21<InstancedMesh>;
   edamameUnarmedExplosionFrames: Tuple21<InstancedMesh>;
-  azukiBannerTowers: BannerTower[];
-  edamameBannerTowers: BannerTower[];
+  azukiBannerTowers: GltfCache;
+  edamameBannerTowers: GltfCache;
 
   mcon: ModelConstants;
 }
@@ -76,8 +76,10 @@ export interface SansDragonfly {
   flyAction: AnimationAction;
 }
 
-export interface BannerTower {
-  gltf: GLTF;
+export interface GltfCache {
+  /** This must be not empty. */
+  gltfs: GLTF[];
+  count: number;
 }
 
 export interface SoldierExplosion {
@@ -117,8 +119,8 @@ export function getDefaultSanData(assets: Assets): SanData {
       getDefaultSanAzukiUnarmedExplosionFrames(assets),
     edamameUnarmedExplosionFrames:
       getDefaultSanEdamameUnarmedExplosionFrames(assets),
-    azukiBannerTowers: [],
-    edamameBannerTowers: [],
+    azukiBannerTowers: getSingletonGltfCache(assets.azukiBannerTower),
+    edamameBannerTowers: getSingletonGltfCache(assets.edamameBannerTower),
 
     mcon: assets.mcon,
   };
@@ -296,4 +298,11 @@ export function getDefaultSanEdamameUnarmedExplosionFrames(
       );
     }
   ) as Tuple21<InstancedMesh>;
+}
+
+function getSingletonGltfCache(gltf: GLTF): GltfCache {
+  return {
+    gltfs: [cloneGltf(gltf)],
+    count: 1,
+  };
 }
