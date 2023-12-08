@@ -291,6 +291,13 @@ function getExplosionFrameInstancedMesh(
 }
 
 function updateBannerTowers(battle: BattleState, san: San): void {
+  const sAzukiTowers = san.data.azukiBannerTowers;
+  const sEdamameTowers = san.data.edamameBannerTowers;
+  const { scene } = san.data;
+
+  sAzukiTowers.count = 0;
+  sEdamameTowers.count = 0;
+
   const bTowerIds = battle.data.activeTowerIds;
   for (const bTowerId of bTowerIds) {
     const bTower = battle.getBannerTower(bTowerId);
@@ -302,8 +309,8 @@ function updateBannerTowers(battle: BattleState, san: San): void {
     );
   }
 
-  addGltfCacheToScene(san.data.azukiBannerTowers, san.data.scene);
-  addGltfCacheToScene(san.data.edamameBannerTowers, san.data.scene);
+  addGltfCacheToScene(sAzukiTowers, scene);
+  addGltfCacheToScene(sEdamameTowers, scene);
 }
 
 function getBannerTowerGltfCache(allegiance: Allegiance, san: San): GltfCache {
