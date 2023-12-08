@@ -1641,9 +1641,7 @@ function tickBannerTower(
     uniqueOccupier !== CONTESTED &&
     tower.allegiance !== uniqueOccupier
   ) {
-    // scene.remove(getActiveBannerTowerGltf(tower).scene);
-    // tower.allegiance = uniqueOccupier;
-    // scene.add(getActiveBannerTowerGltf(tower).scene);
+    tower.allegiance = uniqueOccupier;
   }
 
   tower.secondsUntilNextSoldier -= elapsedTimeInSeconds;
