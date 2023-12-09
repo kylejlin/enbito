@@ -171,6 +171,8 @@ function addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
   for (const mesh of meshes) {
     if (mesh.count > 0) {
       mesh.instanceMatrix.needsUpdate = true;
+      mesh.computeBoundingBox();
+      mesh.computeBoundingSphere();
       scene.add(mesh);
     }
   }
