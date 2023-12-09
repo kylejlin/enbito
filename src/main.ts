@@ -562,6 +562,22 @@ export function main(assets: Assets): void {
     }
   }
 
+  // function updateGroundCursorPosition(): void {
+  //   const { battle } = resources;
+  //   const { camera, grass } = san.data;
+  //   const raycaster = new Raycaster();
+  //   raycaster.set(
+  //     camera.position,
+  //     new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
+  //   );
+  //   const hits = raycaster.intersectObject(grass, true);
+  //   if (hits.length === 0) {
+  //     battle.data.groundCursorPosition = null;
+  //   } else {
+  //     battle.data.groundCursorPosition = geoUtils.fromThreeVec(hits[0].point);
+  //   }
+  // }
+
   function tick(): void {
     const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;

@@ -37,6 +37,8 @@ export interface SanData {
   sky: Sky;
   grass: Mesh;
 
+  groundCursor: GLTF;
+
   azukiKing: SanKing;
   edamameKing: SanKing;
   azukiSpearWalkFrames: Tuple29<InstancedMesh>;
@@ -108,6 +110,8 @@ export function getDefaultSanData(assets: Assets): SanData {
 
     sky: getDefaultSky(renderer, scene, camera),
     grass: getDefaultGrass(assets),
+
+    groundCursor: getDefaultGroundCursor(assets),
 
     azukiKing: getDefaultSanKing(assets, Allegiance.Azuki),
     edamameKing: getDefaultSanKing(assets, Allegiance.Edamame),
@@ -210,6 +214,12 @@ export function getDefaultGrass(assets: Assets): Mesh {
   grass.quaternion.setFromAxisAngle(new Vector3(1, 0, 0), -Math.PI / 2);
   grass.position.set(-1, 0, -1);
   return grass;
+}
+
+export function getDefaultGroundCursor(assets: Assets): GLTF {
+  // TODO: Replace this with a different mesh.
+  // The current mesh is sort of confusing.
+  return cloneGltf(assets.azukiSpearWalkFrames[0]);
 }
 
 export function getDefaultSanAzukiSpearWalkFrames(

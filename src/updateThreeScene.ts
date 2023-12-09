@@ -9,7 +9,7 @@ import {
   SoldierAnimationState,
   SoldierExplosion,
 } from "./battleStateData";
-import { InstancedMesh, Object3D, Scene, Vector3 } from "three";
+import { InstancedMesh, Object3D, Raycaster, Scene, Vector3 } from "three";
 import { add } from "three/examples/jsm/libs/tween.module.js";
 import { cloneGltf } from "./cloneGltf";
 
@@ -28,6 +28,8 @@ export function updateThreeScene(battle: BattleState, san: San): void {
   updateUnits(battle, san);
   updateBannerTowers(battle, san);
   updateSoldierExplosions(battle, san);
+
+  updateCursor(battle, san);
 }
 
 function updateAzukiKing(battle: BattleState, san: San): void {
@@ -342,4 +344,25 @@ function addGltfCacheToScene(meshCache: GltfCache, scene: Scene): void {
   for (let i = 0; i < count; ++i) {
     scene.add(gltfs[i].scene);
   }
+}
+
+function updateCursor(battle: BattleState, san: San): void {
+  const { camera, grass, groundCursor, scene } = san.data;
+  const raycaster = new Raycaster();
+  raycaster.set(
+    camera.position,
+    new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
+  );
+  const hits = raycaster.intersectObject(grass, true);
+  if (hits.length === 0) {
+    return;
+  }
+
+  const groundCursorPosition = hits[0].point;
+  groundCursor.scene.position.copy(groundCursorPosition);
+  groundCursor.scene.quaternion.setFromAxisAngle(
+    new Vector3(0, 1, 0),
+    battle.getAzukiKing().yRot
+  );
+  scene.add(groundCursor.scene);
 }
