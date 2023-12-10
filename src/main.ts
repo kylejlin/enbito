@@ -532,7 +532,7 @@ export function main(assets: Assets): void {
 
     updateThreeSceneAfterTicking(resources.battle, resources.san);
 
-    updatePlannedDeploymentAfterUpdatingCamera(resources.battle, resources.san);
+    updatePlannedDeploymentAfterUpdatingCamera(resources);
 
     updateThreeSceneAfterPlannedDeployment(resources.battle, resources.san);
 
@@ -840,44 +840,17 @@ export function main(assets: Assets): void {
       return;
     }
 
-    resources.battle.data.plannedDeployment.start =
-      geoUtils.fromThreeVec(groundCursorPosition);
+    if (resources.battle.data.plannedDeployment.plannedUnit === null) {
+      resources.battle.data.plannedDeployment.start =
+        geoUtils.fromThreeVec(groundCursorPosition);
+    } else {
+      // TODO: For now, this is a no-op.
+      // In the future, it might control the number of ranks of the legion.
+    }
   }
 
   function trySetDeploymentEnd(): void {
-    //   if (
-    //     !(plannedDeployment.start !== null && resources.groundCursor !== null)
-    //   ) {
-    //     return;
-    //   }
-    //   if (plannedDeployment.setUnitId === null) {
-    //     const temp_fromStartToCursor = resources.groundCursor
-    //       .clone()
-    //       .sub(plannedDeployment.start);
-    //     const fromStartToCursorLength = temp_fromStartToCursor.length();
-    //     const RANK_GAP = 8;
-    //     const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
-    //     plannedDeployment.setUnitId = getUnit({
-    //       start: plannedDeployment.start,
-    //       forward: temp_fromStartToCursor
-    //         .clone()
-    //         .normalize()
-    //         .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2),
-    //       dimensions: [width, 1],
-    //       gap: [RANK_GAP, 0],
-    //       assets,
-    //       allegiance: Allegiance.Azuki,
-    //     });
-    //     for (const soldier of plannedDeployment.setUnit.soldiers) {
-    //       scene.add(soldier.gltf.scene);
-    //       updateThreeJsProperties(soldier);
-    //     }
-    //     plannedDeployment.start = null;
-    //   } else {
-    //     // TODO
-    //     // For now, setting a second unit is a no-op.
-    //     plannedDeployment.start = null;
-    //   }
+    resources.battle.data.plannedDeployment.start = null;
   }
 }
 
@@ -1824,11 +1797,11 @@ function getAzukiBannerTowerEnclosingGroundCursor(
 }
 
 function updatePlannedDeploymentAfterUpdatingCamera(
-  battle: BattleState,
-  san: San
+  resources: Resources
 ): void {
+  const { battle, san, keys } = resources;
   const groundCursorPosition = getGroundCursorPosition(san);
-  if (groundCursorPosition === null) {
+  if (groundCursorPosition === null || !keys._1) {
     return;
   }
 
