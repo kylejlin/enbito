@@ -1198,11 +1198,8 @@ function tickPlannedDeployment(
     selectedTowerId !== null
   ) {
     const selectedTower = battle.getBannerTower(selectedTowerId);
-    // for (const soldier of plannedDeployment.setUnit.soldiers) {
-    //   scene.remove(soldier.gltf.scene);
-    // }
 
-    const pendingUnit: Unit = {
+    const assemblingUnit: Unit = {
       order: { kind: UnitOrderKind.Assemble },
       soldierIds: [],
       forward: plannedDeployment.plannedUnit.forward,
@@ -1210,11 +1207,13 @@ function tickPlannedDeployment(
       allegiance: plannedDeployment.plannedUnit.allegiance,
       areSoldiersStillBeingAdded: true,
     };
-    const assemblingUnitId = battle.addEntity(pendingUnit);
+    const assemblingUnitId = battle.addEntity(assemblingUnit);
     selectedTower.pendingUnits.push({
       unitId: assemblingUnitId,
       soldiers: plannedDeployment.plannedUnit.soldiers,
     });
+    battle.data.activeUnitIds.push(assemblingUnitId);
+
     plannedDeployment.plannedUnit = null;
   }
 }
@@ -1627,12 +1626,20 @@ function tickBannerTower(
   if (tower.secondsUntilNextSoldier <= 0 && tower.pendingUnits.length > 0) {
     const pendingUnit = tower.pendingUnits[0];
     const assemblingUnit = battle.getUnit(pendingUnit.unitId);
-    const soldier = pendingUnit.soldiers.shift()!;
+    const plannedSoldier = pendingUnit.soldiers.shift()!;
+    const soldier: Soldier = {
+      position: plannedSoldier.position,
+      animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
+      attackTargetId: null,
+      health: 100,
+      yRot: plannedSoldier.yRot,
+      assemblyPoint: plannedSoldier.assemblyPoint,
+    };
     geoUtils.setTriple(soldier.position, tower.position);
     const soldierId = battle.addEntity(soldier);
     assemblingUnit.soldierIds.push(soldierId);
     // scene.add(soldier.gltf.scene);
-    if (pendingUnit.soldiers.length) {
+    if (pendingUnit.soldiers.length === 0) {
       assemblingUnit.areSoldiersStillBeingAdded = false;
       tower.pendingUnits.shift();
     }
@@ -1884,6 +1891,6 @@ function getPlannedSoldier(x: number, y: number, z: number): PlannedSoldier {
     position: [x, y, z],
     health: 100,
     yRot: 0,
-    assemblyPoint: [0, 0, 0],
+    assemblyPoint: [x, y, z],
   };
 }
