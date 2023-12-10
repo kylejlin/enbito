@@ -1,35 +1,21 @@
 import { Assets, ModelConstants } from "./assets";
 import {
-  WebGLRenderer,
-  PerspectiveCamera,
-  Scene,
-  Quaternion,
   Vector3,
-  MeshBasicMaterial,
-  Mesh,
-  MathUtils,
-  ACESFilmicToneMapping,
   WebGLCubeRenderTarget,
   HalfFloatType,
-  PlaneGeometry,
   AnimationMixer,
   AnimationClip,
-  AnimationAction,
   Raycaster,
   AmbientLight,
-  Object3D,
 } from "three";
-import { Sky } from "three/addons/objects/Sky.js";
-import { RepeatWrapping } from "three";
 import { cloneGltf } from "./cloneGltf";
-import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   AdvanceOrder,
   Allegiance,
   AssembleOrder,
-  BattleStateData,
-  King,
   Orientation,
+  PlannedSoldier,
+  PlannedUnit,
   Ref,
   Soldier,
   SoldierAnimationKind,
@@ -43,11 +29,10 @@ import { San, getDefaultSanData } from "./san";
 import { BattleState } from "./battleState";
 import { getDefaultBattleState } from "./getBattleState";
 import * as geoUtils from "./geoUtils";
-import { updateThreeScene } from "./updateThreeScene";
-
-function getDummyVector3(): Vector3 {
-  return new Vector3();
-}
+import { updateThreeSceneAfterTicking } from "./updateThreeScene/updateThreeSceneAfterTicking";
+import { updateThreeSceneAfterPlannedDeployment } from "./updateThreeScene/updateThreeSceneAfterPlannedDeployment";
+import { resetThreeScene } from "./updateThreeScene/resetThreeScene";
+import { addInstancedMeshesToSceneAndFlagForUpdate } from "./updateThreeScene/addInstancedMeshesToSceneAndFlagForUpdate";
 
 interface Resources {
   assets: Assets;
@@ -545,9 +530,16 @@ export function main(assets: Assets): void {
       lastWorldTime += MILLISECS_PER_TICK;
     }
 
-    // oncePerFrameBeforeRender();
+    resetThreeScene(resources.san);
 
-    updateThreeScene(resources.battle, resources.san);
+    updateThreeSceneAfterTicking(resources.battle, resources.san);
+
+    updatePlannedDeploymentAfterUpdatingCamera(resources.battle, resources.san);
+
+    updateThreeSceneAfterPlannedDeployment(resources.battle, resources.san);
+
+    addInstancedMeshesToSceneAndFlagForUpdate(resources.san);
+
     render();
 
     requestAnimationFrame(onAnimationFrame);
@@ -1828,4 +1820,103 @@ function getAzukiBannerTowerEnclosingGroundCursor(
   }
 
   return null;
+}
+
+function updatePlannedDeploymentAfterUpdatingCamera(
+  battle: BattleState,
+  san: San
+): void {
+  const { camera, grass } = san.data;
+  const raycaster = new Raycaster();
+  raycaster.set(
+    camera.position,
+    new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
+  );
+  const hits = raycaster.intersectObject(grass, true);
+  if (hits.length === 0) {
+    return;
+  }
+
+  const { plannedDeployment } = battle.data;
+  const groundCursorPosition = hits[0].point;
+
+  if (plannedDeployment.start !== null) {
+    const temp_fromStartToCursor = groundCursorPosition
+      .clone()
+      .sub(geoUtils.toThreeVec(plannedDeployment.start));
+    const fromStartToCursorLength = temp_fromStartToCursor.length();
+    const RANK_GAP = 8;
+    const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
+    plannedDeployment.plannedUnit = getPlannedUnit({
+      start: plannedDeployment.start,
+      forward: geoUtils.fromThreeVec(
+        temp_fromStartToCursor
+          .clone()
+          .normalize()
+          .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2)
+      ),
+      dimensions: [width, 1],
+      gap: [8, 8 * (Math.sqrt(3) / 2)],
+      allegiance: Allegiance.Azuki,
+    });
+  }
+}
+
+function getPlannedUnit({
+  start,
+  forward,
+  dimensions: [width, height],
+  gap: [rightGap, backGap],
+  allegiance,
+}: {
+  start: Triple;
+  forward: Triple;
+  dimensions: [number, number];
+  gap: [number, number];
+  allegiance: Allegiance;
+}): PlannedUnit {
+  const rightStep = geoUtils
+    .toThreeVec(forward)
+    .clone()
+    .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2)
+    .multiplyScalar(rightGap);
+  const backStep = geoUtils
+    .toThreeVec(forward)
+    .clone()
+    .applyAxisAngle(new Vector3(0, 1, 0), Math.PI)
+    .multiplyScalar(backGap);
+  const soldiers: PlannedSoldier[] = [];
+  for (let right = 0; right < width; ++right) {
+    for (let back = 0; back < height; ++back) {
+      const soldierPosition = geoUtils
+        .toThreeVec(start)
+        .clone()
+        .add(rightStep.clone().multiplyScalar(right + 0.5 * (back & 1)))
+        .add(backStep.clone().multiplyScalar(back));
+      const soldier = getPlannedSoldier(
+        soldierPosition.x,
+        soldierPosition.y,
+        soldierPosition.z
+      );
+      soldier.yRot = Math.atan2(forward[0], forward[2]);
+      soldiers.push(soldier);
+    }
+  }
+
+  return {
+    order: { kind: UnitOrderKind.Advance },
+    soldiers,
+    forward,
+    allegiance,
+    areSoldiersStillBeingAdded: false,
+  };
+}
+
+function getPlannedSoldier(x: number, y: number, z: number): PlannedSoldier {
+  return {
+    position: [x, y, z],
+    health: 100,
+    yRot: 0,
+    assemblyPoint: [0, 0, 0],
+  };
 }

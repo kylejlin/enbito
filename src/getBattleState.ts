@@ -310,8 +310,7 @@ function getUnit(
       const soldier = getSoldier(
         soldierPosition.x,
         soldierPosition.y,
-        soldierPosition.z,
-        allegiance
+        soldierPosition.z
       );
       soldier.yRot = Math.atan2(forward[0], forward[2]);
       soldiers.push(soldier);
@@ -332,12 +331,7 @@ function getUnit(
   };
 }
 
-function getSoldier(
-  x: number,
-  y: number,
-  z: number,
-  allegiance: Allegiance
-): Soldier {
+function getSoldier(x: number, y: number, z: number): Soldier {
   return {
     position: [x, y, z],
     animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },

@@ -1,6 +1,6 @@
-import { BattleState } from "./battleState";
-import { GltfCache, San, SanKing } from "./san";
-import * as geoUtils from "./geoUtils";
+import { BattleState } from "../battleState";
+import { GltfCache, San, SanKing } from "../san";
+import * as geoUtils from "../geoUtils";
 import {
   Allegiance,
   King,
@@ -8,17 +8,18 @@ import {
   SoldierAnimationKind,
   SoldierAnimationState,
   SoldierExplosion,
-} from "./battleStateData";
+} from "../battleStateData";
 import { InstancedMesh, Object3D, Raycaster, Scene, Vector3 } from "three";
-import { add } from "three/examples/jsm/libs/tween.module.js";
-import { cloneGltf } from "./cloneGltf";
+import { cloneGltf } from "../cloneGltf";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
 
-export function updateThreeScene(battle: BattleState, san: San): void {
+export function updateThreeSceneAfterTicking(
+  battle: BattleState,
+  san: San
+): void {
   const { scene, sky, grass } = san.data;
-  scene.remove(...scene.children);
 
   scene.add(sky);
   scene.add(grass);
@@ -103,19 +104,6 @@ function updateCamera(battle: BattleState, san: San): void {
 }
 
 function updateUnits(battle: BattleState, san: San): void {
-  const {
-    scene,
-    azukiSpearWalkFrames,
-    azukiSpearStabFrames,
-    edamameSpearWalkFrames,
-    edamameSpearStabFrames,
-  } = san.data;
-
-  setCountsToZero(azukiSpearWalkFrames);
-  setCountsToZero(azukiSpearStabFrames);
-  setCountsToZero(edamameSpearWalkFrames);
-  setCountsToZero(edamameSpearStabFrames);
-
   const temp = new Object3D();
 
   const { activeUnitIds } = battle.data;
@@ -139,43 +127,6 @@ function updateUnits(battle: BattleState, san: San): void {
       temp.updateMatrix();
       instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
       ++instancedMesh.count;
-    }
-  }
-
-  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
-    azukiSpearWalkFrames,
-    scene
-  );
-  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
-    azukiSpearStabFrames,
-    scene
-  );
-  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
-    edamameSpearWalkFrames,
-    scene
-  );
-  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
-    edamameSpearStabFrames,
-    scene
-  );
-}
-
-function setCountsToZero(meshs: InstancedMesh[]): void {
-  for (const mesh of meshs) {
-    mesh.count = 0;
-  }
-}
-
-function addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
-  meshes: InstancedMesh[],
-  scene: Scene
-): void {
-  for (const mesh of meshes) {
-    if (mesh.count > 0) {
-      mesh.instanceMatrix.needsUpdate = true;
-      mesh.computeBoundingBox();
-      mesh.computeBoundingSphere();
-      scene.add(mesh);
     }
   }
 }
@@ -238,12 +189,7 @@ function getSpearFrameInstancedMesh(
 }
 
 function updateSoldierExplosions(battle: BattleState, san: San): void {
-  const { azukiUnarmedExplosionFrames, edamameUnarmedExplosionFrames, scene } =
-    san.data;
   const bSoldierExplosions = battle.data.soldierExplosions;
-
-  setCountsToZero(azukiUnarmedExplosionFrames);
-  setCountsToZero(edamameUnarmedExplosionFrames);
 
   const temp = new Object3D();
   for (const bExplosion of bSoldierExplosions) {
@@ -263,15 +209,6 @@ function updateSoldierExplosions(battle: BattleState, san: San): void {
     instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
     ++instancedMesh.count;
   }
-
-  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
-    azukiUnarmedExplosionFrames,
-    scene
-  );
-  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
-    edamameUnarmedExplosionFrames,
-    scene
-  );
 }
 
 function getExplosionFrameInstancedMesh(
