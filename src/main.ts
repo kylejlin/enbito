@@ -33,6 +33,7 @@ import { updateThreeSceneAfterTicking } from "./updateThreeScene/updateThreeScen
 import { updateThreeSceneAfterPlannedDeployment } from "./updateThreeScene/updateThreeSceneAfterPlannedDeployment";
 import { resetThreeScene } from "./updateThreeScene/resetThreeScene";
 import { addInstancedMeshesToSceneAndFlagForUpdate } from "./updateThreeScene/addInstancedMeshesToSceneAndFlagForUpdate";
+import { getGroundCursorPosition } from "./groundCursor";
 
 interface Resources {
   assets: Assets;
@@ -41,8 +42,6 @@ interface Resources {
   keys: KeySet;
 
   battle: BattleState;
-
-  groundCursor: null | Triple;
 
   san: San;
 }
@@ -496,7 +495,6 @@ export function main(assets: Assets): void {
     san,
     mouse,
     keys,
-    groundCursor: null,
     assets,
   };
 
@@ -837,13 +835,13 @@ export function main(assets: Assets): void {
   }
 
   function trySetDeploymentStart(wasKey1Down: boolean): void {
-    if (resources.groundCursor === null || wasKey1Down) {
+    const groundCursorPosition = getGroundCursorPosition(resources.san);
+    if (groundCursorPosition === null || wasKey1Down) {
       return;
     }
 
-    resources.battle.data.plannedDeployment.start = geoUtils.cloneTriple(
-      resources.groundCursor
-    );
+    resources.battle.data.plannedDeployment.start =
+      geoUtils.fromThreeVec(groundCursorPosition);
   }
 
   function trySetDeploymentEnd(): void {
@@ -1804,8 +1802,8 @@ function getSoldierExplosion(
 function getAzukiBannerTowerEnclosingGroundCursor(
   resources: Resources
 ): null | Ref {
-  const { groundCursor } = resources;
-  if (groundCursor === null) {
+  const groundCursorPosition = getGroundCursorPosition(resources.san);
+  if (groundCursorPosition === null) {
     return null;
   }
 
@@ -1813,7 +1811,10 @@ function getAzukiBannerTowerEnclosingGroundCursor(
     const tower = resources.battle.getBannerTower(towerId);
     if (
       tower.allegiance === Allegiance.Azuki &&
-      inTowerTerritory(groundCursor, tower.position)
+      inTowerTerritory(
+        geoUtils.fromThreeVec(groundCursorPosition),
+        tower.position
+      )
     ) {
       return towerId;
     }
@@ -1826,19 +1827,12 @@ function updatePlannedDeploymentAfterUpdatingCamera(
   battle: BattleState,
   san: San
 ): void {
-  const { camera, grass } = san.data;
-  const raycaster = new Raycaster();
-  raycaster.set(
-    camera.position,
-    new Vector3(0, 0, -1).applyQuaternion(camera.quaternion)
-  );
-  const hits = raycaster.intersectObject(grass, true);
-  if (hits.length === 0) {
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
     return;
   }
 
   const { plannedDeployment } = battle.data;
-  const groundCursorPosition = hits[0].point;
 
   if (plannedDeployment.start !== null) {
     const temp_fromStartToCursor = groundCursorPosition
