@@ -148,11 +148,15 @@ function getSpearFrameInstancedMesh(
   const stabFrameCount = azukiSpearStabFrames.length;
 
   if (bAnimation.kind === SoldierAnimationKind.Walk) {
-    const frameNumber = Math.min(
-      Math.floor(
-        (bAnimation.timeInSeconds / azukiSpearWalkClipDuration) * walkFrameCount
-      ),
-      walkFrameCount - 1
+    const frameNumber = Math.max(
+      0,
+      Math.min(
+        Math.floor(
+          (bAnimation.timeInSeconds / azukiSpearWalkClipDuration) *
+            walkFrameCount
+        ),
+        walkFrameCount - 1
+      )
     );
     return bAllegiance === Allegiance.Azuki
       ? azukiSpearWalkFrames[frameNumber]
@@ -160,11 +164,15 @@ function getSpearFrameInstancedMesh(
   }
 
   if (bAnimation.kind === SoldierAnimationKind.Stab) {
-    const frameNumber = Math.min(
-      Math.floor(
-        (bAnimation.timeInSeconds / azukiSpearStabClipDuration) * stabFrameCount
-      ),
-      stabFrameCount - 1
+    const frameNumber = Math.max(
+      0,
+      Math.min(
+        Math.floor(
+          (bAnimation.timeInSeconds / azukiSpearStabClipDuration) *
+            stabFrameCount
+        ),
+        stabFrameCount - 1
+      )
     );
     return bAllegiance === Allegiance.Azuki
       ? azukiSpearStabFrames[frameNumber]

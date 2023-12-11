@@ -1063,7 +1063,7 @@ function stopWalkingAndStartStabAnimation(
 
     if (reachesHalfwayPointThisTick || reachesEndThisTick) {
       animation.kind = SoldierAnimationKind.Stab;
-      animation.timeInSeconds = 0;
+      animation.timeInSeconds = -Math.random();
     } else {
       animation.timeInSeconds += elapsedTimeInSeconds;
     }
