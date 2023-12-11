@@ -11,6 +11,7 @@ export interface BattleStateData {
 
 export enum UnitOrderKind {
   Advance,
+  Storm,
   Assemble,
 }
 
@@ -77,10 +78,14 @@ export interface Orientation {
   roll: number;
 }
 
-export type UnitOrder = AdvanceOrder | AssembleOrder;
+export type UnitOrder = AdvanceOrder | StormOrder | AssembleOrder;
 
 export interface AdvanceOrder {
   kind: UnitOrderKind.Advance;
+}
+
+export interface StormOrder {
+  kind: UnitOrderKind.Storm;
 }
 
 export interface AssembleOrder {

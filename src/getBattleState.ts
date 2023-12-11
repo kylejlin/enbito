@@ -322,7 +322,7 @@ function getUnit(
     entities.push(soldiers[i]);
   }
   return {
-    order: { kind: UnitOrderKind.Advance },
+    order: { kind: UnitOrderKind.Storm },
     soldierIds,
     forward,
     isPreview: false,

@@ -21,6 +21,7 @@ import {
   SoldierAnimationKind,
   SoldierAnimationState,
   SoldierExplosion,
+  StormOrder,
   Triple,
   Unit,
   UnitOrderKind,
@@ -1305,6 +1306,9 @@ function tickUnit(
         resources
       );
       return;
+    case UnitOrderKind.Storm:
+      tickUnitWithStormOrder(elapsedTimeInSeconds, unit, unit.order, resources);
+      return;
     case UnitOrderKind.Assemble:
       tickUnitWithAssembleOrder(
         elapsedTimeInSeconds,
@@ -1427,6 +1431,98 @@ function tickUnitWithAdvanceOrder(
   }
 }
 
+function tickUnitWithStormOrder(
+  elapsedTimeInSeconds: number,
+  unit: Unit,
+  order: StormOrder,
+  resources: Resources
+): void {
+  const { assets, battle } = resources;
+
+  const { soldierIds } = unit;
+
+  for (const soldierId of soldierIds) {
+    const soldier = battle.getSoldier(soldierId);
+    if (
+      soldier.attackTargetId !== null &&
+      battle.getSoldier(soldier.attackTargetId).health <= 0
+    ) {
+      soldier.attackTargetId = null;
+    }
+
+    const nearestEnemy = getNearestEnemyId(
+      soldier,
+      unit,
+      SPEAR_ATTACK_RANGE_SQUARED,
+      resources
+    );
+
+    if (soldier.attackTargetId === null) {
+      if (nearestEnemy !== null) {
+        soldier.attackTargetId = nearestEnemy;
+      }
+    }
+
+    if (soldier.attackTargetId !== null) {
+      if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+        stopWalkingAndStartStabAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          1,
+          assets.mcon
+        );
+      }
+
+      const attackTarget = battle.getSoldier(soldier.attackTargetId);
+      const difference = geoUtils.sub(attackTarget.position, soldier.position);
+      const desiredYRot =
+        Math.atan2(difference[0], difference[2]) + Math.PI + 0.05;
+      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+      soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+
+      if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+        const dealsDamageThisTick = continueStabThenIdleAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          assets.mcon
+        );
+        if (dealsDamageThisTick) {
+          attackTarget.health -= STAB_DAMAGE;
+        }
+      } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
+        const dealsDamageThisTick = continueIdleThenStabAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          assets.mcon
+        );
+        if (dealsDamageThisTick) {
+          attackTarget.health -= STAB_DAMAGE;
+        }
+      }
+    } else {
+      const forwardAngle = Math.atan2(unit.forward[0], unit.forward[2]);
+      if (nearestEnemy !== null) {
+        soldier.attackTargetId = nearestEnemy;
+      } else {
+        const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+        soldier.yRot = limitTurn(soldier.yRot, forwardAngle, radiansPerTick);
+        if (soldier.yRot === forwardAngle) {
+          startOrContinueWalkingAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            assets.mcon
+          );
+          geoUtils.translateZ(
+            soldier.position,
+            { yaw: soldier.yRot, pitch: 0, roll: 0 },
+            -1.5 * elapsedTimeInSeconds
+          );
+        }
+      }
+    }
+  }
+}
+
 function tickUnitWithAssembleOrder(
   elapsedTimeInSeconds: number,
   unit: Unit,
@@ -1481,7 +1577,7 @@ function tickUnitWithAssembleOrder(
   }
 
   if (!unit.areSoldiersStillBeingAdded && !isUnitStillAssembling) {
-    unit.order = { kind: UnitOrderKind.Advance };
+    unit.order = { kind: UnitOrderKind.Storm };
   }
 }
 
