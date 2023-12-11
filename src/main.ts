@@ -77,6 +77,7 @@ const MAX_LANDING_SPEED = 30;
 const DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED = 5 ** 2;
 const DRAGONFLY_MIN_SPEED = 5;
 const STAB_TIME_SCALE = 2;
+const MAX_STAB_DELAY = 1;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -1063,7 +1064,9 @@ function stopWalkingAndStartStabAnimation(
 
     if (reachesHalfwayPointThisTick || reachesEndThisTick) {
       animation.kind = SoldierAnimationKind.Stab;
-      animation.timeInSeconds = -Math.random();
+      // TODO: This is just a hack.
+      // Ideally, timeInSeconds should never be negative.
+      animation.timeInSeconds = -Math.random() * MAX_STAB_DELAY;
     } else {
       animation.timeInSeconds += elapsedTimeInSeconds;
     }
@@ -1107,7 +1110,10 @@ function continueIdleThenStabAnimation(
   if (animation.timeInSeconds >= STAB_COOLDOWN) {
     animation.kind = SoldierAnimationKind.Stab;
     animation.timeInSeconds =
-      (animation.timeInSeconds - STAB_COOLDOWN) * STAB_TIME_SCALE;
+      (animation.timeInSeconds - STAB_COOLDOWN) * STAB_TIME_SCALE -
+      // TODO: This is just a hack.
+      // Ideally, timeInSeconds should never be negative.
+      Math.random() * MAX_STAB_DELAY;
 
     return (
       animation.timeInSeconds >=
