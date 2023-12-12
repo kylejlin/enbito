@@ -585,7 +585,8 @@ export function main(assets: Assets): void {
         ) {
           azukiKingDragonfly.dismountTimer -= elapsedTimeInSeconds;
           if (azukiKingDragonfly.dismountTimer <= 0) {
-            azukiKingDragonfly.isBeingRidden = false;
+            // TODO: Dismount
+            // azukiKingDragonfly.isBeingRidden = false;
             azukiKingDragonfly.isLanding = false;
             azukiKing.position[1] = 0;
           }
@@ -1183,20 +1184,21 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
         azukiKingDragonfly.speed - 10 * elapsedTimeInSeconds
       );
     }
-    if (
-      keys.r &&
-      geoUtils.distanceToSquared(
-        azukiKing.position,
-        azukiKingDragonfly.position
-      ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED &&
-      mouse.isLocked
-    ) {
-      mouse.x = 0.5;
-      mouse.y = 0.5;
-      azukiKingDragonfly.isBeingRidden = true;
-      azukiKingDragonfly.isLanding = false;
-      azukiKingDragonfly.speed = DRAGONFLY_MIN_SPEED;
-    }
+    // TODO
+    // if (
+    //   keys.r &&
+    //   geoUtils.distanceToSquared(
+    //     azukiKing.position,
+    //     azukiKingDragonfly.position
+    //   ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED &&
+    //   mouse.isLocked
+    // ) {
+    //   mouse.x = 0.5;
+    //   mouse.y = 0.5;
+    //   azukiKingDragonfly.isBeingRidden = true;
+    //   azukiKingDragonfly.isLanding = false;
+    //   azukiKingDragonfly.speed = DRAGONFLY_MIN_SPEED;
+    // }
   }
 }
 

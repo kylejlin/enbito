@@ -3,6 +3,7 @@ import {
   Allegiance,
   BannerTower,
   BattleStateData,
+  Dragonfly,
   King,
   Ref,
   Soldier,
@@ -21,6 +22,20 @@ export function getDefaultBattleState(): BattleStateData {
 
   const edamameKing = getDefaultEdamameKing();
   entities.push(edamameKing);
+
+  const azukiKingDragonfly: Dragonfly = {
+    position: [0, 2.5, 105],
+    isLanding: false,
+    speed: 30,
+    orientation: { yaw: 0, pitch: 0, roll: 0 },
+    dismountTimer: 0,
+  };
+  entities.push(azukiKingDragonfly);
+  const azukiKingDragonflyId: Ref = {
+    isEntityId: true,
+    value: entities.indexOf(azukiKingDragonfly),
+  };
+  azukiKing.dragonflyId = azukiKingDragonflyId;
 
   const azukiLegion = getUnit(entities, {
     start: [-50, 0, 50],
@@ -221,6 +236,7 @@ export function getDefaultBattleState(): BattleStateData {
       { isEntityId: true, value: entities.indexOf(edamameTower5) },
       { isEntityId: true, value: entities.indexOf(edamameTower6) },
     ],
+    activeDragonflyIds: [azukiKingDragonflyId],
 
     plannedDeployment: { start: null, plannedUnit: null },
     soldierExplosions: [],

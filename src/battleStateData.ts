@@ -4,6 +4,7 @@ export interface BattleStateData {
   edamameKingId: Ref;
   activeUnitIds: Ref[];
   activeTowerIds: Ref[];
+  activeDragonflyIds: Ref[];
 
   plannedDeployment: PlannedDeployment;
   soldierExplosions: SoldierExplosion[];
@@ -58,7 +59,6 @@ export interface Dragonfly {
   position: Triple;
   orientation: Orientation;
 
-  isBeingRidden: boolean;
   isLanding: boolean;
   speed: number;
 
