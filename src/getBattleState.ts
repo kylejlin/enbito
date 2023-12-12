@@ -248,12 +248,12 @@ function getDefaultAzukiKing(): King {
     isKing: true,
     // position: [0, 0, 100],
     position: [0, 0, 5],
+    orientation: { yaw: 0, pitch: 0, roll: 0 },
     animation: {
       kind: SoldierAnimationKind.Idle,
       timeInSeconds: 0,
     },
     health: 100,
-    yRot: 0,
     assemblyPoint: [0, 0, 0],
     dragonflyId: null,
     attackTargetId: null,
@@ -265,12 +265,12 @@ function getDefaultEdamameKing(): King {
   return {
     isKing: true,
     position: [0, 0, -100],
+    orientation: { yaw: Math.PI, pitch: 0, roll: 0 },
     animation: {
       kind: SoldierAnimationKind.Idle,
       timeInSeconds: 0,
     },
     health: 100,
-    yRot: Math.PI,
     assemblyPoint: [0, 0, 0],
     dragonflyId: null,
     attackTargetId: null,
@@ -314,7 +314,7 @@ function getUnit(
         soldierPosition.y,
         soldierPosition.z
       );
-      soldier.yRot = Math.atan2(forward[0], forward[2]);
+      soldier.orientation.yaw = Math.atan2(forward[0], forward[2]);
       soldiers.push(soldier);
     }
   }
@@ -339,7 +339,7 @@ function getSoldier(x: number, y: number, z: number): Soldier {
     animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
     attackTargetId: null,
     health: 100,
-    yRot: 0,
+    orientation: { yaw: 0, pitch: 0, roll: 0 },
     assemblyPoint: [0, 0, 0],
   };
 }

@@ -9,7 +9,7 @@ import {
   SoldierAnimationState,
   SoldierExplosion,
 } from "../battleStateData";
-import { InstancedMesh, Object3D, Raycaster, Scene, Vector3 } from "three";
+import { InstancedMesh, Object3D, Raycaster, Vector3 } from "three";
 import { cloneGltf } from "../cloneGltf";
 
 // In this file, we use "b" and "s" prefixes to
@@ -62,11 +62,10 @@ function updateKingTransform(
       bDragonfly.orientation
     );
   } else {
-    geoUtils.setQuaternionFromOrientation(sKing.gltf.scene.quaternion, {
-      yaw: bKing.yRot,
-      pitch: 0,
-      roll: 0,
-    });
+    geoUtils.setQuaternionFromOrientation(
+      sKing.gltf.scene.quaternion,
+      bKing.orientation
+    );
   }
   sKing.gltf.scene.position.set(...bKing.position);
 }
@@ -91,11 +90,19 @@ function updateKingAnimation(bKing: King, sKing: SanKing): void {
 }
 
 function updateKingDragonflies(battle: BattleState, san: San): void {
-  const { scene, dragonflies } = san.data;
+  const { dragonflies } = san.data;
   const bAzukiKing = battle.getAzukiKing();
   const bEdamameKing = battle.getEdamameKing();
-  const sAzukiKing = san.data.azukiKing;
-  const sEdamameKing = san.data.edamameKing;
+
+  if (bAzukiKing.dragonflyId !== null) {
+    const bDragonfly = battle.getDragonfly(bAzukiKing.dragonflyId);
+    writeToGltfCache(bDragonfly.position, bDragonfly.orientation, dragonflies);
+  }
+
+  if (bEdamameKing.dragonflyId !== null) {
+    const bDragonfly = battle.getDragonfly(bEdamameKing.dragonflyId);
+    writeToGltfCache(bDragonfly.position, bDragonfly.orientation, dragonflies);
+  }
 }
 
 function updateCamera(battle: BattleState, san: San): void {
@@ -130,7 +137,10 @@ function updateUnits(battle: BattleState, san: San): void {
         bSoldier.position[1],
         bSoldier.position[2]
       );
-      temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), bSoldier.yRot);
+      temp.quaternion.setFromAxisAngle(
+        new Vector3(0, 1, 0),
+        bSoldier.orientation.yaw
+      );
 
       const instancedMesh = getSpearFrameInstancedMesh(
         bSoldier.animation,
@@ -254,10 +264,6 @@ function getExplosionFrameInstancedMesh(
 }
 
 function updateBannerTowers(battle: BattleState, san: San): void {
-  const sAzukiTowers = san.data.azukiBannerTowers;
-  const sEdamameTowers = san.data.edamameBannerTowers;
-  const { scene } = san.data;
-
   const bTowerIds = battle.data.activeTowerIds;
   for (const bTowerId of bTowerIds) {
     const bTower = battle.getBannerTower(bTowerId);
@@ -268,9 +274,6 @@ function updateBannerTowers(battle: BattleState, san: San): void {
       sMeshCache
     );
   }
-
-  addGltfCacheToScene(sAzukiTowers, scene);
-  addGltfCacheToScene(sEdamameTowers, scene);
 }
 
 function getBannerTowerGltfCache(allegiance: Allegiance, san: San): GltfCache {
@@ -295,13 +298,6 @@ function writeToGltfCache(
   ++cache.count;
 }
 
-function addGltfCacheToScene(meshCache: GltfCache, scene: Scene): void {
-  const { gltfs, count } = meshCache;
-  for (let i = 0; i < count; ++i) {
-    scene.add(gltfs[i].scene);
-  }
-}
-
 function updateCursor(battle: BattleState, san: San): void {
   const { camera, grass, groundCursor, scene } = san.data;
   const raycaster = new Raycaster();
@@ -318,7 +314,7 @@ function updateCursor(battle: BattleState, san: San): void {
   groundCursor.scene.position.copy(groundCursorPosition);
   groundCursor.scene.quaternion.setFromAxisAngle(
     new Vector3(0, 1, 0),
-    battle.getAzukiKing().yRot
+    battle.getAzukiKing().orientation.yaw
   );
   scene.add(groundCursor.scene);
 }

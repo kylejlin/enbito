@@ -71,3 +71,9 @@ export function setTriple(out: Triple, source: Triple): void {
   out[1] = source[1];
   out[2] = source[2];
 }
+
+export function setOrientation(out: Orientation, source: Orientation): void {
+  out.yaw = source.yaw;
+  out.pitch = source.pitch;
+  out.roll = source.roll;
+}

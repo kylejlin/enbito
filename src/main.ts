@@ -5,7 +5,6 @@ import {
   HalfFloatType,
   AnimationMixer,
   AnimationClip,
-  Raycaster,
   AmbientLight,
 } from "three";
 import { cloneGltf } from "./cloneGltf";
@@ -550,7 +549,7 @@ export function main(assets: Assets): void {
       // TODO
     } else {
       azukiKing.cameraPitch = -(mouse.y - 0.5) * Math.PI;
-      azukiKing.yRot = -(mouse.x - 0.5) * Math.PI * 2;
+      azukiKing.orientation.yaw = -(mouse.x - 0.5) * Math.PI * 2;
     }
   }
 
@@ -620,7 +619,7 @@ export function main(assets: Assets): void {
             );
           }
 
-          azukiKing.yRot = azukiKingDragonfly.orientation.yaw;
+          azukiKing.orientation.yaw = azukiKingDragonfly.orientation.yaw;
 
           // player.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
           //   new Vector3(0, 1, 0),
@@ -634,6 +633,13 @@ export function main(assets: Assets): void {
             azukiKingDragonfly.orientation,
             azukiKingDragonfly.speed * -elapsedTimeInSeconds
           );
+
+          geoUtils.setTriple(azukiKing.position, azukiKingDragonfly.position);
+          geoUtils.setOrientation(
+            azukiKing.orientation,
+            azukiKingDragonfly.orientation
+          );
+          geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
 
           // player.gltf.scene.position.copy(player.dragonfly.gltf.scene.position);
           // player.gltf.scene.quaternion.copy(
@@ -658,7 +664,7 @@ export function main(assets: Assets): void {
           (azukiKingDragonfly.orientation.roll * 2);
         azukiKingDragonfly.orientation.pitch = -(mouse.y - 0.5) * Math.PI;
 
-        azukiKing.yRot = azukiKingDragonfly.orientation.yaw;
+        azukiKing.orientation.yaw = azukiKingDragonfly.orientation.yaw;
 
         // azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
         //   new Vector3(0, 1, 0),
@@ -672,6 +678,13 @@ export function main(assets: Assets): void {
           azukiKingDragonfly.orientation,
           azukiKingDragonfly.speed * -elapsedTimeInSeconds
         );
+
+        geoUtils.setTriple(azukiKing.position, azukiKingDragonfly.position);
+        geoUtils.setOrientation(
+          azukiKing.orientation,
+          azukiKingDragonfly.orientation
+        );
+        geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
 
         // azukiKing.gltf.scene.position.copy(
         //   azukiKing.dragonfly.gltf.scene.position
@@ -732,7 +745,7 @@ export function main(assets: Assets): void {
       if (azukiKing.animation.kind === SoldierAnimationKind.Walk) {
         geoUtils.translateZ(
           azukiKing.position,
-          { yaw: azukiKing.yRot, pitch: 0, roll: 0 },
+          azukiKing.orientation,
           -3 * elapsedTimeInSeconds
         );
       }
@@ -1131,7 +1144,7 @@ function continueIdleThenStabAnimation(
 function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   const azukiKing = resources.battle.getAzukiKing();
   const edamameKing = resources.battle.getEdamameKing();
-  const { keys, mouse } = resources;
+  const { keys } = resources;
 
   if (azukiKing.health <= 0) {
     alertOnceAfterDelay("Edamame wins!");
@@ -1147,7 +1160,7 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       const azukiExplosion = getSoldierExplosion(
         Allegiance.Azuki,
         azukiKing.position,
-        { yaw: azukiKing.yRot, pitch: 0, roll: 0 }
+        azukiKing.orientation
       );
       resources.battle.data.soldierExplosions.push(azukiExplosion);
       // resources.scene.remove(resources.azukiKing.gltf.scene);
@@ -1164,7 +1177,7 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       const edamameExplosion = getSoldierExplosion(
         Allegiance.Edamame,
         edamameKing.position,
-        { yaw: edamameKing.yRot, pitch: 0, roll: 0 }
+        edamameKing.orientation
       );
       resources.battle.data.soldierExplosions.push(edamameExplosion);
       // resources.scene.remove(resources.edamameKing.gltf.scene);
@@ -1292,7 +1305,7 @@ function tickUnits(elapsedTimeInSeconds: number, resources: Resources): void {
         const explosion = getSoldierExplosion(
           unit.allegiance,
           soldier.position,
-          { yaw: soldier.yRot, pitch: 0, roll: 0 }
+          soldier.orientation
         );
         battle.data.soldierExplosions.push(explosion);
         soldierIds.splice(i, 1);
@@ -1366,8 +1379,12 @@ function tickUnitWithAdvanceOrder(
         soldier.attackTargetId = nearestEnemy;
       } else {
         const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-        soldier.yRot = limitTurn(soldier.yRot, forwardAngle, radiansPerTick);
-        if (soldier.yRot === forwardAngle) {
+        soldier.orientation.yaw = limitTurn(
+          soldier.orientation.yaw,
+          forwardAngle,
+          radiansPerTick
+        );
+        if (soldier.orientation.yaw === forwardAngle) {
           startOrContinueWalkingAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
@@ -1375,7 +1392,7 @@ function tickUnitWithAdvanceOrder(
           );
           geoUtils.translateZ(
             soldier.position,
-            { yaw: soldier.yRot, pitch: 0, roll: 0 },
+            soldier.orientation,
             -1.5 * elapsedTimeInSeconds
           );
         }
@@ -1421,7 +1438,11 @@ function tickUnitWithAdvanceOrder(
         const desiredYRot =
           Math.atan2(difference[0], difference[2]) + Math.PI + 0.05;
         const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-        soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+        soldier.orientation.yaw = limitTurn(
+          soldier.orientation.yaw,
+          desiredYRot,
+          radiansPerTick
+        );
 
         if (soldier.animation.kind === SoldierAnimationKind.Stab) {
           const dealsDamageThisTick = continueStabThenIdleAnimation(
@@ -1494,7 +1515,11 @@ function tickUnitWithStormOrder(
       const desiredYRot =
         Math.atan2(difference[0], difference[2]) + Math.PI + 0.05;
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-      soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+      soldier.orientation.yaw = limitTurn(
+        soldier.orientation.yaw,
+        desiredYRot,
+        radiansPerTick
+      );
 
       if (soldier.animation.kind === SoldierAnimationKind.Stab) {
         const dealsDamageThisTick = continueStabThenIdleAnimation(
@@ -1521,8 +1546,12 @@ function tickUnitWithStormOrder(
         soldier.attackTargetId = nearestEnemy;
       } else {
         const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-        soldier.yRot = limitTurn(soldier.yRot, forwardAngle, radiansPerTick);
-        if (soldier.yRot === forwardAngle) {
+        soldier.orientation.yaw = limitTurn(
+          soldier.orientation.yaw,
+          forwardAngle,
+          radiansPerTick
+        );
+        if (soldier.orientation.yaw === forwardAngle) {
           startOrContinueWalkingAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
@@ -1530,7 +1559,7 @@ function tickUnitWithStormOrder(
           );
           geoUtils.translateZ(
             soldier.position,
-            { yaw: soldier.yRot, pitch: 0, roll: 0 },
+            soldier.orientation,
             -1.5 * elapsedTimeInSeconds
           );
         }
@@ -1558,7 +1587,11 @@ function tickUnitWithAssembleOrder(
     if (geoUtils.lengthSquared(difference) < 0.1) {
       const desiredYRot = Math.atan2(unit.forward[0], unit.forward[2]);
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-      soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+      soldier.orientation.yaw = limitTurn(
+        soldier.orientation.yaw,
+        desiredYRot,
+        radiansPerTick
+      );
       stopWalkingAnimation(
         ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
         soldier.animation,
@@ -1567,14 +1600,18 @@ function tickUnitWithAssembleOrder(
 
       if (
         soldier.animation.kind === SoldierAnimationKind.Idle &&
-        soldier.yRot === desiredYRot
+        soldier.orientation.yaw === desiredYRot
       ) {
         isReadyForCombat = true;
       }
     } else {
       const desiredYRot = Math.atan2(difference[0], difference[2]) + Math.PI;
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-      soldier.yRot = limitTurn(soldier.yRot, desiredYRot, radiansPerTick);
+      soldier.orientation.yaw = limitTurn(
+        soldier.orientation.yaw,
+        desiredYRot,
+        radiansPerTick
+      );
       startOrContinueWalkingAnimation(
         ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
         soldier.animation,
@@ -1582,7 +1619,7 @@ function tickUnitWithAssembleOrder(
       );
       geoUtils.translateZ(
         soldier.position,
-        { yaw: soldier.yRot, pitch: 0, roll: 0 },
+        soldier.orientation,
         ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
       );
     }
@@ -1744,7 +1781,7 @@ function tickBannerTower(
       animation: { kind: SoldierAnimationKind.Idle, timeInSeconds: 0 },
       attackTargetId: null,
       health: 100,
-      yRot: plannedSoldier.yRot,
+      orientation: { yaw: plannedSoldier.yRot, pitch: 0, roll: 0 },
       assemblyPoint: plannedSoldier.assemblyPoint,
     };
     geoUtils.setTriple(soldier.position, tower.position);
@@ -1830,7 +1867,7 @@ function applyKingSlashDamage(
     allegiance === Allegiance.Azuki
       ? battle.getAzukiKing()
       : battle.getEdamameKing();
-  const { yRot, position } = king;
+  const { orientation, position } = king;
   const slashRangeSquared = 6 ** 2;
   for (const unitId of battle.data.activeUnitIds) {
     const unit = battle.getUnit(unitId);
@@ -1846,7 +1883,7 @@ function applyKingSlashDamage(
       );
 
       const angleDifference = normalizeAngleBetweenNegPiAndPosPi(
-        yRot -
+        orientation.yaw -
           Math.atan2(
             soldier.position[0] - position[0],
             soldier.position[2] - position[2]

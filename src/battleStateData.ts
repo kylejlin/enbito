@@ -37,10 +37,10 @@ export interface Ref {
 
 export interface Soldier {
   position: Triple;
+  orientation: Orientation;
   animation: SoldierAnimationState;
   attackTargetId: null | Ref;
   health: number;
-  yRot: number;
   assemblyPoint: Triple;
 }
 
