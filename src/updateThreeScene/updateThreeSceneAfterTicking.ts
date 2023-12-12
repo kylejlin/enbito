@@ -96,12 +96,22 @@ function updateKingDragonflies(battle: BattleState, san: San): void {
 
   if (bAzukiKing.dragonflyId !== null) {
     const bDragonfly = battle.getDragonfly(bAzukiKing.dragonflyId);
-    writeToGltfCache(bDragonfly.position, bDragonfly.orientation, dragonflies);
+    writeToGltfCacheWithScale(
+      bDragonfly.position,
+      bDragonfly.orientation,
+      0.6,
+      dragonflies
+    );
   }
 
   if (bEdamameKing.dragonflyId !== null) {
     const bDragonfly = battle.getDragonfly(bEdamameKing.dragonflyId);
-    writeToGltfCache(bDragonfly.position, bDragonfly.orientation, dragonflies);
+    writeToGltfCacheWithScale(
+      bDragonfly.position,
+      bDragonfly.orientation,
+      0.6,
+      dragonflies
+    );
   }
 }
 
@@ -295,6 +305,24 @@ function writeToGltfCache(
   const instance = gltfs[count].scene;
   instance.position.set(position[0], position[1], position[2]);
   geoUtils.setQuaternionFromOrientation(instance.quaternion, orientation);
+  ++cache.count;
+}
+
+function writeToGltfCacheWithScale(
+  position: [number, number, number],
+  orientation: Orientation,
+  scale: number,
+  cache: GltfCache
+): void {
+  const { gltfs, count } = cache;
+  while (count >= gltfs.length) {
+    gltfs.push(cloneGltf(gltfs[0]));
+  }
+
+  const instance = gltfs[count].scene;
+  instance.position.set(position[0], position[1], position[2]);
+  geoUtils.setQuaternionFromOrientation(instance.quaternion, orientation);
+  instance.scale.setScalar(scale);
   ++cache.count;
 }
 
