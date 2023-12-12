@@ -24,7 +24,8 @@ export function updateThreeSceneAfterTicking(
   scene.add(sky);
   scene.add(grass);
 
-  updateAzukiKing(battle, san);
+  updateKings(battle, san);
+  updateKingDragonflies(battle, san);
   updateCamera(battle, san);
   updateUnits(battle, san);
   updateBannerTowers(battle, san);
@@ -33,27 +34,32 @@ export function updateThreeSceneAfterTicking(
   updateCursor(battle, san);
 }
 
-function updateAzukiKing(battle: BattleState, san: San): void {
+function updateKings(battle: BattleState, san: San): void {
   const { scene } = san.data;
   const bAzukiKing = battle.getAzukiKing();
   const bEdamameKing = battle.getEdamameKing();
   const sAzukiKing = san.data.azukiKing;
   const sEdamameKing = san.data.edamameKing;
 
-  updateKingTransform(bAzukiKing, sAzukiKing);
+  updateKingTransform(bAzukiKing, sAzukiKing, battle);
   updateKingAnimation(bAzukiKing, sAzukiKing);
   scene.add(sAzukiKing.gltf.scene);
 
-  updateKingTransform(bEdamameKing, sEdamameKing);
+  updateKingTransform(bEdamameKing, sEdamameKing, battle);
   updateKingAnimation(bEdamameKing, sEdamameKing);
   scene.add(sEdamameKing.gltf.scene);
 }
 
-function updateKingTransform(bKing: King, sKing: SanKing): void {
-  if (bKing.dragonfly.isBeingRidden) {
+function updateKingTransform(
+  bKing: King,
+  sKing: SanKing,
+  battle: BattleState
+): void {
+  if (bKing.dragonflyId !== null) {
+    const bDragonfly = battle.getDragonfly(bKing.dragonflyId);
     geoUtils.setQuaternionFromOrientation(
       sKing.gltf.scene.quaternion,
-      bKing.dragonfly.orientation
+      bDragonfly.orientation
     );
   } else {
     geoUtils.setQuaternionFromOrientation(sKing.gltf.scene.quaternion, {
@@ -84,12 +90,20 @@ function updateKingAnimation(bKing: King, sKing: SanKing): void {
   }
 }
 
+function updateKingDragonflies(battle: BattleState, san: San): void {
+  const { scene, dragonflies } = san.data;
+  const bAzukiKing = battle.getAzukiKing();
+  const bEdamameKing = battle.getEdamameKing();
+  const sAzukiKing = san.data.azukiKing;
+  const sEdamameKing = san.data.edamameKing;
+}
+
 function updateCamera(battle: BattleState, san: San): void {
   const { camera } = san.data;
   const bAzukiKing = battle.getAzukiKing();
   const sAzukiKing = san.data.azukiKing;
 
-  if (bAzukiKing.dragonfly.isBeingRidden) {
+  if (bAzukiKing.dragonflyId !== null) {
     camera.position.copy(sAzukiKing.gltf.scene.position);
     camera.quaternion.copy(sAzukiKing.gltf.scene.quaternion);
     camera.translateY(5);

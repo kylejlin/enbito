@@ -15,6 +15,8 @@ export function resetThreeScene(san: San): void {
 
     azukiBannerTowers,
     edamameBannerTowers,
+
+    dragonflies,
   } = san.data;
 
   scene.remove(...scene.children);
@@ -29,6 +31,8 @@ export function resetThreeScene(san: San): void {
 
   azukiBannerTowers.count = 0;
   edamameBannerTowers.count = 0;
+
+  dragonflies.count = 0;
 }
 
 function setCountsToZero(meshs: InstancedMesh[]): void {

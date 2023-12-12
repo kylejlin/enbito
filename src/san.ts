@@ -49,6 +49,7 @@ export interface SanData {
   edamameUnarmedExplosionFrames: Tuple21<InstancedMesh>;
   azukiBannerTowers: GltfCache;
   edamameBannerTowers: GltfCache;
+  dragonflies: GltfCache;
 
   mcon: ModelConstants;
 }
@@ -125,6 +126,7 @@ export function getDefaultSanData(assets: Assets): SanData {
       getDefaultSanEdamameUnarmedExplosionFrames(assets),
     azukiBannerTowers: getSingletonGltfCache(assets.azukiBannerTower),
     edamameBannerTowers: getSingletonGltfCache(assets.edamameBannerTower),
+    dragonflies: getSingletonGltfCache(assets.dragonfly),
 
     mcon: assets.mcon,
   };

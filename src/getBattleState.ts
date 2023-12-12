@@ -239,14 +239,7 @@ function getDefaultAzukiKing(): King {
     health: 100,
     yRot: 0,
     assemblyPoint: [0, 0, 0],
-    dragonfly: {
-      position: [0, 2.5, 105],
-      isBeingRidden: false,
-      isLanding: false,
-      speed: 30,
-      orientation: { yaw: 0, pitch: 0, roll: 0 },
-      dismountTimer: 0,
-    },
+    dragonflyId: null,
     attackTargetId: null,
     cameraPitch: 0,
   };
@@ -263,14 +256,7 @@ function getDefaultEdamameKing(): King {
     health: 100,
     yRot: Math.PI,
     assemblyPoint: [0, 0, 0],
-    dragonfly: {
-      position: [0, 2.5, -105],
-      isBeingRidden: false,
-      isLanding: false,
-      speed: 30,
-      orientation: { yaw: 0, pitch: 0, roll: 0 },
-      dismountTimer: 0,
-    },
+    dragonflyId: null,
     attackTargetId: null,
     cameraPitch: 0,
   };

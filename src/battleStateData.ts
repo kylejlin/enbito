@@ -50,12 +50,11 @@ export interface SoldierAnimationState {
 
 export interface King extends Soldier {
   isKing: true;
-  // TODO: Refactor
-  dragonfly: KingDragonfly;
+  dragonflyId: null | Ref;
   cameraPitch: number;
 }
 
-export interface KingDragonfly {
+export interface Dragonfly {
   position: Triple;
   orientation: Orientation;
 

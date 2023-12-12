@@ -114,7 +114,7 @@ export function main(assets: Assets): void {
         mouse.y = 1;
       }
 
-      if (resources.battle.getAzukiKing().dragonfly.isBeingRidden) {
+      if (resources.battle.getAzukiKing().dragonflyId !== null) {
         if (mouse.x < 0) {
           mouse.x = 0;
         }
@@ -546,7 +546,7 @@ export function main(assets: Assets): void {
   }
 
   function oncePerFrameBeforeTicks(): void {
-    if (azukiKing.dragonfly.isBeingRidden) {
+    if (azukiKing.dragonflyId !== null) {
       // TODO
     } else {
       azukiKing.cameraPitch = -(mouse.y - 0.5) * Math.PI;
@@ -574,49 +574,52 @@ export function main(assets: Assets): void {
     const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
-    if (azukiKing.dragonfly.isBeingRidden) {
-      if (azukiKing.dragonfly.isLanding) {
+    if (azukiKing.dragonflyId !== null) {
+      const azukiKingDragonfly = resources.battle.getDragonfly(
+        azukiKing.dragonflyId
+      );
+      if (azukiKingDragonfly.isLanding) {
         if (
-          azukiKing.dragonfly.position[1] <= 2.5 &&
-          azukiKing.dragonfly.speed < 5
+          azukiKingDragonfly.position[1] <= 2.5 &&
+          azukiKingDragonfly.speed < 5
         ) {
-          azukiKing.dragonfly.dismountTimer -= elapsedTimeInSeconds;
-          if (azukiKing.dragonfly.dismountTimer <= 0) {
-            azukiKing.dragonfly.isBeingRidden = false;
-            azukiKing.dragonfly.isLanding = false;
+          azukiKingDragonfly.dismountTimer -= elapsedTimeInSeconds;
+          if (azukiKingDragonfly.dismountTimer <= 0) {
+            azukiKingDragonfly.isBeingRidden = false;
+            azukiKingDragonfly.isLanding = false;
             azukiKing.position[1] = 0;
           }
         } else {
-          azukiKing.dragonfly.orientation.yaw +=
+          azukiKingDragonfly.orientation.yaw +=
             0.5 *
             elapsedTimeInSeconds *
-            (azukiKing.dragonfly.orientation.roll * 2);
-          azukiKing.dragonfly.orientation.pitch = limitTurn(
-            azukiKing.dragonfly.orientation.pitch,
+            (azukiKingDragonfly.orientation.roll * 2);
+          azukiKingDragonfly.orientation.pitch = limitTurn(
+            azukiKingDragonfly.orientation.pitch,
             0,
             0.5 * Math.PI * elapsedTimeInSeconds
           );
-          azukiKing.dragonfly.orientation.roll = limitTurn(
-            azukiKing.dragonfly.orientation.roll,
+          azukiKingDragonfly.orientation.roll = limitTurn(
+            azukiKingDragonfly.orientation.roll,
             0,
             0.2 * Math.PI * elapsedTimeInSeconds
           );
 
           if (
-            azukiKing.dragonfly.orientation.pitch === 0 &&
-            azukiKing.dragonfly.orientation.roll === 0
+            azukiKingDragonfly.orientation.pitch === 0 &&
+            azukiKingDragonfly.orientation.roll === 0
           ) {
-            azukiKing.dragonfly.speed = Math.max(
+            azukiKingDragonfly.speed = Math.max(
               0,
-              azukiKing.dragonfly.speed * 0.6 ** elapsedTimeInSeconds
+              azukiKingDragonfly.speed * 0.6 ** elapsedTimeInSeconds
             );
-            azukiKing.dragonfly.position[1] = Math.max(
+            azukiKingDragonfly.position[1] = Math.max(
               2.5,
-              azukiKing.dragonfly.position[1] * 0.7 ** elapsedTimeInSeconds
+              azukiKingDragonfly.position[1] * 0.7 ** elapsedTimeInSeconds
             );
           }
 
-          azukiKing.yRot = azukiKing.dragonfly.orientation.yaw;
+          azukiKing.yRot = azukiKingDragonfly.orientation.yaw;
 
           // player.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
           //   new Vector3(0, 1, 0),
@@ -626,9 +629,9 @@ export function main(assets: Assets): void {
           // player.dragonfly.gltf.scene.rotateZ(player.dragonfly.roll);
 
           geoUtils.translateZ(
-            azukiKing.dragonfly.position,
-            azukiKing.dragonfly.orientation,
-            azukiKing.dragonfly.speed * -elapsedTimeInSeconds
+            azukiKingDragonfly.position,
+            azukiKingDragonfly.orientation,
+            azukiKingDragonfly.speed * -elapsedTimeInSeconds
           );
 
           // player.gltf.scene.position.copy(player.dragonfly.gltf.scene.position);
@@ -647,14 +650,14 @@ export function main(assets: Assets): void {
           wrappedMouseX += 1;
         }
 
-        azukiKing.dragonfly.orientation.roll = -(mouse.x - 0.5) * Math.PI;
-        azukiKing.dragonfly.orientation.yaw +=
+        azukiKingDragonfly.orientation.roll = -(mouse.x - 0.5) * Math.PI;
+        azukiKingDragonfly.orientation.yaw +=
           0.5 *
           elapsedTimeInSeconds *
-          (azukiKing.dragonfly.orientation.roll * 2);
-        azukiKing.dragonfly.orientation.pitch = -(mouse.y - 0.5) * Math.PI;
+          (azukiKingDragonfly.orientation.roll * 2);
+        azukiKingDragonfly.orientation.pitch = -(mouse.y - 0.5) * Math.PI;
 
-        azukiKing.yRot = azukiKing.dragonfly.orientation.yaw;
+        azukiKing.yRot = azukiKingDragonfly.orientation.yaw;
 
         // azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
         //   new Vector3(0, 1, 0),
@@ -664,9 +667,9 @@ export function main(assets: Assets): void {
         // azukiKing.dragonfly.gltf.scene.rotateZ(azukiKing.dragonfly.roll);
 
         geoUtils.translateZ(
-          azukiKing.dragonfly.position,
-          azukiKing.dragonfly.orientation,
-          azukiKing.dragonfly.speed * -elapsedTimeInSeconds
+          azukiKingDragonfly.position,
+          azukiKingDragonfly.orientation,
+          azukiKingDragonfly.speed * -elapsedTimeInSeconds
         );
 
         // azukiKing.gltf.scene.position.copy(
@@ -678,12 +681,12 @@ export function main(assets: Assets): void {
         // azukiKing.gltf.scene.translateZ(-0.3);
 
         if (
-          azukiKing.dragonfly.position[1] < 10 &&
-          azukiKing.dragonfly.speed <= MAX_LANDING_SPEED &&
+          azukiKingDragonfly.position[1] < 10 &&
+          azukiKingDragonfly.speed <= MAX_LANDING_SPEED &&
           keys.v
         ) {
-          azukiKing.dragonfly.isLanding = true;
-          azukiKing.dragonfly.dismountTimer = 1.5;
+          azukiKingDragonfly.isLanding = true;
+          azukiKingDragonfly.dismountTimer = 1.5;
         }
       }
     } else {
@@ -1167,28 +1170,33 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     }
   }
 
-  if (keys.t) {
-    azukiKing.dragonfly.speed += 10 * elapsedTimeInSeconds;
-  }
-  if (keys.g) {
-    azukiKing.dragonfly.speed = Math.max(
-      DRAGONFLY_MIN_SPEED,
-      azukiKing.dragonfly.speed - 10 * elapsedTimeInSeconds
+  if (azukiKing.dragonflyId !== null) {
+    const azukiKingDragonfly = resources.battle.getDragonfly(
+      azukiKing.dragonflyId
     );
-  }
-  if (
-    keys.r &&
-    geoUtils.distanceToSquared(
-      azukiKing.position,
-      azukiKing.dragonfly.position
-    ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED &&
-    mouse.isLocked
-  ) {
-    mouse.x = 0.5;
-    mouse.y = 0.5;
-    azukiKing.dragonfly.isBeingRidden = true;
-    azukiKing.dragonfly.isLanding = false;
-    azukiKing.dragonfly.speed = DRAGONFLY_MIN_SPEED;
+    if (keys.t) {
+      azukiKingDragonfly.speed += 10 * elapsedTimeInSeconds;
+    }
+    if (keys.g) {
+      azukiKingDragonfly.speed = Math.max(
+        DRAGONFLY_MIN_SPEED,
+        azukiKingDragonfly.speed - 10 * elapsedTimeInSeconds
+      );
+    }
+    if (
+      keys.r &&
+      geoUtils.distanceToSquared(
+        azukiKing.position,
+        azukiKingDragonfly.position
+      ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED &&
+      mouse.isLocked
+    ) {
+      mouse.x = 0.5;
+      mouse.y = 0.5;
+      azukiKingDragonfly.isBeingRidden = true;
+      azukiKingDragonfly.isLanding = false;
+      azukiKingDragonfly.speed = DRAGONFLY_MIN_SPEED;
+    }
   }
 }
 

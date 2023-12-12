@@ -1,6 +1,7 @@
 import {
   BannerTower,
   BattleStateData,
+  Dragonfly,
   King,
   Ref,
   Soldier,
@@ -34,5 +35,9 @@ export class BattleState {
 
   public getBannerTower(id: Ref): BannerTower {
     return this.data.entities[id.value] as BannerTower;
+  }
+
+  public getDragonfly(id: Ref): Dragonfly {
+    return this.data.entities[id.value] as Dragonfly;
   }
 }
