@@ -12,6 +12,9 @@ export function resetThreeScene(san: San): void {
 
     azukiUnarmedExplosionFrames,
     edamameUnarmedExplosionFrames,
+
+    azukiBannerTowers,
+    edamameBannerTowers,
   } = san.data;
 
   scene.remove(...scene.children);
@@ -23,6 +26,9 @@ export function resetThreeScene(san: San): void {
 
   setCountsToZero(azukiUnarmedExplosionFrames);
   setCountsToZero(edamameUnarmedExplosionFrames);
+
+  azukiBannerTowers.count = 0;
+  edamameBannerTowers.count = 0;
 }
 
 function setCountsToZero(meshs: InstancedMesh[]): void {

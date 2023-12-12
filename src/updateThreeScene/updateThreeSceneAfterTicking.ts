@@ -244,9 +244,6 @@ function updateBannerTowers(battle: BattleState, san: San): void {
   const sEdamameTowers = san.data.edamameBannerTowers;
   const { scene } = san.data;
 
-  sAzukiTowers.count = 0;
-  sEdamameTowers.count = 0;
-
   const bTowerIds = battle.data.activeTowerIds;
   for (const bTowerId of bTowerIds) {
     const bTower = battle.getBannerTower(bTowerId);
