@@ -12,6 +12,7 @@ import {
   AdvanceOrder,
   Allegiance,
   AssembleOrder,
+  DragonflyAnimationKind,
   DragonflyFlightKind,
   Orientation,
   PlannedSoldier,
@@ -771,6 +772,7 @@ export function main(assets: Assets): void {
     );
 
     tickKings(elapsedTimeInSeconds, resources);
+    tickDragonflies(elapsedTimeInSeconds, resources);
     tickPlannedDeployment(elapsedTimeInSeconds, resources);
     tickUnits(elapsedTimeInSeconds, resources);
     tickBannerTowers(elapsedTimeInSeconds, resources);
@@ -1217,6 +1219,22 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     //   azukiKingDragonfly.isLanding = false;
     //   azukiKingDragonfly.speed = DRAGONFLY_MIN_SPEED;
     // }
+  }
+}
+
+function tickDragonflies(
+  elapsedTimeInSeconds: number,
+  resources: Resources
+): void {
+  const { battle } = resources;
+  const { mcon } = resources.san.data;
+  for (const id of battle.data.activeDragonflyIds) {
+    const dragonfly = battle.getDragonfly(id);
+    if (dragonfly.animation.kind === DragonflyAnimationKind.Fly) {
+      dragonfly.animation.timeInSeconds =
+        (dragonfly.animation.timeInSeconds + elapsedTimeInSeconds * 5) %
+        mcon.dragonflyFlyClipDuration;
+    }
   }
 }
 

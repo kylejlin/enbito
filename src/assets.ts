@@ -47,6 +47,7 @@ export interface ModelConstants {
   azukiSpearStabClipDuration: number;
   azukiKingSlashClipDuration: number;
   soldierExplosionClipDuration: number;
+  dragonflyFlyClipDuration: number;
 }
 
 export function loadAssets(): Promise<Assets> {
@@ -309,6 +310,10 @@ export function loadAssets(): Promise<Assets> {
         azukiKing.animations,
         "Slash"
       );
+      const dragonflyFlyClip = AnimationClip.findByName(
+        dragonfly.animations,
+        "Fly"
+      );
 
       const mcon: ModelConstants = {
         azukiSpearWalkClipDuration:
@@ -318,6 +323,7 @@ export function loadAssets(): Promise<Assets> {
         azukiKingSlashClipDuration: azukiKingSlashClip.duration,
         soldierExplosionClipDuration:
           azukiUnarmedExplosionFrames.length / BLENDER_SOLDIER_EXPLOSION_FPS,
+        dragonflyFlyClipDuration: dragonflyFlyClip.duration,
       };
 
       return {

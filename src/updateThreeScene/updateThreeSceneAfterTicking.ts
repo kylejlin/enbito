@@ -3,12 +3,20 @@ import { GltfCache, San, SanKing } from "../san";
 import * as geoUtils from "../geoUtils";
 import {
   Allegiance,
+  DragonflyAnimationKind,
   King,
   SoldierAnimationKind,
   SoldierAnimationState,
   SoldierExplosion,
 } from "../battleStateData";
-import { InstancedMesh, Object3D, Raycaster, Vector3 } from "three";
+import {
+  AnimationClip,
+  AnimationMixer,
+  InstancedMesh,
+  Object3D,
+  Raycaster,
+  Vector3,
+} from "three";
 import { cloneGltf } from "../cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
@@ -93,13 +101,25 @@ function updateDragonflies(battle: BattleState, san: San): void {
   const sDragonflies = san.data.dragonflies;
   for (const id of battle.data.activeDragonflyIds) {
     const bDragonfly = battle.getDragonfly(id);
-    const sDragonfly = getInstanceSceneFromGltfCache(sDragonflies).scene;
+    const sDragonflyGltf = getInstanceSceneFromGltfCache(sDragonflies);
+    const sDragonfly = sDragonflyGltf.scene;
     sDragonfly.position.set(...bDragonfly.position);
     geoUtils.setQuaternionFromOrientation(
       sDragonfly.quaternion,
       bDragonfly.orientation
     );
     sDragonfly.scale.setScalar(0.6);
+
+    if (bDragonfly.animation.kind === DragonflyAnimationKind.Fly) {
+      const dragonflyMixer = new AnimationMixer(sDragonfly);
+      const flyClip = AnimationClip.findByName(
+        sDragonflyGltf.animations,
+        "Fly"
+      );
+      const dragonflyFlyAction = dragonflyMixer.clipAction(flyClip);
+      dragonflyFlyAction.play();
+      dragonflyMixer.setTime(bDragonfly.animation.timeInSeconds);
+    }
   }
 }
 
