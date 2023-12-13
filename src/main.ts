@@ -771,8 +771,8 @@ export function main(assets: Assets): void {
       )
     );
 
-    tickKings(elapsedTimeInSeconds, resources);
     tickDragonflies(elapsedTimeInSeconds, resources);
+    tickKings(elapsedTimeInSeconds, resources);
     tickPlannedDeployment(elapsedTimeInSeconds, resources);
     tickUnits(elapsedTimeInSeconds, resources);
     tickBannerTowers(elapsedTimeInSeconds, resources);
