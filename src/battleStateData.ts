@@ -23,6 +23,10 @@ export enum SoldierAnimationKind {
   Slash,
 }
 
+export enum DragonflyAnimationKind {
+  Fly,
+}
+
 export enum Allegiance {
   Azuki,
   Edamame,
@@ -62,6 +66,8 @@ export interface Dragonfly {
   isLanding: boolean;
   speed: number;
 
+  animation: DragonflyAnimationState;
+
   /**
    * Once the dragonfly lands, the rider will wait a few seconds before dismounting.
    * `dismountTimer` keeps track of how many seconds are remaining.
@@ -69,6 +75,13 @@ export interface Dragonfly {
    * sufficiently low speed.
    */
   dismountTimer: number;
+}
+
+export type DragonflyAnimationState = DragonflyFlyAnimationState;
+
+export interface DragonflyFlyAnimationState {
+  kind: DragonflyAnimationKind.Fly;
+  timeInSeconds: number;
 }
 
 export interface Orientation {

@@ -11,6 +11,7 @@ import {
 } from "../battleStateData";
 import { InstancedMesh, Object3D, Raycaster, Vector3 } from "three";
 import { cloneGltf } from "../cloneGltf";
+import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -96,22 +97,24 @@ function updateKingDragonflies(battle: BattleState, san: San): void {
 
   if (bAzukiKing.dragonflyId !== null) {
     const bDragonfly = battle.getDragonfly(bAzukiKing.dragonflyId);
-    writeToGltfCacheWithScale(
-      bDragonfly.position,
-      bDragonfly.orientation,
-      0.6,
-      dragonflies
+    const sDragonfly = getInstanceSceneFromGltfCache(dragonflies).scene;
+    sDragonfly.position.set(...bDragonfly.position);
+    geoUtils.setQuaternionFromOrientation(
+      sDragonfly.quaternion,
+      bDragonfly.orientation
     );
+    sDragonfly.scale.setScalar(0.6);
   }
 
   if (bEdamameKing.dragonflyId !== null) {
     const bDragonfly = battle.getDragonfly(bEdamameKing.dragonflyId);
-    writeToGltfCacheWithScale(
-      bDragonfly.position,
-      bDragonfly.orientation,
-      0.6,
-      dragonflies
+    const sDragonfly = getInstanceSceneFromGltfCache(dragonflies).scene;
+    sDragonfly.position.set(...bDragonfly.position);
+    geoUtils.setQuaternionFromOrientation(
+      sDragonfly.quaternion,
+      bDragonfly.orientation
     );
+    sDragonfly.scale.setScalar(0.6);
   }
 }
 
@@ -278,11 +281,13 @@ function updateBannerTowers(battle: BattleState, san: San): void {
   for (const bTowerId of bTowerIds) {
     const bTower = battle.getBannerTower(bTowerId);
     const sMeshCache = getBannerTowerGltfCache(bTower.allegiance, san);
-    writeToGltfCache(
-      bTower.position,
-      { yaw: 0, pitch: 0, roll: 0 },
-      sMeshCache
-    );
+    const sTower = getInstanceSceneFromGltfCache(sMeshCache).scene;
+    sTower.position.set(...bTower.position);
+    geoUtils.setQuaternionFromOrientation(sTower.quaternion, {
+      yaw: 0,
+      pitch: 0,
+      roll: 0,
+    });
   }
 }
 
@@ -292,38 +297,15 @@ function getBannerTowerGltfCache(allegiance: Allegiance, san: San): GltfCache {
     : san.data.edamameBannerTowers;
 }
 
-function writeToGltfCache(
-  position: [number, number, number],
-  orientation: Orientation,
-  cache: GltfCache
-): void {
+function getInstanceSceneFromGltfCache(cache: GltfCache): GLTF {
   const { gltfs, count } = cache;
   while (count >= gltfs.length) {
     gltfs.push(cloneGltf(gltfs[0]));
   }
 
-  const instance = gltfs[count].scene;
-  instance.position.set(position[0], position[1], position[2]);
-  geoUtils.setQuaternionFromOrientation(instance.quaternion, orientation);
+  const instance = gltfs[count];
   ++cache.count;
-}
-
-function writeToGltfCacheWithScale(
-  position: [number, number, number],
-  orientation: Orientation,
-  scale: number,
-  cache: GltfCache
-): void {
-  const { gltfs, count } = cache;
-  while (count >= gltfs.length) {
-    gltfs.push(cloneGltf(gltfs[0]));
-  }
-
-  const instance = gltfs[count].scene;
-  instance.position.set(position[0], position[1], position[2]);
-  geoUtils.setQuaternionFromOrientation(instance.quaternion, orientation);
-  instance.scale.setScalar(scale);
-  ++cache.count;
+  return instance;
 }
 
 function updateCursor(battle: BattleState, san: San): void {

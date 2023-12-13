@@ -4,6 +4,7 @@ import {
   BannerTower,
   BattleStateData,
   Dragonfly,
+  DragonflyAnimationKind,
   King,
   Ref,
   Soldier,
@@ -25,9 +26,10 @@ export function getDefaultBattleState(): BattleStateData {
 
   const azukiKingDragonfly: Dragonfly = {
     position: [0, 2.5, 105],
+    orientation: { yaw: 0, pitch: 0, roll: 0 },
     isLanding: false,
     speed: 30,
-    orientation: { yaw: 0, pitch: 0, roll: 0 },
+    animation: { kind: DragonflyAnimationKind.Fly, timeInSeconds: 0 },
     dismountTimer: 0,
   };
   entities.push(azukiKingDragonfly);
