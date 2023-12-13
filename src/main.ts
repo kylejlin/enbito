@@ -12,6 +12,7 @@ import {
   AdvanceOrder,
   Allegiance,
   AssembleOrder,
+  DragonflyFlightKind,
   Orientation,
   PlannedSoldier,
   PlannedUnit,
@@ -577,7 +578,7 @@ export function main(assets: Assets): void {
       const azukiKingDragonfly = resources.battle.getDragonfly(
         azukiKing.dragonflyId
       );
-      if (azukiKingDragonfly.isLanding) {
+      if (azukiKingDragonfly.flightState.kind === DragonflyFlightKind.Landing) {
         if (
           azukiKingDragonfly.position[1] <= 2.5 &&
           azukiKingDragonfly.speed < 5
@@ -586,7 +587,9 @@ export function main(assets: Assets): void {
           if (azukiKingDragonfly.dismountTimer <= 0) {
             // TODO: Dismount
             // azukiKingDragonfly.isBeingRidden = false;
-            azukiKingDragonfly.isLanding = false;
+            azukiKingDragonfly.flightState = {
+              kind: DragonflyFlightKind.Resting,
+            };
             azukiKing.position[1] = 0;
           }
         } else {
@@ -699,7 +702,9 @@ export function main(assets: Assets): void {
           azukiKingDragonfly.speed <= MAX_LANDING_SPEED &&
           keys.v
         ) {
-          azukiKingDragonfly.isLanding = true;
+          azukiKingDragonfly.flightState = {
+            kind: DragonflyFlightKind.Landing,
+          };
           azukiKingDragonfly.dismountTimer = 1.5;
         }
       }

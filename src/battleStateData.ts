@@ -27,6 +27,12 @@ export enum DragonflyAnimationKind {
   Fly,
 }
 
+export enum DragonflyFlightKind {
+  Flying,
+  Landing,
+  Resting,
+}
+
 export enum Allegiance {
   Azuki,
   Edamame,
@@ -63,7 +69,7 @@ export interface Dragonfly {
   position: Triple;
   orientation: Orientation;
 
-  isLanding: boolean;
+  flightState: DragonflyFlightState;
   speed: number;
 
   animation: DragonflyAnimationState;
@@ -75,6 +81,23 @@ export interface Dragonfly {
    * sufficiently low speed.
    */
   dismountTimer: number;
+}
+
+export type DragonflyFlightState =
+  | DragonflyFlyingState
+  | DragonflyLandingState
+  | DragonflyRestingState;
+
+export interface DragonflyFlyingState {
+  kind: DragonflyFlightKind.Flying;
+}
+
+export interface DragonflyLandingState {
+  kind: DragonflyFlightKind.Landing;
+}
+
+export interface DragonflyRestingState {
+  kind: DragonflyFlightKind.Resting;
 }
 
 export type DragonflyAnimationState = DragonflyFlyAnimationState;
