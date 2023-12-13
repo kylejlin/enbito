@@ -25,7 +25,7 @@ export function updateThreeSceneAfterTicking(
   scene.add(grass);
 
   updateKings(battle, san);
-  updateKingDragonflies(battle, san);
+  updateDragonflies(battle, san);
   updateCamera(battle, san);
   updateUnits(battle, san);
   updateBannerTowers(battle, san);
@@ -89,25 +89,11 @@ function updateKingAnimation(bKing: King, sKing: SanKing): void {
   }
 }
 
-function updateKingDragonflies(battle: BattleState, san: San): void {
-  const { dragonflies } = san.data;
-  const bAzukiKing = battle.getAzukiKing();
-  const bEdamameKing = battle.getEdamameKing();
-
-  if (bAzukiKing.dragonflyId !== null) {
-    const bDragonfly = battle.getDragonfly(bAzukiKing.dragonflyId);
-    const sDragonfly = getInstanceSceneFromGltfCache(dragonflies).scene;
-    sDragonfly.position.set(...bDragonfly.position);
-    geoUtils.setQuaternionFromOrientation(
-      sDragonfly.quaternion,
-      bDragonfly.orientation
-    );
-    sDragonfly.scale.setScalar(0.6);
-  }
-
-  if (bEdamameKing.dragonflyId !== null) {
-    const bDragonfly = battle.getDragonfly(bEdamameKing.dragonflyId);
-    const sDragonfly = getInstanceSceneFromGltfCache(dragonflies).scene;
+function updateDragonflies(battle: BattleState, san: San): void {
+  const sDragonflies = san.data.dragonflies;
+  for (const id of battle.data.activeDragonflyIds) {
+    const bDragonfly = battle.getDragonfly(id);
+    const sDragonfly = getInstanceSceneFromGltfCache(sDragonflies).scene;
     sDragonfly.position.set(...bDragonfly.position);
     geoUtils.setQuaternionFromOrientation(
       sDragonfly.quaternion,
