@@ -1009,6 +1009,16 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     }
   }
 
+  if (
+    azukiKing.dragonflyId !== null &&
+    resources.battle.getDragonfly(azukiKing.dragonflyId).flightState.kind ===
+      DragonflyFlightKind.Resting
+  ) {
+    azukiKing.dragonflyId = null;
+
+    azukiKing.position[1] = 0;
+  }
+
   if (azukiKing.dragonflyId !== null) {
     const azukiKingDragonfly = resources.battle.getDragonfly(
       azukiKing.dragonflyId
@@ -1139,6 +1149,72 @@ function tickDragonfly(
       mcon.dragonflyFlyClipDuration;
   }
 
+  if (dragonfly.flightState.kind === DragonflyFlightKind.Flying) {
+    // TODO
+    let wrappedMouseX = mouse.x;
+    while (wrappedMouseX > 1) {
+      wrappedMouseX -= 1;
+    }
+    while (wrappedMouseX < -1) {
+      wrappedMouseX += 1;
+    }
+
+    dragonfly.orientation.yaw +=
+      0.5 * elapsedTimeInSeconds * (dragonfly.orientation.roll * 2);
+
+    const { battle } = resources;
+    const azukiKing = battle.getAzukiKing();
+    const isAzukiKingDragonfly =
+      azukiKing.dragonflyId !== null &&
+      dragonfly === battle.getDragonfly(azukiKing.dragonflyId);
+    if (isAzukiKingDragonfly) {
+      dragonfly.orientation.roll = -(mouse.x - 0.5) * Math.PI;
+      dragonfly.orientation.pitch = -(mouse.y - 0.5) * Math.PI;
+    }
+
+    // TODOX
+    // azukiKing.orientation.yaw = dragonfly.orientation.yaw;
+
+    // azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
+    //   new Vector3(0, 1, 0),
+    //   azukiKing.yRot
+    // );
+    // azukiKing.dragonfly.gltf.scene.rotateX(azukiKing.dragonfly.pitch);
+    // azukiKing.dragonfly.gltf.scene.rotateZ(azukiKing.dragonfly.roll);
+
+    geoUtils.translateZ(
+      dragonfly.position,
+      dragonfly.orientation,
+      dragonfly.speed * -elapsedTimeInSeconds
+    );
+
+    // TODOX
+    // geoUtils.setTriple(azukiKing.position, dragonfly.position);
+    // geoUtils.setOrientation(azukiKing.orientation, dragonfly.orientation);
+    // geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
+
+    // azukiKing.gltf.scene.position.copy(
+    //   azukiKing.dragonfly.gltf.scene.position
+    // );
+    // azukiKing.gltf.scene.quaternion.copy(
+    //   azukiKing.dragonfly.gltf.scene.quaternion
+    // );
+    // azukiKing.gltf.scene.translateZ(-0.3);
+
+    // TODO: Generalize isLanding to include NPCs.
+    const isLanding = isAzukiKingDragonfly && keys.v;
+    if (
+      dragonfly.position[1] < 10 &&
+      dragonfly.speed <= MAX_LANDING_SPEED &&
+      isLanding
+    ) {
+      dragonfly.flightState = {
+        kind: DragonflyFlightKind.Landing,
+      };
+      dragonfly.dismountTimer = 1.5;
+    }
+  }
+
   if (dragonfly.flightState.kind === DragonflyFlightKind.Landing) {
     if (dragonfly.position[1] <= 2.5 && dragonfly.speed < 5) {
       dragonfly.dismountTimer -= elapsedTimeInSeconds;
@@ -1205,70 +1281,6 @@ function tickDragonfly(
       //   player.dragonfly.gltf.scene.quaternion
       // );
       // player.gltf.scene.translateZ(-0.3);
-    }
-  } else {
-    // TODO
-    let wrappedMouseX = mouse.x;
-    while (wrappedMouseX > 1) {
-      wrappedMouseX -= 1;
-    }
-    while (wrappedMouseX < -1) {
-      wrappedMouseX += 1;
-    }
-
-    dragonfly.orientation.yaw +=
-      0.5 * elapsedTimeInSeconds * (dragonfly.orientation.roll * 2);
-
-    const { battle } = resources;
-    const azukiKing = battle.getAzukiKing();
-    const isAzukiKingDragonfly =
-      azukiKing.dragonflyId !== null &&
-      dragonfly === battle.getDragonfly(azukiKing.dragonflyId);
-    if (isAzukiKingDragonfly) {
-      dragonfly.orientation.roll = -(mouse.x - 0.5) * Math.PI;
-      dragonfly.orientation.pitch = -(mouse.y - 0.5) * Math.PI;
-    }
-
-    // TODOX
-    // azukiKing.orientation.yaw = dragonfly.orientation.yaw;
-
-    // azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
-    //   new Vector3(0, 1, 0),
-    //   azukiKing.yRot
-    // );
-    // azukiKing.dragonfly.gltf.scene.rotateX(azukiKing.dragonfly.pitch);
-    // azukiKing.dragonfly.gltf.scene.rotateZ(azukiKing.dragonfly.roll);
-
-    geoUtils.translateZ(
-      dragonfly.position,
-      dragonfly.orientation,
-      dragonfly.speed * -elapsedTimeInSeconds
-    );
-
-    // TODOX
-    // geoUtils.setTriple(azukiKing.position, dragonfly.position);
-    // geoUtils.setOrientation(azukiKing.orientation, dragonfly.orientation);
-    // geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
-
-    // azukiKing.gltf.scene.position.copy(
-    //   azukiKing.dragonfly.gltf.scene.position
-    // );
-    // azukiKing.gltf.scene.quaternion.copy(
-    //   azukiKing.dragonfly.gltf.scene.quaternion
-    // );
-    // azukiKing.gltf.scene.translateZ(-0.3);
-
-    // TODO: Generalize isLanding to include NPCs.
-    const isLanding = isAzukiKingDragonfly && keys.v;
-    if (
-      dragonfly.position[1] < 10 &&
-      dragonfly.speed <= MAX_LANDING_SPEED &&
-      isLanding
-    ) {
-      dragonfly.flightState = {
-        kind: DragonflyFlightKind.Landing,
-      };
-      dragonfly.dismountTimer = 1.5;
     }
   }
 }
