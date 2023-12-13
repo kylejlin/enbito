@@ -970,7 +970,7 @@ function continueIdleThenStabAnimation(
 function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   const azukiKing = resources.battle.getAzukiKing();
   const edamameKing = resources.battle.getEdamameKing();
-  const { keys, mouse } = resources;
+  const { keys, mouse, battle } = resources;
   const { mcon } = resources.san.data;
 
   if (azukiKing.health <= 0) {
@@ -1032,21 +1032,6 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
         azukiKingDragonfly.speed - 10 * elapsedTimeInSeconds
       );
     }
-    // TODO
-    // if (
-    //   keys.r &&
-    //   geoUtils.distanceToSquared(
-    //     azukiKing.position,
-    //     azukiKingDragonfly.position
-    //   ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED &&
-    //   mouse.isLocked
-    // ) {
-    //   mouse.x = 0.5;
-    //   mouse.y = 0.5;
-    //   azukiKingDragonfly.isBeingRidden = true;
-    //   azukiKingDragonfly.isLanding = false;
-    //   azukiKingDragonfly.speed = DRAGONFLY_MIN_SPEED;
-    // }
 
     if (azukiKingDragonfly.flightState.kind === DragonflyFlightKind.Landing) {
       if (
@@ -1120,6 +1105,31 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
         azukiKing.orientation,
         -3 * elapsedTimeInSeconds
       );
+    }
+  }
+
+  if (azukiKing.dragonflyId === null && keys.r && mouse.isLocked) {
+    const nearestRestingDragonflyId = getNearestRestingDragonflyId(
+      azukiKing.position,
+      battle
+    );
+    if (
+      nearestRestingDragonflyId !== null &&
+      geoUtils.distanceToSquared(
+        azukiKing.position,
+        battle.getDragonfly(nearestRestingDragonflyId).position
+      ) <= DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED
+    ) {
+      const nearestRestingDragonfly = battle.getDragonfly(
+        nearestRestingDragonflyId
+      );
+      mouse.x = 0.5;
+      mouse.y = 0.5;
+      nearestRestingDragonfly.flightState = {
+        kind: DragonflyFlightKind.Flying,
+      };
+      nearestRestingDragonfly.speed = DRAGONFLY_MIN_SPEED;
+      azukiKing.dragonflyId = nearestRestingDragonflyId;
     }
   }
 }
@@ -2112,4 +2122,26 @@ function getPlannedSoldier(x: number, y: number, z: number): PlannedSoldier {
     yRot: 0,
     assemblyPoint: [x, y, z],
   };
+}
+
+function getNearestRestingDragonflyId(
+  position: Triple,
+  battle: BattleState
+): null | Ref {
+  let nearestDragonflyId: Ref | null = null;
+  let nearestDistanceSquared = Infinity;
+  for (const dragonflyId of battle.data.activeDragonflyIds) {
+    const dragonfly = battle.getDragonfly(dragonflyId);
+    if (dragonfly.flightState.kind !== DragonflyFlightKind.Resting) {
+      continue;
+    }
+
+    const distSq = geoUtils.distanceToSquared(position, dragonfly.position);
+    if (distSq < nearestDistanceSquared) {
+      nearestDragonflyId = dragonflyId;
+      nearestDistanceSquared = distSq;
+    }
+  }
+
+  return nearestDragonflyId;
 }
