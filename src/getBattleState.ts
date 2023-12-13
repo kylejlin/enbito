@@ -38,7 +38,7 @@ export function getDefaultBattleState(): BattleStateData {
     isEntityId: true,
     value: entities.indexOf(azukiKingDragonfly),
   };
-  azukiKing.dragonflyId = azukiKingDragonflyId;
+  // azukiKing.dragonflyId = azukiKingDragonflyId;
 
   const azukiLegion = getUnit(entities, {
     start: [-50, 0, 50],

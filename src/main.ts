@@ -12,6 +12,7 @@ import {
   AdvanceOrder,
   Allegiance,
   AssembleOrder,
+  Dragonfly,
   DragonflyAnimationKind,
   DragonflyFlightKind,
   Orientation,
@@ -575,201 +576,19 @@ export function main(assets: Assets): void {
     const elapsedTimeInMillisecs = MILLISECS_PER_TICK;
     const elapsedTimeInSeconds = elapsedTimeInMillisecs / 1000;
 
-    if (azukiKing.dragonflyId !== null) {
-      const azukiKingDragonfly = resources.battle.getDragonfly(
-        azukiKing.dragonflyId
-      );
-      if (azukiKingDragonfly.flightState.kind === DragonflyFlightKind.Landing) {
-        if (
-          azukiKingDragonfly.position[1] <= 2.5 &&
-          azukiKingDragonfly.speed < 5
-        ) {
-          azukiKingDragonfly.dismountTimer -= elapsedTimeInSeconds;
-          if (azukiKingDragonfly.dismountTimer <= 0) {
-            // TODO: Dismount
-            // azukiKingDragonfly.isBeingRidden = false;
-            azukiKingDragonfly.flightState = {
-              kind: DragonflyFlightKind.Resting,
-            };
-            azukiKing.position[1] = 0;
-          }
-        } else {
-          azukiKingDragonfly.orientation.yaw +=
-            0.5 *
-            elapsedTimeInSeconds *
-            (azukiKingDragonfly.orientation.roll * 2);
-          azukiKingDragonfly.orientation.pitch = limitTurn(
-            azukiKingDragonfly.orientation.pitch,
-            0,
-            0.5 * Math.PI * elapsedTimeInSeconds
-          );
-          azukiKingDragonfly.orientation.roll = limitTurn(
-            azukiKingDragonfly.orientation.roll,
-            0,
-            0.2 * Math.PI * elapsedTimeInSeconds
-          );
-
-          if (
-            azukiKingDragonfly.orientation.pitch === 0 &&
-            azukiKingDragonfly.orientation.roll === 0
-          ) {
-            azukiKingDragonfly.speed = Math.max(
-              0,
-              azukiKingDragonfly.speed * 0.6 ** elapsedTimeInSeconds
-            );
-            azukiKingDragonfly.position[1] = Math.max(
-              2.5,
-              azukiKingDragonfly.position[1] * 0.7 ** elapsedTimeInSeconds
-            );
-          }
-
-          azukiKing.orientation.yaw = azukiKingDragonfly.orientation.yaw;
-
-          // player.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
-          //   new Vector3(0, 1, 0),
-          //   player.yRot
-          // );
-          // player.dragonfly.gltf.scene.rotateX(player.dragonfly.pitch);
-          // player.dragonfly.gltf.scene.rotateZ(player.dragonfly.roll);
-
-          geoUtils.translateZ(
-            azukiKingDragonfly.position,
-            azukiKingDragonfly.orientation,
-            azukiKingDragonfly.speed * -elapsedTimeInSeconds
-          );
-
-          geoUtils.setTriple(azukiKing.position, azukiKingDragonfly.position);
-          geoUtils.setOrientation(
-            azukiKing.orientation,
-            azukiKingDragonfly.orientation
-          );
-          geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
-
-          // player.gltf.scene.position.copy(player.dragonfly.gltf.scene.position);
-          // player.gltf.scene.quaternion.copy(
-          //   player.dragonfly.gltf.scene.quaternion
-          // );
-          // player.gltf.scene.translateZ(-0.3);
-        }
-      } else {
-        // TODO
-        let wrappedMouseX = mouse.x;
-        while (wrappedMouseX > 1) {
-          wrappedMouseX -= 1;
-        }
-        while (wrappedMouseX < -1) {
-          wrappedMouseX += 1;
-        }
-
-        azukiKingDragonfly.orientation.roll = -(mouse.x - 0.5) * Math.PI;
-        azukiKingDragonfly.orientation.yaw +=
-          0.5 *
-          elapsedTimeInSeconds *
-          (azukiKingDragonfly.orientation.roll * 2);
-        azukiKingDragonfly.orientation.pitch = -(mouse.y - 0.5) * Math.PI;
-
-        azukiKing.orientation.yaw = azukiKingDragonfly.orientation.yaw;
-
-        // azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
-        //   new Vector3(0, 1, 0),
-        //   azukiKing.yRot
-        // );
-        // azukiKing.dragonfly.gltf.scene.rotateX(azukiKing.dragonfly.pitch);
-        // azukiKing.dragonfly.gltf.scene.rotateZ(azukiKing.dragonfly.roll);
-
-        geoUtils.translateZ(
-          azukiKingDragonfly.position,
-          azukiKingDragonfly.orientation,
-          azukiKingDragonfly.speed * -elapsedTimeInSeconds
-        );
-
-        geoUtils.setTriple(azukiKing.position, azukiKingDragonfly.position);
-        geoUtils.setOrientation(
-          azukiKing.orientation,
-          azukiKingDragonfly.orientation
-        );
-        geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
-
-        // azukiKing.gltf.scene.position.copy(
-        //   azukiKing.dragonfly.gltf.scene.position
-        // );
-        // azukiKing.gltf.scene.quaternion.copy(
-        //   azukiKing.dragonfly.gltf.scene.quaternion
-        // );
-        // azukiKing.gltf.scene.translateZ(-0.3);
-
-        if (
-          azukiKingDragonfly.position[1] < 10 &&
-          azukiKingDragonfly.speed <= MAX_LANDING_SPEED &&
-          keys.v
-        ) {
-          azukiKingDragonfly.flightState = {
-            kind: DragonflyFlightKind.Landing,
-          };
-          azukiKingDragonfly.dismountTimer = 1.5;
-        }
-      }
-    } else {
-      if (keys.w) {
-        startOrContinueWalkingAnimation(
-          elapsedTimeInSeconds,
-          azukiKing.animation,
-          assets.mcon
-        );
-      } else {
-        stopWalkingAnimation(
-          elapsedTimeInSeconds,
-          azukiKing.animation,
-          assets.mcon
-        );
-      }
-
-      if (
-        azukiKing.animation.kind === SoldierAnimationKind.Slash ||
-        (keys.space && azukiKing.animation.kind === SoldierAnimationKind.Idle)
-      ) {
-        const slashActionTimeScale = 1;
-        const finishesSlashCycleThisTick =
-          azukiKing.animation.timeInSeconds + elapsedTimeInSeconds >=
-          assets.azukiKingSlashClip.duration / slashActionTimeScale;
-        const dealsDamageThisTick = startOrContinueSlashAnimation(
-          elapsedTimeInSeconds,
-          azukiKing.animation,
-          assets.mcon
-        );
-        if (dealsDamageThisTick) {
-          applyKingSlashDamage(Allegiance.Azuki, resources.battle);
-        }
-        if (finishesSlashCycleThisTick && !keys.space) {
-          azukiKing.animation = {
-            kind: SoldierAnimationKind.Idle,
-            timeInSeconds: 0,
-          };
-        }
-      }
-
-      if (azukiKing.animation.kind === SoldierAnimationKind.Walk) {
-        geoUtils.translateZ(
-          azukiKing.position,
-          azukiKing.orientation,
-          -3 * elapsedTimeInSeconds
-        );
-      }
-    }
-
-    dragonflyMixer.update(elapsedTimeInSeconds);
-    dragonfly.translateZ(30 * -elapsedTimeInSeconds);
+    // dragonflyMixer.update(elapsedTimeInSeconds);
+    // dragonfly.translateZ(30 * -elapsedTimeInSeconds);
 
     // azukiKing.dragonfly.mixer.update(elapsedTimeInSeconds);
 
-    cursorMixer.update((1 * elapsedTimeInMillisecs) / 1000);
-    cursor.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
-    cursor.rotateY(
-      Math.atan2(
-        azukiKing.position[0] - cursor.position.x,
-        azukiKing.position[2] - cursor.position.z
-      )
-    );
+    // cursorMixer.update((1 * elapsedTimeInMillisecs) / 1000);
+    // cursor.quaternion.setFromAxisAngle(new Vector3(0, 0, 1), 0);
+    // cursor.rotateY(
+    //   Math.atan2(
+    //     azukiKing.position[0] - cursor.position.x,
+    //     azukiKing.position[2] - cursor.position.z
+    //   )
+    // );
 
     tickDragonflies(elapsedTimeInSeconds, resources);
     tickKings(elapsedTimeInSeconds, resources);
@@ -1151,7 +970,8 @@ function continueIdleThenStabAnimation(
 function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   const azukiKing = resources.battle.getAzukiKing();
   const edamameKing = resources.battle.getEdamameKing();
-  const { keys } = resources;
+  const { keys, mouse } = resources;
+  const { mcon } = resources.san.data;
 
   if (azukiKing.health <= 0) {
     alertOnceAfterDelay("Edamame wins!");
@@ -1170,7 +990,6 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
         azukiKing.orientation
       );
       resources.battle.data.soldierExplosions.push(azukiExplosion);
-      // resources.scene.remove(resources.azukiKing.gltf.scene);
     }
   }
 
@@ -1187,7 +1006,6 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
         edamameKing.orientation
       );
       resources.battle.data.soldierExplosions.push(edamameExplosion);
-      // resources.scene.remove(resources.edamameKing.gltf.scene);
     }
   }
 
@@ -1219,6 +1037,80 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     //   azukiKingDragonfly.isLanding = false;
     //   azukiKingDragonfly.speed = DRAGONFLY_MIN_SPEED;
     // }
+
+    if (azukiKingDragonfly.flightState.kind === DragonflyFlightKind.Landing) {
+      if (
+        azukiKingDragonfly.position[1] <= 2.5 &&
+        azukiKingDragonfly.speed < 5
+      ) {
+      } else {
+        azukiKing.orientation.yaw = azukiKingDragonfly.orientation.yaw;
+
+        geoUtils.setTriple(azukiKing.position, azukiKingDragonfly.position);
+        geoUtils.setOrientation(
+          azukiKing.orientation,
+          azukiKingDragonfly.orientation
+        );
+        geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
+      }
+    } else {
+      let wrappedMouseX = mouse.x;
+      while (wrappedMouseX > 1) {
+        wrappedMouseX -= 1;
+      }
+      while (wrappedMouseX < -1) {
+        wrappedMouseX += 1;
+      }
+
+      geoUtils.setTriple(azukiKing.position, azukiKingDragonfly.position);
+      geoUtils.setOrientation(
+        azukiKing.orientation,
+        azukiKingDragonfly.orientation
+      );
+      geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
+    }
+  } else {
+    if (keys.w) {
+      startOrContinueWalkingAnimation(
+        elapsedTimeInSeconds,
+        azukiKing.animation,
+        mcon
+      );
+    } else {
+      stopWalkingAnimation(elapsedTimeInSeconds, azukiKing.animation, mcon);
+    }
+
+    if (
+      azukiKing.animation.kind === SoldierAnimationKind.Slash ||
+      (keys.space && azukiKing.animation.kind === SoldierAnimationKind.Idle)
+    ) {
+      const slashActionTimeScale = 1;
+      const finishesSlashCycleThisTick =
+        azukiKing.animation.timeInSeconds + elapsedTimeInSeconds >=
+        mcon.azukiKingSlashClipDuration / slashActionTimeScale;
+      const dealsDamageThisTick = startOrContinueSlashAnimation(
+        elapsedTimeInSeconds,
+        azukiKing.animation,
+        mcon
+      );
+      if (dealsDamageThisTick) {
+        applyKingSlashDamage(Allegiance.Azuki, resources.battle);
+      }
+      if (finishesSlashCycleThisTick && !keys.space) {
+        azukiKing.animation = {
+          kind: SoldierAnimationKind.Idle,
+          timeInSeconds: 0,
+        };
+      }
+    }
+
+    if (azukiKing.animation.kind === SoldierAnimationKind.Walk) {
+      geoUtils.translateZ(
+        azukiKing.position,
+        azukiKing.orientation,
+        -3 * elapsedTimeInSeconds
+      );
+    }
   }
 }
 
@@ -1227,13 +1119,156 @@ function tickDragonflies(
   resources: Resources
 ): void {
   const { battle } = resources;
-  const { mcon } = resources.san.data;
   for (const id of battle.data.activeDragonflyIds) {
     const dragonfly = battle.getDragonfly(id);
-    if (dragonfly.animation.kind === DragonflyAnimationKind.Fly) {
-      dragonfly.animation.timeInSeconds =
-        (dragonfly.animation.timeInSeconds + elapsedTimeInSeconds * 5) %
-        mcon.dragonflyFlyClipDuration;
+    tickDragonfly(dragonfly, elapsedTimeInSeconds, resources);
+  }
+}
+
+function tickDragonfly(
+  dragonfly: Dragonfly,
+  elapsedTimeInSeconds: number,
+  resources: Resources
+): void {
+  const { mouse, keys } = resources;
+  const { mcon } = resources.san.data;
+
+  if (dragonfly.animation.kind === DragonflyAnimationKind.Fly) {
+    dragonfly.animation.timeInSeconds =
+      (dragonfly.animation.timeInSeconds + elapsedTimeInSeconds * 5) %
+      mcon.dragonflyFlyClipDuration;
+  }
+
+  if (dragonfly.flightState.kind === DragonflyFlightKind.Landing) {
+    if (dragonfly.position[1] <= 2.5 && dragonfly.speed < 5) {
+      dragonfly.dismountTimer -= elapsedTimeInSeconds;
+      if (dragonfly.dismountTimer <= 0) {
+        // TODO: Dismount
+        // azukiKingDragonfly.isBeingRidden = false;
+        dragonfly.flightState = {
+          kind: DragonflyFlightKind.Resting,
+        };
+        // TODOX
+        // azukiKing.position[1] = 0;
+      }
+    } else {
+      dragonfly.orientation.yaw +=
+        0.5 * elapsedTimeInSeconds * (dragonfly.orientation.roll * 2);
+      dragonfly.orientation.pitch = limitTurn(
+        dragonfly.orientation.pitch,
+        0,
+        0.5 * Math.PI * elapsedTimeInSeconds
+      );
+      dragonfly.orientation.roll = limitTurn(
+        dragonfly.orientation.roll,
+        0,
+        0.2 * Math.PI * elapsedTimeInSeconds
+      );
+
+      if (
+        dragonfly.orientation.pitch === 0 &&
+        dragonfly.orientation.roll === 0
+      ) {
+        dragonfly.speed = Math.max(
+          0,
+          dragonfly.speed * 0.6 ** elapsedTimeInSeconds
+        );
+        dragonfly.position[1] = Math.max(
+          2.5,
+          dragonfly.position[1] * 0.7 ** elapsedTimeInSeconds
+        );
+      }
+
+      // TODOX
+      // azukiKing.orientation.yaw = dragonfly.orientation.yaw;
+
+      // player.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
+      //   new Vector3(0, 1, 0),
+      //   player.yRot
+      // );
+      // player.dragonfly.gltf.scene.rotateX(player.dragonfly.pitch);
+      // player.dragonfly.gltf.scene.rotateZ(player.dragonfly.roll);
+
+      geoUtils.translateZ(
+        dragonfly.position,
+        dragonfly.orientation,
+        dragonfly.speed * -elapsedTimeInSeconds
+      );
+
+      // TODOX
+      // geoUtils.setTriple(azukiKing.position, dragonfly.position);
+      // geoUtils.setOrientation(azukiKing.orientation, dragonfly.orientation);
+      // geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
+
+      // player.gltf.scene.position.copy(player.dragonfly.gltf.scene.position);
+      // player.gltf.scene.quaternion.copy(
+      //   player.dragonfly.gltf.scene.quaternion
+      // );
+      // player.gltf.scene.translateZ(-0.3);
+    }
+  } else {
+    // TODO
+    let wrappedMouseX = mouse.x;
+    while (wrappedMouseX > 1) {
+      wrappedMouseX -= 1;
+    }
+    while (wrappedMouseX < -1) {
+      wrappedMouseX += 1;
+    }
+
+    dragonfly.orientation.yaw +=
+      0.5 * elapsedTimeInSeconds * (dragonfly.orientation.roll * 2);
+
+    const { battle } = resources;
+    const azukiKing = battle.getAzukiKing();
+    const isAzukiKingDragonfly =
+      azukiKing.dragonflyId !== null &&
+      dragonfly === battle.getDragonfly(azukiKing.dragonflyId);
+    if (isAzukiKingDragonfly) {
+      dragonfly.orientation.roll = -(mouse.x - 0.5) * Math.PI;
+      dragonfly.orientation.pitch = -(mouse.y - 0.5) * Math.PI;
+    }
+
+    // TODOX
+    // azukiKing.orientation.yaw = dragonfly.orientation.yaw;
+
+    // azukiKing.dragonfly.gltf.scene.quaternion.setFromAxisAngle(
+    //   new Vector3(0, 1, 0),
+    //   azukiKing.yRot
+    // );
+    // azukiKing.dragonfly.gltf.scene.rotateX(azukiKing.dragonfly.pitch);
+    // azukiKing.dragonfly.gltf.scene.rotateZ(azukiKing.dragonfly.roll);
+
+    geoUtils.translateZ(
+      dragonfly.position,
+      dragonfly.orientation,
+      dragonfly.speed * -elapsedTimeInSeconds
+    );
+
+    // TODOX
+    // geoUtils.setTriple(azukiKing.position, dragonfly.position);
+    // geoUtils.setOrientation(azukiKing.orientation, dragonfly.orientation);
+    // geoUtils.translateZ(azukiKing.position, azukiKing.orientation, -0.3);
+
+    // azukiKing.gltf.scene.position.copy(
+    //   azukiKing.dragonfly.gltf.scene.position
+    // );
+    // azukiKing.gltf.scene.quaternion.copy(
+    //   azukiKing.dragonfly.gltf.scene.quaternion
+    // );
+    // azukiKing.gltf.scene.translateZ(-0.3);
+
+    // TODO: Generalize isLanding to include NPCs.
+    const isLanding = isAzukiKingDragonfly && keys.v;
+    if (
+      dragonfly.position[1] < 10 &&
+      dragonfly.speed <= MAX_LANDING_SPEED &&
+      isLanding
+    ) {
+      dragonfly.flightState = {
+        kind: DragonflyFlightKind.Landing,
+      };
+      dragonfly.dismountTimer = 1.5;
     }
   }
 }
