@@ -4,7 +4,6 @@ import * as geoUtils from "../geoUtils";
 import {
   Allegiance,
   King,
-  Orientation,
   SoldierAnimationKind,
   SoldierAnimationState,
   SoldierExplosion,
@@ -238,11 +237,7 @@ function updateSoldierExplosions(battle: BattleState, san: San): void {
 
   const temp = new Object3D();
   for (const bExplosion of bSoldierExplosions) {
-    temp.position.set(
-      bExplosion.position[0],
-      bExplosion.position[1],
-      bExplosion.position[2]
-    );
+    temp.position.set(...bExplosion.position);
     geoUtils.setQuaternionFromOrientation(
       temp.quaternion,
       bExplosion.orientation

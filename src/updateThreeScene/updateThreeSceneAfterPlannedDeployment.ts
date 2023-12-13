@@ -13,11 +13,7 @@ export function updateThreeSceneAfterPlannedDeployment(
 
   const temp = new Object3D();
   for (const bSoldier of bPlannedUnit.soldiers) {
-    temp.position.set(
-      bSoldier.position[0],
-      bSoldier.position[1],
-      bSoldier.position[2]
-    );
+    temp.position.set(...bSoldier.position);
     temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), bSoldier.yRot);
 
     const instancedMesh = san.data.azukiSpearWalkFrames[0];
