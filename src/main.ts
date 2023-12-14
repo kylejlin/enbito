@@ -2222,12 +2222,20 @@ function isCollidingWithTower(
   const localX = possibleOccupierPosition[0] - towerPosition[0];
   const localY = possibleOccupierPosition[1] - towerPosition[1];
   const localZ = possibleOccupierPosition[2] - towerPosition[2];
-  return (
+  const collidesWithBigHitbox =
     -10 <= localX &&
     localX <= 10 &&
     0 <= localY &&
     localY <= 30 &&
     -10 <= localZ &&
-    localZ <= 10
-  );
+    localZ <= 10;
+
+  if (collidesWithBigHitbox) {
+    const isInGap =
+      ((-5 <= localX && localX <= 5) || (-5 <= localZ && localZ <= 5)) &&
+      0 <= localY &&
+      localY <= 15;
+    return !isInGap;
+  }
+  return false;
 }
