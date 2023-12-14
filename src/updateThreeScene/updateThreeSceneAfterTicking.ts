@@ -51,11 +51,15 @@ function updateKings(battle: BattleState, san: San): void {
 
   updateKingTransform(bAzukiKing, sAzukiKing, battle);
   updateKingAnimation(bAzukiKing, sAzukiKing);
-  scene.add(sAzukiKing.gltf.scene);
+  if (!bAzukiKing.hasExploded) {
+    scene.add(sAzukiKing.gltf.scene);
+  }
 
   updateKingTransform(bEdamameKing, sEdamameKing, battle);
   updateKingAnimation(bEdamameKing, sEdamameKing);
-  scene.add(sEdamameKing.gltf.scene);
+  if (!bEdamameKing.hasExploded) {
+    scene.add(sEdamameKing.gltf.scene);
+  }
 }
 
 function updateKingTransform(

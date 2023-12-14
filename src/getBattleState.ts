@@ -249,6 +249,7 @@ export function getDefaultBattleState(): BattleStateData {
 function getDefaultAzukiKing(): King {
   return {
     isKing: true,
+    hasExploded: false,
     // position: [0, 0, 100],
     position: [0, 0, 5],
     orientation: { yaw: 0, pitch: 0, roll: 0 },
@@ -267,6 +268,7 @@ function getDefaultAzukiKing(): King {
 function getDefaultEdamameKing(): King {
   return {
     isKing: true,
+    hasExploded: false,
     position: [0, 0, -100],
     orientation: { yaw: Math.PI, pitch: 0, roll: 0 },
     animation: {

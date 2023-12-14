@@ -61,6 +61,7 @@ export interface SoldierAnimationState {
 
 export interface King extends Soldier {
   isKing: true;
+  hasExploded: boolean;
   dragonflyId: null | Ref;
   cameraPitch: number;
 }

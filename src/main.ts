@@ -979,36 +979,28 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   if (azukiKing.health <= 0) {
     alertOnceAfterDelay("Edamame wins!");
 
-    if (
-      // resources.scene.children.some(
-      //   (child) => child === resources.azukiKing.gltf.scene
-      // )
-
-      // TODO: Fix this
-      !hasAlerted
-    ) {
+    if (!azukiKing.hasExploded) {
       const azukiExplosion = getSoldierExplosion(
         Allegiance.Azuki,
         azukiKing.position,
         azukiKing.orientation
       );
       resources.battle.data.soldierExplosions.push(azukiExplosion);
+      azukiKing.hasExploded = true;
     }
   }
 
   if (edamameKing.health <= 0) {
     alertOnceAfterDelay("Azuki wins!");
 
-    if (
-      // TODO: Fix this
-      !hasAlerted
-    ) {
+    if (!edamameKing.hasExploded) {
       const edamameExplosion = getSoldierExplosion(
         Allegiance.Edamame,
         edamameKing.position,
         edamameKing.orientation
       );
       resources.battle.data.soldierExplosions.push(edamameExplosion);
+      edamameKing.hasExploded = true;
     }
   }
 
