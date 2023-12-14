@@ -1562,7 +1562,11 @@ function tickUnitWithStormOrder(
     const soldier = battle.getSoldier(soldierId);
     if (
       soldier.attackTargetId !== null &&
-      battle.getSoldier(soldier.attackTargetId).health <= 0
+      (battle.getSoldier(soldier.attackTargetId).health <= 0 ||
+        geoUtils.distanceToSquared(
+          soldier.position,
+          battle.getSoldier(soldier.attackTargetId).position
+        ) > SPEAR_ATTACK_RANGE_SQUARED)
     ) {
       soldier.attackTargetId = null;
     }
@@ -1575,9 +1579,7 @@ function tickUnitWithStormOrder(
     );
 
     if (soldier.attackTargetId === null) {
-      if (nearestEnemy !== null) {
-        soldier.attackTargetId = nearestEnemy;
-      }
+      soldier.attackTargetId = nearestEnemy;
     }
 
     if (soldier.attackTargetId !== null) {
@@ -1601,47 +1603,70 @@ function tickUnitWithStormOrder(
         radiansPerTick
       );
 
+      if (soldier.animation.kind === SoldierAnimationKind.Idle) {
+        if (desiredYRot === soldier.orientation.yaw) {
+          // We only progress the idle timer if we're pointing the correct direction.
+          const dealsDamageThisTick = continueIdleThenStabAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            assets.mcon
+          );
+          if (dealsDamageThisTick) {
+            attackTarget.health -= STAB_DAMAGE;
+          }
+        }
+      }
+
       if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+        // We progress the stab animation regardless of whether we're pointing the correct direction.
         const dealsDamageThisTick = continueStabThenIdleAnimation(
           elapsedTimeInSeconds,
           soldier.animation,
           assets.mcon
         );
-        if (dealsDamageThisTick) {
-          attackTarget.health -= STAB_DAMAGE;
+        // However, we only deal damage if
+        // we're pointing the correct direction.
+        if (desiredYRot === soldier.orientation.yaw) {
+          if (dealsDamageThisTick) {
+            attackTarget.health -= STAB_DAMAGE;
+          }
         }
-      } else if (soldier.animation.kind === SoldierAnimationKind.Idle) {
-        const dealsDamageThisTick = continueIdleThenStabAnimation(
+      }
+    } else {
+      // `else` condition: `soldier.attackTargetId === null`
+
+      if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+        continueStabThenIdleAnimation(
           elapsedTimeInSeconds,
           soldier.animation,
           assets.mcon
         );
-        if (dealsDamageThisTick) {
-          attackTarget.health -= STAB_DAMAGE;
-        }
-      }
-    } else {
-      const forwardAngle = Math.atan2(unit.forward[0], unit.forward[2]);
-      if (nearestEnemy !== null) {
-        soldier.attackTargetId = nearestEnemy;
-      } else {
-        const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-        soldier.orientation.yaw = limitTurn(
-          soldier.orientation.yaw,
-          forwardAngle,
-          radiansPerTick
-        );
-        if (soldier.orientation.yaw === forwardAngle) {
-          startOrContinueWalkingAnimation(
-            elapsedTimeInSeconds,
-            soldier.animation,
-            assets.mcon
+      } else if (
+        soldier.animation.kind === SoldierAnimationKind.Idle ||
+        soldier.animation.kind === SoldierAnimationKind.Walk
+      ) {
+        const forwardAngle = Math.atan2(unit.forward[0], unit.forward[2]);
+        if (nearestEnemy !== null) {
+          soldier.attackTargetId = nearestEnemy;
+        } else {
+          const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+          soldier.orientation.yaw = limitTurn(
+            soldier.orientation.yaw,
+            forwardAngle,
+            radiansPerTick
           );
-          geoUtils.translateZ(
-            soldier.position,
-            soldier.orientation,
-            -1.5 * elapsedTimeInSeconds
-          );
+          if (soldier.orientation.yaw === forwardAngle) {
+            startOrContinueWalkingAnimation(
+              elapsedTimeInSeconds,
+              soldier.animation,
+              assets.mcon
+            );
+            geoUtils.translateZ(
+              soldier.position,
+              soldier.orientation,
+              -1.5 * elapsedTimeInSeconds
+            );
+          }
         }
       }
     }
