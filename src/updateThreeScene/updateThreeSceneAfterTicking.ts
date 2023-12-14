@@ -3,6 +3,7 @@ import { GltfCache, San, SanKing } from "../san";
 import * as geoUtils from "../geoUtils";
 import {
   Allegiance,
+  Dragonfly,
   DragonflyAnimationKind,
   King,
   SoldierAnimationKind,
@@ -114,16 +115,28 @@ function updateDragonflies(battle: BattleState, san: San): void {
     );
     sDragonfly.scale.setScalar(0.6);
 
-    if (bDragonfly.animation.kind === DragonflyAnimationKind.Fly) {
-      const dragonflyMixer = new AnimationMixer(sDragonfly);
-      const flyClip = AnimationClip.findByName(
-        sDragonflyGltf.animations,
-        "Fly"
-      );
-      const dragonflyFlyAction = dragonflyMixer.clipAction(flyClip);
-      dragonflyFlyAction.play();
-      dragonflyMixer.setTime(bDragonfly.animation.timeInSeconds);
-    }
+    updateDragonflyAnimationMixer(bDragonfly, sDragonflyGltf);
+  }
+}
+
+function updateDragonflyAnimationMixer(
+  bDragonfly: Dragonfly,
+  sDragonflyGltf: GLTF
+): void {
+  const sDragonfly = sDragonflyGltf.scene;
+  const dragonflyMixer = new AnimationMixer(sDragonfly);
+
+  if (bDragonfly.animation.kind === DragonflyAnimationKind.Fly) {
+    const flyClip = AnimationClip.findByName(sDragonflyGltf.animations, "Fly");
+    const dragonflyFlyAction = dragonflyMixer.clipAction(flyClip);
+    dragonflyFlyAction.play();
+    dragonflyMixer.setTime(bDragonfly.animation.timeInSeconds);
+  } else if (bDragonfly.animation.kind === DragonflyAnimationKind.Idle) {
+    // The idle pose is just the resting pose of the Fly animation.
+    const flyClip = AnimationClip.findByName(sDragonflyGltf.animations, "Fly");
+    const dragonflyFlyAction = dragonflyMixer.clipAction(flyClip);
+    dragonflyFlyAction.play();
+    dragonflyMixer.setTime(0);
   }
 }
 

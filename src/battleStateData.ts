@@ -25,6 +25,7 @@ export enum SoldierAnimationKind {
 
 export enum DragonflyAnimationKind {
   Fly,
+  Idle,
 }
 
 export enum DragonflyFlightKind {
@@ -101,10 +102,8 @@ export interface DragonflyRestingState {
   kind: DragonflyFlightKind.Resting;
 }
 
-export type DragonflyAnimationState = DragonflyFlyAnimationState;
-
-export interface DragonflyFlyAnimationState {
-  kind: DragonflyAnimationKind.Fly;
+export interface DragonflyAnimationState {
+  kind: DragonflyAnimationKind;
   timeInSeconds: number;
 }
 

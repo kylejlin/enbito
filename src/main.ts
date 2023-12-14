@@ -1126,6 +1126,10 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       nearestRestingDragonfly.flightState = {
         kind: DragonflyFlightKind.Flying,
       };
+      nearestRestingDragonfly.animation = {
+        kind: DragonflyAnimationKind.Fly,
+        timeInSeconds: 0,
+      };
       nearestRestingDragonfly.speed = DRAGONFLY_MIN_SPEED;
       azukiKing.dragonflyId = nearestRestingDragonflyId;
     }
@@ -1232,6 +1236,11 @@ function tickDragonfly(
         dragonfly.flightState = {
           kind: DragonflyFlightKind.Resting,
         };
+        dragonfly.animation = {
+          kind: DragonflyAnimationKind.Idle,
+          timeInSeconds: 0,
+        };
+
         // TODOX
         // azukiKing.position[1] = 0;
       }

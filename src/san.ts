@@ -72,7 +72,7 @@ export interface SanKing {
   slashAction: AnimationAction;
 }
 
-export interface SansDragonfly {
+export interface SanDragonfly {
   gltf: GLTF;
   mixer: AnimationMixer;
   flyClip: AnimationClip;
