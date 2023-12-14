@@ -1029,7 +1029,7 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
     if (keys.g) {
       azukiKingDragonfly.speed = Math.max(
         DRAGONFLY_MIN_SPEED,
-        azukiKingDragonfly.speed - 10 * elapsedTimeInSeconds
+        azukiKingDragonfly.speed - 30 * elapsedTimeInSeconds
       );
     }
 
