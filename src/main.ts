@@ -1148,7 +1148,11 @@ function performDragonflyRelatedLogicForAzukiKingTick(
     azukiKing.dragonflyId !== null &&
     battle.getDragonfly(azukiKing.dragonflyId).flightState.kind ===
       DragonflyFlightKind.Flying &&
-    battle.getDragonfly(azukiKing.dragonflyId).position[1] <= 0
+    (battle.getDragonfly(azukiKing.dragonflyId).position[1] <= 0 ||
+      getCollidingBannerTower(
+        battle.getDragonfly(azukiKing.dragonflyId).position,
+        battle
+      ) !== null)
   ) {
     azukiKing.health = 0;
     azukiKing.dragonflyId = null;
@@ -2195,4 +2199,35 @@ function getNearestRestingDragonflyId(
   }
 
   return nearestDragonflyId;
+}
+
+function getCollidingBannerTower(
+  position: Triple,
+  battle: BattleState
+): null | Ref {
+  for (const towerId of battle.data.activeTowerIds) {
+    const tower = battle.getBannerTower(towerId);
+    if (isCollidingWithTower(position, tower.position)) {
+      return towerId;
+    }
+  }
+
+  return null;
+}
+
+function isCollidingWithTower(
+  possibleOccupierPosition: Triple,
+  towerPosition: Triple
+): boolean {
+  const localX = possibleOccupierPosition[0] - towerPosition[0];
+  const localY = possibleOccupierPosition[1] - towerPosition[1];
+  const localZ = possibleOccupierPosition[2] - towerPosition[2];
+  return (
+    -10 <= localX &&
+    localX <= 10 &&
+    0 <= localY &&
+    localY <= 30 &&
+    -10 <= localZ &&
+    localZ <= 10
+  );
 }
