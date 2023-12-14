@@ -80,6 +80,9 @@ const DRAGONFLY_MOUNTING_MAX_DISTANCE_SQUARED = 5 ** 2;
 const DRAGONFLY_MIN_SPEED = 5;
 const STAB_TIME_SCALE = 2;
 const MAX_STAB_DELAY = 1;
+const DRAGONFLY_MAX_SPEED = 50;
+const DRAGONFLY_ACCELERATION = 10;
+const DRAGONFLY_DECELERATION = 30;
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -1024,12 +1027,15 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       azukiKing.dragonflyId
     );
     if (keys.t) {
-      azukiKingDragonfly.speed += 10 * elapsedTimeInSeconds;
+      azukiKingDragonfly.speed = Math.min(
+        DRAGONFLY_MAX_SPEED,
+        azukiKingDragonfly.speed + DRAGONFLY_ACCELERATION * elapsedTimeInSeconds
+      );
     }
     if (keys.g) {
       azukiKingDragonfly.speed = Math.max(
         DRAGONFLY_MIN_SPEED,
-        azukiKingDragonfly.speed - 30 * elapsedTimeInSeconds
+        azukiKingDragonfly.speed - DRAGONFLY_DECELERATION * elapsedTimeInSeconds
       );
     }
 
