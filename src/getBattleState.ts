@@ -26,9 +26,9 @@ export function getDefaultBattleState(): BattleStateData {
   entities.push(edamameKing);
 
   const azukiKingDragonfly: Dragonfly = {
-    position: [0, 2.5, 105],
+    position: [0, 2.5, 10],
     orientation: { yaw: 0, pitch: 0, roll: 0 },
-    flightState: { kind: DragonflyFlightKind.Flying },
+    flightState: { kind: DragonflyFlightKind.Resting },
     speed: 30,
     animation: { kind: DragonflyAnimationKind.Fly, timeInSeconds: 0 },
     dismountTimer: 0,
@@ -38,7 +38,7 @@ export function getDefaultBattleState(): BattleStateData {
     isEntityId: true,
     value: entities.indexOf(azukiKingDragonfly),
   };
-  azukiKing.dragonflyId = azukiKingDragonflyId;
+  // azukiKing.dragonflyId = azukiKingDragonflyId;
 
   const azukiLegion = getUnit(entities, {
     start: [-50, 0, 50],
