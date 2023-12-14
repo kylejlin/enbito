@@ -26,7 +26,7 @@ export function getDefaultBattleState(): BattleStateData {
   entities.push(edamameKing);
 
   const azukiKingDragonfly: Dragonfly = {
-    position: [0, 2.5, 10],
+    position: [0, 2.5, 25],
     orientation: { yaw: 0, pitch: 0, roll: 0 },
     flightState: { kind: DragonflyFlightKind.Resting },
     speed: 30,
@@ -41,8 +41,7 @@ export function getDefaultBattleState(): BattleStateData {
   // azukiKing.dragonflyId = azukiKingDragonflyId;
 
   const azukiLegion = getUnit(entities, {
-    start: [-50, 0, 50],
-    // start: [-50, 0, 100],
+    start: [-50, 0, 70],
     forward: [0, 0, 1],
     dimensions: [10, 10],
     gap: [8, 8 * (Math.sqrt(3) / 2)],
@@ -51,7 +50,7 @@ export function getDefaultBattleState(): BattleStateData {
   entities.push(azukiLegion);
 
   const edamameLegion = getUnit(entities, {
-    start: [50, 0, -100],
+    start: [50, 0, -70],
     forward: [0, 0, -1],
     dimensions: [10, 10],
     gap: [8, 8 * (Math.sqrt(3) / 2)],
@@ -251,7 +250,7 @@ function getDefaultAzukiKing(): King {
     isKing: true,
     hasExploded: false,
     // position: [0, 0, 100],
-    position: [0, 0, 5],
+    position: [0, 0, 20],
     orientation: { yaw: 0, pitch: 0, roll: 0 },
     animation: {
       kind: SoldierAnimationKind.Idle,
