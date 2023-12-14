@@ -973,8 +973,8 @@ function continueIdleThenStabAnimation(
 function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   const azukiKing = resources.battle.getAzukiKing();
   const edamameKing = resources.battle.getEdamameKing();
-  const { keys, mouse, battle } = resources;
-  const { mcon } = resources.san.data;
+
+  performDragonflyRelatedLogicForAzukiKingTick(elapsedTimeInSeconds, resources);
 
   if (azukiKing.health <= 0) {
     alertOnceAfterDelay("Edamame wins!");
@@ -1003,6 +1003,15 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       edamameKing.hasExploded = true;
     }
   }
+}
+
+function performDragonflyRelatedLogicForAzukiKingTick(
+  elapsedTimeInSeconds: number,
+  resources: Resources
+): void {
+  const azukiKing = resources.battle.getAzukiKing();
+  const { keys, mouse, battle } = resources;
+  const { mcon } = resources.san.data;
 
   if (
     azukiKing.dragonflyId !== null &&
@@ -1133,6 +1142,15 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       nearestRestingDragonfly.speed = DRAGONFLY_MIN_SPEED;
       azukiKing.dragonflyId = nearestRestingDragonflyId;
     }
+  }
+
+  if (
+    azukiKing.dragonflyId !== null &&
+    battle.getDragonfly(azukiKing.dragonflyId).flightState.kind ===
+      DragonflyFlightKind.Flying &&
+    battle.getDragonfly(azukiKing.dragonflyId).position[1] <= 0
+  ) {
+    azukiKing.health = 0;
   }
 }
 
