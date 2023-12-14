@@ -1151,6 +1151,7 @@ function performDragonflyRelatedLogicForAzukiKingTick(
     battle.getDragonfly(azukiKing.dragonflyId).position[1] <= 0
   ) {
     azukiKing.health = 0;
+    azukiKing.dragonflyId = null;
   }
 }
 
