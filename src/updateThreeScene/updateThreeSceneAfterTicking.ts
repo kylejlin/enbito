@@ -313,10 +313,9 @@ function updateBannerTowers(battle: BattleState, san: San): void {
 
     const safezone = new Mesh(
       new CircleGeometry(Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED), 32),
-      // TODO
       bTower.allegiance === Allegiance.Azuki
-        ? new MeshBasicMaterial({ color: 0xff0000 })
-        : new MeshBasicMaterial({ color: 0x00ff00 })
+        ? new MeshBasicMaterial({ color: 0x6d2d28 })
+        : new MeshBasicMaterial({ color: 0xa2d02b })
     );
     safezone.position.set(bTower.position[0], 0.1, bTower.position[2]);
     safezone.rotateX(-Math.PI * 0.5);
