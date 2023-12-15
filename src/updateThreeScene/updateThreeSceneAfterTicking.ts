@@ -326,7 +326,7 @@ function updateBannerTowers(battle: BattleState, san: San): void {
       ),
       bTower.allegiance === Allegiance.Azuki
         ? new MeshLambertMaterial({
-            emissive: 0x6d2d28,
+            emissive: 0xf76157,
             transparent: true,
             opacity: 0.5,
           })
