@@ -16,6 +16,7 @@ Click the screen to lock the mousepointer.
 - 1: Set spear formation
 - F: Deploy planned formation
   - You must first move the cursor under the tower you want to deploy from
+- `{` (left curly brace): Reset game state
 
 ## Attribution
 
