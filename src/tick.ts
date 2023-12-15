@@ -42,7 +42,7 @@ import {
   DRAGONFLY_ACCELERATION,
   DRAGONFLY_DECELERATION,
   MILLISECS_PER_TICK,
-  KING_MAX_DISTANCE_FROM_BANNER_TOWER_SQUARED,
+  BANNERTOWER_SAFEZONE_RANGE_SQUARED,
   KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND,
 } from "./gameConsts";
 
@@ -1397,7 +1397,7 @@ function isAzukiKingBannerTowerSafezone(battle: BattleState): boolean {
     geoUtils.distanceToSquared(
       azukiKing.position,
       battle.getBannerTower(nearestAzukiTowerId).position
-    ) <= KING_MAX_DISTANCE_FROM_BANNER_TOWER_SQUARED
+    ) <= BANNERTOWER_SAFEZONE_RANGE_SQUARED
   );
 }
 
@@ -1418,7 +1418,7 @@ function isEdamameKingBannerTowerSafezone(battle: BattleState): boolean {
     geoUtils.distanceToSquared(
       edamameKing.position,
       battle.getBannerTower(nearestEdamameTowerId).position
-    ) <= KING_MAX_DISTANCE_FROM_BANNER_TOWER_SQUARED
+    ) <= BANNERTOWER_SAFEZONE_RANGE_SQUARED
   );
 }
 

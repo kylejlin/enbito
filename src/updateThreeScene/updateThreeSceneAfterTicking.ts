@@ -13,13 +13,17 @@ import {
 import {
   AnimationClip,
   AnimationMixer,
+  CircleGeometry,
   InstancedMesh,
+  Mesh,
+  MeshBasicMaterial,
   Object3D,
   Raycaster,
   Vector3,
 } from "three";
 import { cloneGltf } from "../cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import { BANNERTOWER_SAFEZONE_RANGE_SQUARED } from "../gameConsts";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -306,6 +310,17 @@ function updateBannerTowers(battle: BattleState, san: San): void {
       pitch: 0,
       roll: 0,
     });
+
+    const safezone = new Mesh(
+      new CircleGeometry(Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED), 32),
+      // TODO
+      bTower.allegiance === Allegiance.Azuki
+        ? new MeshBasicMaterial({ color: 0xff0000 })
+        : new MeshBasicMaterial({ color: 0x00ff00 })
+    );
+    safezone.position.set(bTower.position[0], 0.1, bTower.position[2]);
+    safezone.rotateX(-Math.PI * 0.5);
+    san.data.scene.add(safezone);
   }
 }
 
