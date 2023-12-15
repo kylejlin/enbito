@@ -16,6 +16,7 @@ import {
   AnimationMixer,
   CircleGeometry,
   CylinderGeometry,
+  DoubleSide,
   InstancedMesh,
   Mesh,
   MeshBasicMaterial,
@@ -304,6 +305,8 @@ function getExplosionFrameInstancedMesh(
 }
 
 function updateBannerTowers(battle: BattleState, san: San): void {
+  const azukiKing = battle.getAzukiKing();
+
   const bTowerIds = battle.data.activeTowerIds;
   let towerIndex = 0;
   for (const bTowerId of bTowerIds) {
@@ -338,10 +341,10 @@ function updateBannerTowers(battle: BattleState, san: San): void {
     );
     safezone.position.set(
       bTower.position[0],
-      0.05 * towerIndex,
+      (1 + Math.sqrt(azukiKing.position[1])) * 0.05 * towerIndex,
       bTower.position[2]
     );
-    // safezone.rotateX(-Math.PI * 0.5);
+    safezone.material.side = DoubleSide;
     san.data.scene.add(safezone);
     safezone.geometry.computeBoundingBox();
     safezone.geometry.computeBoundingSphere();
