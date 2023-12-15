@@ -11,12 +11,15 @@ import {
   SoldierExplosion,
 } from "../battleStateData";
 import {
+  AmbientLight,
   AnimationClip,
   AnimationMixer,
   CircleGeometry,
+  CylinderGeometry,
   InstancedMesh,
   Mesh,
   MeshBasicMaterial,
+  MeshLambertMaterial,
   Object3D,
   Raycaster,
   Vector3,
@@ -36,6 +39,8 @@ export function updateThreeSceneAfterTicking(
 
   scene.add(sky);
   scene.add(grass);
+
+  scene.add(new AmbientLight(0xffffff, 0.5));
 
   updateKings(battle, san);
   updateDragonflies(battle, san);
@@ -300,6 +305,7 @@ function getExplosionFrameInstancedMesh(
 
 function updateBannerTowers(battle: BattleState, san: San): void {
   const bTowerIds = battle.data.activeTowerIds;
+  let towerIndex = 0;
   for (const bTowerId of bTowerIds) {
     const bTower = battle.getBannerTower(bTowerId);
     const sMeshCache = getBannerTowerGltfCache(bTower.allegiance, san);
@@ -312,14 +318,35 @@ function updateBannerTowers(battle: BattleState, san: San): void {
     });
 
     const safezone = new Mesh(
-      new CircleGeometry(Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED), 32),
+      new CylinderGeometry(
+        Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+        Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+        1,
+        32
+      ),
       bTower.allegiance === Allegiance.Azuki
-        ? new MeshBasicMaterial({ color: 0x6d2d28 })
-        : new MeshBasicMaterial({ color: 0xa2d02b })
+        ? new MeshLambertMaterial({
+            emissive: 0x6d2d28,
+            transparent: true,
+            opacity: 0.5,
+          })
+        : new MeshLambertMaterial({
+            emissive: 0xa2d02b,
+            transparent: true,
+            opacity: 0.5,
+          })
     );
-    safezone.position.set(bTower.position[0], 0.1, bTower.position[2]);
-    safezone.rotateX(-Math.PI * 0.5);
+    safezone.position.set(
+      bTower.position[0],
+      0.05 * towerIndex,
+      bTower.position[2]
+    );
+    // safezone.rotateX(-Math.PI * 0.5);
     san.data.scene.add(safezone);
+    safezone.geometry.computeBoundingBox();
+    safezone.geometry.computeBoundingSphere();
+
+    ++towerIndex;
   }
 }
 
