@@ -1,13 +1,5 @@
 import { Assets, ModelConstants } from "./assets";
-import {
-  Vector3,
-  WebGLCubeRenderTarget,
-  HalfFloatType,
-  AnimationMixer,
-  AnimationClip,
-  AmbientLight,
-} from "three";
-import { cloneGltf } from "./cloneGltf";
+import { Vector3, AmbientLight } from "three";
 import {
   AdvanceOrder,
   Allegiance,
@@ -201,20 +193,6 @@ export function main(assets: Assets): void {
   window.addEventListener("resize", resizeCameraAndRerender);
 
   document.body.appendChild(san.data.renderer.domElement);
-
-  const cursorGltf = cloneGltf(assets.azukiSpear);
-  const cursor = cursorGltf.scene;
-  cursor.position.set(3, 0, 0);
-  const cursorWalkClip = AnimationClip.findByName(
-    cursorGltf.animations,
-    "Walk"
-  );
-
-  const cursorMixer = new AnimationMixer(cursor);
-  const cursorWalkAction = cursorMixer.clipAction(cursorWalkClip);
-  cursorWalkAction.play();
-
-  san.data.scene.add(cursor);
 
   san.data.scene.add(new AmbientLight(0x888888, 10));
 
