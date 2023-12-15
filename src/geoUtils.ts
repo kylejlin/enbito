@@ -49,6 +49,17 @@ export function distanceToSquared(self: Triple, other: Triple): number {
   return dx * dx + dy * dy + dz * dz;
 }
 
+/** This function only uses the X and Z components of the vectors. */
+export function xzDistanceToSquared(self: Triple, other: Triple): number {
+  const x1 = self[0];
+  const z1 = self[2];
+  const x2 = other[0];
+  const z2 = other[2];
+  const dx = x1 - x2;
+  const dz = z1 - z2;
+  return dx * dx + dz * dz;
+}
+
 export function cloneTriple(x: Triple): Triple {
   return [x[0], x[1], x[2]];
 }

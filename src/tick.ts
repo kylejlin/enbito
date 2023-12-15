@@ -1394,7 +1394,7 @@ function isAzukiKingBannerTowerSafezone(battle: BattleState): boolean {
   );
   return (
     nearestAzukiTowerId !== null &&
-    geoUtils.distanceToSquared(
+    geoUtils.xzDistanceToSquared(
       azukiKing.position,
       battle.getBannerTower(nearestAzukiTowerId).position
     ) <= BANNERTOWER_SAFEZONE_RANGE_SQUARED
@@ -1415,7 +1415,7 @@ function isEdamameKingBannerTowerSafezone(battle: BattleState): boolean {
   );
   return (
     nearestEdamameTowerId !== null &&
-    geoUtils.distanceToSquared(
+    geoUtils.xzDistanceToSquared(
       edamameKing.position,
       battle.getBannerTower(nearestEdamameTowerId).position
     ) <= BANNERTOWER_SAFEZONE_RANGE_SQUARED
