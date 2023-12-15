@@ -96,6 +96,11 @@ export function main(assets: Assets): void {
     if (e.key === "1") {
       keys._1 = true;
     }
+
+    if (e.key === "{") {
+      localStorage.removeItem(LOCAL_STORAGE_BATTLE_DATA_KEY);
+      window.location.reload();
+    }
   });
   window.addEventListener("keyup", (e) => {
     if (e.key === "w") {
