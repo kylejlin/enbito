@@ -18,6 +18,8 @@ import { BattleStateData } from "./battleStateData";
 const BATTLE_STATE_SAVE_PERIOD_IN_SECONDS = 1;
 const LOCAL_STORAGE_BATTLE_DATA_KEY = "enbito.battle_data";
 
+let isAboutToReloadPage = false;
+
 export function main(assets: Assets): void {
   const san = new San(getDefaultSanData(assets));
 
@@ -98,6 +100,7 @@ export function main(assets: Assets): void {
     }
 
     if (e.key === "{") {
+      isAboutToReloadPage = true;
       localStorage.removeItem(LOCAL_STORAGE_BATTLE_DATA_KEY);
       window.location.reload();
     }
@@ -195,7 +198,10 @@ export function main(assets: Assets): void {
 
     requestAnimationFrame(onAnimationFrame);
 
-    if (resources.secondsUntilNextBattleStateSave <= 0) {
+    if (
+      resources.secondsUntilNextBattleStateSave <= 0 &&
+      !isAboutToReloadPage
+    ) {
       saveBattleData(resources.battle.data);
       while (resources.secondsUntilNextBattleStateSave <= 0) {
         resources.secondsUntilNextBattleStateSave +=
