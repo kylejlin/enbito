@@ -11,6 +11,8 @@ export interface Resources {
   battle: BattleState;
 
   san: San;
+
+  secondsUntilNextBattleStateSave: number;
 }
 
 export interface MouseState {

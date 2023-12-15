@@ -13,6 +13,10 @@ import { getGroundCursorPosition } from "./groundCursor";
 import { KeySet, MouseState, Resources } from "./resourceBundle";
 import { tick, updatePlannedDeploymentAfterUpdatingCamera } from "./tick";
 import { MILLISECS_PER_TICK } from "./gameConsts";
+import { BattleStateData } from "./battleStateData";
+
+const BATTLE_STATE_SAVE_PERIOD_IN_SECONDS = 1;
+const LOCAL_STORAGE_BATTLE_DATA_KEY = "enbito.battle_data";
 
 export function main(assets: Assets): void {
   const san = new San(getDefaultSanData(assets));
@@ -133,11 +137,12 @@ export function main(assets: Assets): void {
   san.data.scene.add(new AmbientLight(0x888888, 10));
 
   const resources: Resources = {
-    battle: new BattleState(getDefaultBattleState()),
+    battle: loadBattleStateOrFallBackToDefault(),
     san,
     mouse,
     keys,
     assets,
+    secondsUntilNextBattleStateSave: BATTLE_STATE_SAVE_PERIOD_IN_SECONDS,
   };
 
   const azukiKing = resources.battle.getAzukiKing();
@@ -168,6 +173,7 @@ export function main(assets: Assets): void {
     while (lastWorldTime + MILLISECS_PER_TICK <= worldTime) {
       tick(resources);
       lastWorldTime += MILLISECS_PER_TICK;
+      resources.secondsUntilNextBattleStateSave -= MILLISECS_PER_TICK * 1e-3;
     }
 
     resetThreeScene(resources.san);
@@ -183,6 +189,14 @@ export function main(assets: Assets): void {
     render();
 
     requestAnimationFrame(onAnimationFrame);
+
+    if (resources.secondsUntilNextBattleStateSave <= 0) {
+      saveBattleData(resources.battle.data);
+      while (resources.secondsUntilNextBattleStateSave <= 0) {
+        resources.secondsUntilNextBattleStateSave +=
+          BATTLE_STATE_SAVE_PERIOD_IN_SECONDS;
+      }
+    }
   }
 
   function oncePerFrameBeforeTicks(): void {
@@ -216,4 +230,22 @@ export function main(assets: Assets): void {
   function trySetDeploymentEnd(): void {
     resources.battle.data.plannedDeployment.start = null;
   }
+}
+
+function loadBattleStateOrFallBackToDefault(): BattleState {
+  const s = localStorage.getItem(LOCAL_STORAGE_BATTLE_DATA_KEY);
+
+  if (s !== null) {
+    try {
+      const data = JSON.parse(s);
+      return new BattleState(data);
+    } catch {}
+  }
+
+  return new BattleState(getDefaultBattleState());
+}
+
+function saveBattleData(data: BattleStateData): void {
+  const s = JSON.stringify(data);
+  localStorage.setItem(LOCAL_STORAGE_BATTLE_DATA_KEY, s);
 }
