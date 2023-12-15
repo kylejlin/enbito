@@ -58,6 +58,7 @@ export function main(assets: Assets): void {
     g: false,
     r: false,
     v: false,
+    d: false,
     space: false,
     _1: false,
   };
@@ -79,6 +80,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "v") {
       keys.v = true;
+    }
+    if (e.key === "d") {
+      keys.d = true;
     }
     if (e.key === " ") {
       keys.space = true;
@@ -107,6 +111,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "v") {
       keys.v = false;
+    }
+    if (e.key === "d") {
+      keys.d = false;
     }
     if (e.key === " ") {
       keys.space = false;

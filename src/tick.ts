@@ -524,7 +524,7 @@ function tickPlannedDeployment(
   const selectedTowerId = getAzukiBannerTowerEnclosingGroundCursor(resources);
   if (
     plannedDeployment.plannedUnit !== null &&
-    keys.f &&
+    keys.d &&
     selectedTowerId !== null
   ) {
     const selectedTower = battle.getBannerTower(selectedTowerId);
