@@ -3,6 +3,7 @@ import { GltfCache, San, SanKing } from "../san";
 import * as geoUtils from "../geoUtils";
 import {
   Allegiance,
+  BannerTower,
   Dragonfly,
   DragonflyAnimationKind,
   King,
@@ -306,8 +307,7 @@ function getExplosionFrameInstancedMesh(
 
 function updateBannerTowers(battle: BattleState, san: San): void {
   const azukiKing = battle.getAzukiKing();
-  const azukiSafezoneMarkers = [];
-  const edamameSafezoneMarkers = [];
+  const safezoneMarkers: [BannerTower, Mesh][] = [];
 
   const bTowerIds = battle.data.activeTowerIds;
   for (const bTowerId of bTowerIds) {
@@ -327,58 +327,33 @@ function updateBannerTowers(battle: BattleState, san: San): void {
         Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
         1,
         32
-      )
+      ),
+      bTower.allegiance === Allegiance.Azuki
+        ? new MeshLambertMaterial({
+            emissive: 0xf76157,
+            transparent: true,
+            opacity: 0.5,
+          })
+        : new MeshLambertMaterial({
+            emissive: 0xa2d02b,
+            transparent: true,
+            opacity: 0.5,
+          })
     );
     safezone.position.set(bTower.position[0], 0, bTower.position[2]);
-    if (bTower.allegiance === Allegiance.Azuki) {
-      safezone.material = new MeshLambertMaterial({
-        emissive: 0xf76157,
-        transparent: true,
-        opacity: 0.5,
-      });
-      azukiSafezoneMarkers.push(safezone);
-    } else {
-      safezone.material = new MeshLambertMaterial({
-        emissive: 0xa2d02b,
-        transparent: true,
-        opacity: 0.5,
-      });
-      edamameSafezoneMarkers.push(safezone);
-    }
     safezone.material.side = DoubleSide;
+
+    safezoneMarkers.push([bTower, safezone]);
   }
 
-  azukiSafezoneMarkers.sort((a, b) => {
-    const aDistSq = geoUtils.distanceToSquared(
-      azukiKing.position,
-      geoUtils.fromThreeVec(a.position)
-    );
-    const bDistSq = geoUtils.distanceToSquared(
-      azukiKing.position,
-      geoUtils.fromThreeVec(b.position)
-    );
+  safezoneMarkers.sort(([a], [b]) => {
+    const aDistSq = geoUtils.distanceToSquared(azukiKing.position, a.position);
+    const bDistSq = geoUtils.distanceToSquared(azukiKing.position, b.position);
     return aDistSq - bDistSq;
   });
-  for (let i = 0; i < azukiSafezoneMarkers.length; ++i) {
-    const marker = azukiSafezoneMarkers[i];
-    marker.position.setY(0.1 + 0.05 * i);
-    san.data.scene.add(marker);
-  }
-
-  edamameSafezoneMarkers.sort((a, b) => {
-    const aDistSq = geoUtils.distanceToSquared(
-      azukiKing.position,
-      geoUtils.fromThreeVec(a.position)
-    );
-    const bDistSq = geoUtils.distanceToSquared(
-      azukiKing.position,
-      geoUtils.fromThreeVec(b.position)
-    );
-    return aDistSq - bDistSq;
-  });
-  for (let i = 0; i < edamameSafezoneMarkers.length; ++i) {
-    const marker = edamameSafezoneMarkers[i];
-    marker.position.setY(0.05 + 0.05 * i);
+  for (let i = 0; i < safezoneMarkers.length; ++i) {
+    const marker = safezoneMarkers[i][1];
+    marker.position.setY(-0.3 + 0.05 * i);
     san.data.scene.add(marker);
   }
 }
