@@ -67,7 +67,9 @@ export function main(assets: Assets): void {
       keys.w = true;
     }
     if (e.key === "f") {
+      const wasKeyFDown = keys._1;
       keys.f = true;
+      trySetDeploymentStart(wasKeyFDown);
     }
     if (e.key === "t") {
       keys.t = true;
@@ -88,9 +90,7 @@ export function main(assets: Assets): void {
       keys.space = true;
     }
     if (e.key === "1") {
-      const wasKey1Down = keys._1;
       keys._1 = true;
-      trySetDeploymentStart(wasKey1Down);
     }
   });
   window.addEventListener("keyup", (e) => {
@@ -99,6 +99,7 @@ export function main(assets: Assets): void {
     }
     if (e.key === "f") {
       keys.f = false;
+      trySetDeploymentEnd();
     }
     if (e.key === "t") {
       keys.t = false;
@@ -120,7 +121,6 @@ export function main(assets: Assets): void {
     }
     if (e.key === "1") {
       keys._1 = false;
-      trySetDeploymentEnd();
     }
   });
 

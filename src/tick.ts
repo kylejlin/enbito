@@ -1209,7 +1209,7 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
 ): void {
   const { battle, san, keys } = resources;
   const groundCursorPosition = getGroundCursorPosition(san);
-  if (groundCursorPosition === null || !keys._1) {
+  if (groundCursorPosition === null || !keys.f) {
     return;
   }
 
