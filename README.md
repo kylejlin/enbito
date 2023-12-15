@@ -1,10 +1,21 @@
-# Blantsan
+# Enbito
 
-## Notes
+This document is not kept up to date.
 
-You cannot `import * as THREE from "three";` for some reason.
-The build is semi-broken.
-I don't know how to fix it.
+## Controls
+
+Click the screen to lock the mousepointer.
+
+- Mouse: Turn
+- W: Move forward
+- R: Mount dragonfly
+- V: Land dragonfly
+  - You must be moving slowly and be near the ground.
+- T: Accelerate dragonfly
+- G: Decelerate dragonfly
+- 1: Set spear formation
+- F: Deploy planned formation
+  - You must first move the cursor under the tower you want to deploy from
 
 ## Attribution
 
@@ -14,7 +25,5 @@ I don't know how to fix it.
 
 ### Grass
 
-The code for the grass is taken from [https://codesandbox.io/s/ehflx3](https://codesandbox.io/s/ehflx3),
-by [@CantBeFaraz](https://twitter.com/CantBeFaraz/status/1506986428341063681).
-The code has been modified.
-To see the changes, compare it to the original code (linked above).
+[https://opengameart.org/content/seamless-grass-textures-20-pack](https://opengameart.org/content/seamless-grass-textures-20-pack)
+(Public Domain)
