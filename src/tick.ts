@@ -4,6 +4,7 @@ import {
   AdvanceOrder,
   Allegiance,
   AssembleOrder,
+  BannerTower,
   Dragonfly,
   DragonflyAnimationKind,
   DragonflyFlightKind,
@@ -41,6 +42,8 @@ import {
   DRAGONFLY_ACCELERATION,
   DRAGONFLY_DECELERATION,
   MILLISECS_PER_TICK,
+  KING_MAX_DISTANCE_FROM_BANNER_TOWER_SQUARED,
+  KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND,
 } from "./gameConsts";
 
 let hasAlerted = false;
@@ -212,6 +215,8 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   const edamameKing = resources.battle.getEdamameKing();
 
   performDragonflyRelatedLogicForAzukiKingTick(elapsedTimeInSeconds, resources);
+
+  tickKingBoundaries(resources);
 
   if (azukiKing.health <= 0) {
     alertOnceAfterDelay("Edamame wins!");
@@ -1360,4 +1365,86 @@ function isCollidingWithTower(
     return !isInGap;
   }
   return false;
+}
+
+function tickKingBoundaries(resources: Resources): void {
+  const { battle } = resources;
+
+  if (!isAzukiKingBannerTowerSafezone(battle)) {
+    const azukiKing = battle.getAzukiKing();
+    azukiKing.health -=
+      KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND * MILLISECS_PER_TICK * 1e-3;
+    console.log("azuki king health: ", azukiKing.health);
+  }
+
+  if (!isEdamameKingBannerTowerSafezone(battle)) {
+    const edamameKing = battle.getEdamameKing();
+    edamameKing.health -=
+      KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND * MILLISECS_PER_TICK * 1e-3;
+  }
+}
+
+function isAzukiKingBannerTowerSafezone(battle: BattleState): boolean {
+  const azukiKing = battle.getAzukiKing();
+
+  const nearestAzukiTowerId = getNearestBannerTowerId(
+    azukiKing.position,
+    battle,
+    isAzukiBannerTower
+  );
+  return (
+    nearestAzukiTowerId !== null &&
+    geoUtils.distanceToSquared(
+      azukiKing.position,
+      battle.getBannerTower(nearestAzukiTowerId).position
+    ) <= KING_MAX_DISTANCE_FROM_BANNER_TOWER_SQUARED
+  );
+}
+
+function isAzukiBannerTower(tower: BannerTower): boolean {
+  return tower.allegiance === Allegiance.Azuki;
+}
+
+function isEdamameKingBannerTowerSafezone(battle: BattleState): boolean {
+  const edamameKing = battle.getEdamameKing();
+
+  const nearestEdamameTowerId = getNearestBannerTowerId(
+    edamameKing.position,
+    battle,
+    isEdamameBannerTower
+  );
+  return (
+    nearestEdamameTowerId !== null &&
+    geoUtils.distanceToSquared(
+      edamameKing.position,
+      battle.getBannerTower(nearestEdamameTowerId).position
+    ) <= KING_MAX_DISTANCE_FROM_BANNER_TOWER_SQUARED
+  );
+}
+
+function isEdamameBannerTower(tower: BannerTower): boolean {
+  return tower.allegiance === Allegiance.Edamame;
+}
+
+function getNearestBannerTowerId(
+  position: Triple,
+  battle: BattleState,
+  predicate: (tower: BannerTower) => boolean
+): null | Ref {
+  let nearestTowerId: Ref | null = null;
+  let nearestDistanceSquared = Infinity;
+  for (const towerId of battle.data.activeTowerIds) {
+    const tower = battle.getBannerTower(towerId);
+    if (!predicate(tower)) {
+      continue;
+    }
+
+    const distSq = geoUtils.distanceToSquared(position, tower.position);
+    if (distSq < nearestDistanceSquared) {
+      nearestTowerId = towerId;
+      nearestDistanceSquared = distSq;
+    }
+  }
+
+  return nearestTowerId;
 }
