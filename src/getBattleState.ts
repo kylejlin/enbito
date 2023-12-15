@@ -38,7 +38,6 @@ export function getDefaultBattleState(): BattleStateData {
     isEntityId: true,
     value: entities.indexOf(azukiKingDragonfly),
   };
-  // azukiKing.dragonflyId = azukiKingDragonflyId;
 
   const azukiLegion = getUnit(entities, {
     start: [-50, 0, 70],
@@ -58,78 +57,6 @@ export function getDefaultBattleState(): BattleStateData {
   });
   entities.push(edamameLegion);
 
-  // const towers = [
-  //   getBannerTower({
-  //     position: new Vector3(-50, 0, -100),
-  //     allegiance: Allegiance.Edamame,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(50, 0, -100),
-  //     allegiance: Allegiance.Edamame,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(400, 0, -400),
-  //     allegiance: Allegiance.Edamame,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(-400, 0, -400),
-  //     allegiance: Allegiance.Edamame,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(0, 0, -1000),
-  //     allegiance: Allegiance.Edamame,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(700, 0, -1600),
-  //     allegiance: Allegiance.Edamame,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(-700, 0, -1600),
-  //     allegiance: Allegiance.Edamame,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(-50, 0, 100),
-  //     allegiance: Allegiance.Azuki,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(50, 0, 100),
-  //     allegiance: Allegiance.Azuki,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(400, 0, 400),
-  //     allegiance: Allegiance.Azuki,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(-400, 0, 400),
-  //     allegiance: Allegiance.Azuki,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(0, 0, 1000),
-  //     allegiance: Allegiance.Azuki,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(700, 0, 1600),
-  //     allegiance: Allegiance.Azuki,
-  //     assets,
-  //   }),
-  //   getBannerTower({
-  //     position: new Vector3(-700, 0, 1600),
-  //     allegiance: Allegiance.Azuki,
-  //     assets,
-  //   }),
-  // ];
   const edamameTower0 = getBannerTower({
     position: [-50, 0, -100],
     allegiance: Allegiance.Edamame,
@@ -249,7 +176,6 @@ function getDefaultAzukiKing(): King {
   return {
     isKing: true,
     hasExploded: false,
-    // position: [0, 0, 100],
     position: [0, 0, 20],
     orientation: { yaw: 0, pitch: 0, roll: 0 },
     animation: {
