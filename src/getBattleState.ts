@@ -167,6 +167,9 @@ export function getDefaultBattleState(): BattleStateData {
     ],
     activeDragonflyIds: [azukiKingDragonflyId],
 
+    azukiHand: { spearCount: 0 },
+    edamameHand: { spearCount: 0 },
+
     plannedDeployment: { start: null, plannedUnit: null },
     soldierExplosions: [],
   };

@@ -6,6 +6,9 @@ export interface BattleStateData {
   activeTowerIds: Ref[];
   activeDragonflyIds: Ref[];
 
+  azukiHand: Hand;
+  edamameHand: Hand;
+
   plannedDeployment: PlannedDeployment;
   soldierExplosions: SoldierExplosion[];
 }
@@ -176,4 +179,8 @@ export interface SoldierExplosion {
   position: Triple;
   orientation: Orientation;
   timeInSeconds: number;
+}
+
+export interface Hand {
+  spearCount: number;
 }

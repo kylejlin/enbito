@@ -564,6 +564,11 @@ function tickUnits(elapsedTimeInSeconds: number, resources: Resources): void {
           soldier.orientation
         );
         battle.data.soldierExplosions.push(explosion);
+        if (unit.allegiance === Allegiance.Azuki) {
+          ++battle.data.edamameHand.spearCount;
+        } else {
+          ++battle.data.azukiHand.spearCount;
+        }
         soldierIds.splice(i, 1);
         --i;
         continue;
