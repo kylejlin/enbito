@@ -23,8 +23,11 @@ import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import {
   getAzukiKingDistanceSquaredToNearestBannerTower,
   getEdamameKingDistanceSquaredToNearestBannerTower,
+  getNearestBannerTowerId,
+  isAzukiBannerTower,
 } from "../tick";
 import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
+import { getGroundCursorPosition } from "../groundCursor";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -45,6 +48,7 @@ export function updateThreeSceneAfterTicking(
   updateUnits(battle, san);
   updateBannerTowers(battle, san);
   updateSoldierExplosions(battle, san);
+  updateSelectedDeploymentBannerTower(battle, san);
 
   updateCursor(battle, san);
 }
@@ -404,4 +408,37 @@ function updateCursor(battle: BattleState, san: San): void {
     battle.getAzukiKing().orientation.yaw
   );
   scene.add(groundCursor.scene);
+}
+
+function updateSelectedDeploymentBannerTower(
+  battle: BattleState,
+  san: San
+): void {
+  const { plannedDeployment } = battle.data;
+  if (
+    !(
+      plannedDeployment.plannedUnit !== null && plannedDeployment.start === null
+    )
+  ) {
+    return;
+  }
+
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  const nearestAzukiTowerId = getNearestBannerTowerId(
+    geoUtils.fromThreeVec(groundCursorPosition),
+    battle,
+    isAzukiBannerTower
+  );
+  if (nearestAzukiTowerId === null) {
+    return;
+  }
+  const bNearestAzukiTower = battle.getBannerTower(nearestAzukiTowerId);
+
+  const sMarker = san.data.selectedDeploymentBannerTower;
+  sMarker.position.set(...bNearestAzukiTower.position);
+  san.data.scene.add(sMarker);
 }

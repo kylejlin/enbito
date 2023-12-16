@@ -59,6 +59,7 @@ export interface SanData {
   dragonflies: GltfCache;
   azukiSafezoneMarker: InstancedMesh;
   edamameSafezoneMarker: InstancedMesh;
+  selectedDeploymentBannerTower: Mesh;
 
   mcon: ModelConstants;
 }
@@ -139,6 +140,7 @@ export function getDefaultSanData(assets: Assets): SanData {
     dragonflies: getSingletonGltfCache(assets.dragonfly),
     azukiSafezoneMarker: getDefaultAzukiSafezoneMarker(),
     edamameSafezoneMarker: getDefaultEdamameSafezoneMarker(),
+    selectedDeploymentBannerTower: getDefaultSelectedDeploymentBannerTower(),
 
     mcon: assets.mcon,
   };
@@ -332,7 +334,7 @@ function getSingletonGltfCache(gltf: GLTF): GltfCache {
 }
 
 function getDefaultAzukiSafezoneMarker(): InstancedMesh {
-  const safezone = new InstancedMesh(
+  const marker = new InstancedMesh(
     new CylinderGeometry(
       Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
       Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
@@ -347,12 +349,12 @@ function getDefaultAzukiSafezoneMarker(): InstancedMesh {
     }),
     MAX_TOWER_LIMIT
   );
-  safezone.material.side = DoubleSide;
-  return safezone;
+  marker.material.side = DoubleSide;
+  return marker;
 }
 
 function getDefaultEdamameSafezoneMarker(): InstancedMesh {
-  const safezone = new InstancedMesh(
+  const marker = new InstancedMesh(
     new CylinderGeometry(
       Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
       Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
@@ -367,6 +369,20 @@ function getDefaultEdamameSafezoneMarker(): InstancedMesh {
     }),
     MAX_TOWER_LIMIT
   );
-  safezone.material.side = DoubleSide;
-  return safezone;
+  marker.material.side = DoubleSide;
+  return marker;
+}
+
+function getDefaultSelectedDeploymentBannerTower(): Mesh {
+  const radius = 20;
+  const marker = new Mesh(
+    new CylinderGeometry(radius, radius, 2 * 35, 32, 4),
+    new MeshLambertMaterial({
+      emissive: 0x57c7f7,
+      transparent: true,
+      opacity: 0.5,
+    })
+  );
+  marker.material.side = DoubleSide;
+  return marker;
 }

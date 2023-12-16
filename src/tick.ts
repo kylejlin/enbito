@@ -1412,7 +1412,7 @@ export function getAzukiKingDistanceSquaredToNearestBannerTower(
   );
 }
 
-function isAzukiBannerTower(tower: BannerTower): boolean {
+export function isAzukiBannerTower(tower: BannerTower): boolean {
   return tower.allegiance === Allegiance.Azuki;
 }
 
@@ -1446,7 +1446,7 @@ function isEdamameBannerTower(tower: BannerTower): boolean {
   return tower.allegiance === Allegiance.Edamame;
 }
 
-function getNearestBannerTowerId(
+export function getNearestBannerTowerId(
   position: Triple,
   battle: BattleState,
   predicate: (tower: BannerTower) => boolean
