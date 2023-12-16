@@ -3,6 +3,12 @@ import { BattleState } from "../battleState";
 import { San } from "../san";
 import { PendingCommandKind } from "../battleStateData";
 
+// TODO: Examine if this is really necessary.
+// It may be possible just to perform this in the first updateThree pass.
+// This would require us to dynamically compute the plannedDeployment info,
+// since we wouldn't be able to depend on the post-tick logic anymore
+// (we currently depend on the post-tick logic to update the plannedDeployment,
+// which is why we run this function after the post-tick).
 export function updateThreeSceneAfterPlannedDeployment(
   battle: BattleState,
   san: San
