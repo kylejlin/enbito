@@ -1458,3 +1458,33 @@ export function getNearestBannerTowerId(
 
   return nearestTowerId;
 }
+
+export function getNearestUnitId(
+  position: Triple,
+  battle: BattleState,
+  predicate: (u: Unit) => boolean
+): null | Ref {
+  let nearestUnitId: Ref | null = null;
+  let nearestDistanceSquared = Infinity;
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (!predicate(unit)) {
+      continue;
+    }
+
+    for (const soldierId of unit.soldierIds) {
+      const soldier = battle.getSoldier(soldierId);
+      const distSq = geoUtils.distanceToSquared(position, soldier.position);
+      if (distSq < nearestDistanceSquared) {
+        nearestUnitId = unitId;
+        nearestDistanceSquared = distSq;
+      }
+    }
+  }
+
+  return nearestUnitId;
+}
+
+export function isAzukiUnit(u: Unit): boolean {
+  return u.allegiance === Allegiance.Azuki;
+}

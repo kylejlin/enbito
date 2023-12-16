@@ -172,6 +172,7 @@ export function getDefaultBattleState(): BattleStateData {
 
     plannedDeployment: { start: null, plannedUnit: null },
     soldierExplosions: [],
+    isSelectingUnit: false,
   };
 }
 

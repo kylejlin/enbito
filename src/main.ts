@@ -65,6 +65,7 @@ export function main(assets: Assets): void {
     r: false,
     v: false,
     d: false,
+    s: false,
     space: false,
     _1: false,
   };
@@ -76,7 +77,7 @@ export function main(assets: Assets): void {
       const wasKeyDown = keys.f;
       keys.f = true;
       if (!wasKeyDown) {
-        handleFKeyPress();
+        handleDeploymentKeyPress();
       }
     }
     if (e.key === "t") {
@@ -93,6 +94,13 @@ export function main(assets: Assets): void {
     }
     if (e.key === "d") {
       keys.d = true;
+    }
+    if (e.key === "s") {
+      const wasKeyDown = keys.s;
+      keys.s = true;
+      if (!wasKeyDown) {
+        handleSelectionKeyPress();
+      }
     }
     if (e.key === " ") {
       keys.space = true;
@@ -128,6 +136,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "d") {
       keys.d = false;
+    }
+    if (e.key === "s") {
+      keys.s = false;
     }
     if (e.key === " ") {
       keys.space = false;
@@ -224,7 +235,7 @@ export function main(assets: Assets): void {
     san.data.scene.environment = assets.environment;
   }
 
-  function handleFKeyPress(): void {
+  function handleDeploymentKeyPress(): void {
     if (resources.battle.data.plannedDeployment.start === null) {
       trySetDeploymentStart();
     } else {
@@ -249,6 +260,15 @@ export function main(assets: Assets): void {
 
   function trySetDeploymentEnd(): void {
     resources.battle.data.plannedDeployment.start = null;
+  }
+
+  function handleSelectionKeyPress(): void {
+    if (resources.battle.data.isSelectingUnit) {
+      // TODO
+      // selectAzukiUnitNearestGroundCursor();
+    } else {
+      resources.battle.data.isSelectingUnit = true;
+    }
   }
 }
 

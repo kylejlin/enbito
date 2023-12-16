@@ -24,7 +24,9 @@ import {
   getAzukiKingDistanceSquaredToNearestBannerTower,
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
+  getNearestUnitId,
   isAzukiBannerTower,
+  isAzukiUnit,
 } from "../tick";
 import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
 import { getGroundCursorPosition } from "../groundCursor";
@@ -48,7 +50,8 @@ export function updateThreeSceneAfterTicking(
   updateUnits(battle, san);
   updateBannerTowers(battle, san);
   updateSoldierExplosions(battle, san);
-  updateSelectedDeploymentBannerTower(battle, san);
+  updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
+  updateTentativelySelectedSoldierMarkers(battle, san);
 
   updateCursor(battle, san);
 }
@@ -410,7 +413,7 @@ function updateCursor(battle: BattleState, san: San): void {
   scene.add(groundCursor.scene);
 }
 
-function updateSelectedDeploymentBannerTower(
+function updateTentativelySelectedDeploymentBannerTowerMarker(
   battle: BattleState,
   san: San
 ): void {
@@ -438,7 +441,48 @@ function updateSelectedDeploymentBannerTower(
   }
   const bNearestAzukiTower = battle.getBannerTower(nearestAzukiTowerId);
 
-  const sMarker = san.data.selectedDeploymentBannerTower;
+  const sMarker = san.data.tentativelySelectedDeploymentBannerTowerMarker;
   sMarker.position.set(...bNearestAzukiTower.position);
   san.data.scene.add(sMarker);
+}
+
+function updateTentativelySelectedSoldierMarkers(
+  battle: BattleState,
+  san: San
+): void {
+  if (!battle.data.isSelectingUnit) {
+    return;
+  }
+
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  const nearestAzukiUnitId = getNearestUnitId(
+    geoUtils.fromThreeVec(groundCursorPosition),
+    battle,
+    isAzukiUnit
+  );
+  if (nearestAzukiUnitId === null) {
+    return;
+  }
+  const bUnit = battle.getUnit(nearestAzukiUnitId);
+
+  const instancedMesh = san.data.tentativelySelectedSoldierMarker;
+  const temp = new Object3D();
+
+  for (const soldierId of bUnit.soldierIds) {
+    const bSoldier = battle.getSoldier(soldierId);
+    temp.position.set(...bSoldier.position);
+    geoUtils.setQuaternionFromOrientation(
+      temp.quaternion,
+      bSoldier.orientation
+    );
+    temp.translateY(1);
+
+    temp.updateMatrix();
+    instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
+    ++instancedMesh.count;
+  }
 }

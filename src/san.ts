@@ -19,6 +19,7 @@ import {
   MeshLambertMaterial,
   DoubleSide,
   AmbientLight,
+  SphereGeometry,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
@@ -59,7 +60,9 @@ export interface SanData {
   dragonflies: GltfCache;
   azukiSafezoneMarker: InstancedMesh;
   edamameSafezoneMarker: InstancedMesh;
-  selectedDeploymentBannerTower: Mesh;
+  tentativelySelectedDeploymentBannerTowerMarker: Mesh;
+  selectedSoldierMarker: InstancedMesh;
+  tentativelySelectedSoldierMarker: InstancedMesh;
 
   mcon: ModelConstants;
 }
@@ -140,7 +143,11 @@ export function getDefaultSanData(assets: Assets): SanData {
     dragonflies: getSingletonGltfCache(assets.dragonfly),
     azukiSafezoneMarker: getDefaultAzukiSafezoneMarker(),
     edamameSafezoneMarker: getDefaultEdamameSafezoneMarker(),
-    selectedDeploymentBannerTower: getDefaultSelectedDeploymentBannerTower(),
+    tentativelySelectedDeploymentBannerTowerMarker:
+      getDefaultSelectedDeploymentBannerTower(),
+    selectedSoldierMarker: getDefaultSelectedSoldierMarker(),
+    tentativelySelectedSoldierMarker:
+      getDefaultTentativelySelectedSoldierMarker(),
 
     mcon: assets.mcon,
   };
@@ -382,6 +389,34 @@ function getDefaultSelectedDeploymentBannerTower(): Mesh {
       transparent: true,
       opacity: 0.5,
     })
+  );
+  marker.material.side = DoubleSide;
+  return marker;
+}
+
+function getDefaultSelectedSoldierMarker(): InstancedMesh {
+  const marker = new InstancedMesh(
+    new SphereGeometry(1, 16, 16),
+    new MeshLambertMaterial({
+      emissive: 0x57c7f7,
+      transparent: true,
+      opacity: 0.5,
+    }),
+    MAX_SOLDIER_LIMIT
+  );
+  marker.material.side = DoubleSide;
+  return marker;
+}
+
+function getDefaultTentativelySelectedSoldierMarker(): InstancedMesh {
+  const marker = new InstancedMesh(
+    new SphereGeometry(2, 16, 16),
+    new MeshLambertMaterial({
+      emissive: 0x57c7f7,
+      transparent: true,
+      opacity: 0.5,
+    }),
+    MAX_SOLDIER_LIMIT
   );
   marker.material.side = DoubleSide;
   return marker;

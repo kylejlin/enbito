@@ -11,6 +11,7 @@ export interface BattleStateData {
 
   plannedDeployment: PlannedDeployment;
   soldierExplosions: SoldierExplosion[];
+  isSelectingUnit: boolean;
 }
 
 export enum UnitOrderKind {
