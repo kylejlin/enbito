@@ -1217,7 +1217,7 @@ function getAzukiBannerTowerEnclosingGroundCursor(
 export function updatePlannedDeploymentAfterUpdatingCamera(
   resources: Resources
 ): void {
-  const { battle, san, keys } = resources;
+  const { battle, san } = resources;
   const groundCursorPosition = getGroundCursorPosition(san);
   if (groundCursorPosition === null) {
     return;
@@ -1229,26 +1229,24 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
     return;
   }
 
-  if (plannedDeployment.start !== null) {
-    const temp_fromStartToCursor = groundCursorPosition
-      .clone()
-      .sub(geoUtils.toThreeVec(plannedDeployment.start));
-    const fromStartToCursorLength = temp_fromStartToCursor.length();
-    const RANK_GAP = 8;
-    const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
-    plannedDeployment.plannedUnit = getPlannedUnit({
-      start: plannedDeployment.start,
-      forward: geoUtils.fromThreeVec(
-        temp_fromStartToCursor
-          .clone()
-          .normalize()
-          .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2)
-      ),
-      dimensions: [width, 1],
-      gap: [8, 8 * (Math.sqrt(3) / 2)],
-      allegiance: Allegiance.Azuki,
-    });
-  }
+  const temp_fromStartToCursor = groundCursorPosition
+    .clone()
+    .sub(geoUtils.toThreeVec(plannedDeployment.start));
+  const fromStartToCursorLength = temp_fromStartToCursor.length();
+  const RANK_GAP = 8;
+  const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
+  plannedDeployment.plannedUnit = getPlannedUnit({
+    start: plannedDeployment.start,
+    forward: geoUtils.fromThreeVec(
+      temp_fromStartToCursor
+        .clone()
+        .normalize()
+        .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2)
+    ),
+    dimensions: [width, 1],
+    gap: [8, 8 * (Math.sqrt(3) / 2)],
+    allegiance: Allegiance.Azuki,
+  });
 }
 
 function getPlannedUnit({
