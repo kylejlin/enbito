@@ -73,7 +73,7 @@ export function main(assets: Assets): void {
       keys.w = true;
     }
     if (e.key === "f") {
-      const wasKeyDown = keys._1;
+      const wasKeyDown = keys.f;
       keys.f = true;
       if (!wasKeyDown) {
         handleFKeyPress();
