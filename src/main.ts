@@ -17,7 +17,14 @@ import {
   updatePlannedDeploymentAfterUpdatingCamera,
 } from "./tick";
 import { MILLISECS_PER_TICK } from "./gameConsts";
-import { BattleStateData, PendingCommandKind } from "./battleStateData";
+import {
+  Allegiance,
+  BattleStateData,
+  Orientation,
+  PendingCommandKind,
+  SparseArray,
+  Triple,
+} from "./battleStateData";
 
 const BATTLE_STATE_SAVE_PERIOD_IN_SECONDS = 1;
 const LOCAL_STORAGE_BATTLE_DATA_KEY = "enbito.battle_data";
@@ -81,7 +88,7 @@ export function main(assets: Assets): void {
       const wasKeyDown = keys.f;
       keys.f = true;
       if (!wasKeyDown) {
-        handleTroopSetKeyPress();
+        handleSoldierSetKeyPress();
       }
     }
     if (e.key === "t") {
@@ -103,14 +110,18 @@ export function main(assets: Assets): void {
       const wasKeyDown = keys.s;
       keys.s = true;
       if (!wasKeyDown) {
-        handleSelectionKeyPress();
+        handleSoldierSelectionKeyPress();
       }
     }
     if (e.key === " ") {
       keys.space = true;
     }
     if (e.key === "1") {
+      const wasKeyDown = keys._1;
       keys._1 = true;
+      if (!wasKeyDown) {
+        handleRepositionSelectionKeyPress(resources);
+      }
     }
 
     if (e.key === "{") {
@@ -239,7 +250,7 @@ export function main(assets: Assets): void {
     san.data.scene.environment = assets.environment;
   }
 
-  function handleTroopSetKeyPress(): void {
+  function handleSoldierSetKeyPress(): void {
     const { pendingCommand } = resources.battle.data;
     if (pendingCommand.kind === PendingCommandKind.None) {
       trySetDeploymentStart();
@@ -279,7 +290,7 @@ export function main(assets: Assets): void {
     pendingCommand.plannedDeployment.start = null;
   }
 
-  function handleSelectionKeyPress(): void {
+  function handleSoldierSelectionKeyPress(): void {
     const { pendingCommand } = resources.battle.data;
     if (pendingCommand.kind === PendingCommandKind.SelectUnit) {
       toggleSelectionOfAzukiUnitNearestGroundCursor();
@@ -322,4 +333,53 @@ function loadBattleStateOrFallBackToDefault(): BattleState {
 function saveBattleData(data: BattleStateData): void {
   const s = JSON.stringify(data);
   localStorage.setItem(LOCAL_STORAGE_BATTLE_DATA_KEY, s);
+}
+
+function handleRepositionSelectionKeyPress(resources: Resources): void {
+  const groundCursorPosition = getGroundCursorPosition(resources.san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  const { battle } = resources;
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind === PendingCommandKind.None) {
+    const selectedAzukiUnitIds = battle.data.activeUnitIds.filter((id) => {
+      const unit = battle.getUnit(id);
+      return unit.allegiance === Allegiance.Azuki && unit.isSelected;
+    });
+    if (selectedAzukiUnitIds.length === 0) {
+      return;
+    }
+
+    const originalSoldierTransforms: SparseArray<[Triple, Orientation]> = {};
+    for (const unitId of selectedAzukiUnitIds) {
+      const unit = battle.getUnit(unitId);
+      for (const soldierId of unit.soldierIds) {
+        const soldier = battle.getSoldier(soldierId);
+        originalSoldierTransforms[soldierId.value] = [
+          geoUtils.cloneTriple(soldier.position),
+          geoUtils.cloneOrientation(soldier.orientation),
+        ];
+      }
+    }
+
+    resources.battle.data.pendingCommand = {
+      kind: PendingCommandKind.Reposition,
+      originalGroundCursorPosition: geoUtils.fromThreeVec(groundCursorPosition),
+      originalSoldierTransforms,
+      deltaYaw: 0,
+      translation: null,
+    };
+  } else if (
+    pendingCommand.kind === PendingCommandKind.Reposition &&
+    pendingCommand.translation === null
+  ) {
+    // TODO
+  } else if (
+    pendingCommand.kind === PendingCommandKind.Reposition &&
+    pendingCommand.translation !== null
+  ) {
+    // TODO
+  }
 }

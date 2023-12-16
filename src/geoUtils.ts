@@ -88,3 +88,11 @@ export function setOrientation(out: Orientation, source: Orientation): void {
   out.pitch = source.pitch;
   out.roll = source.roll;
 }
+
+export function cloneOrientation(source: Orientation): Orientation {
+  return {
+    yaw: source.yaw,
+    pitch: source.pitch,
+    roll: source.roll,
+  };
+}

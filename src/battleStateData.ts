@@ -46,6 +46,7 @@ export enum PendingCommandKind {
   None,
   Deploy,
   SelectUnit,
+  Reposition,
 }
 
 export type Triple = [number, number, number];
@@ -192,7 +193,8 @@ export interface Hand {
 export type PendingCommand =
   | NullPendingCommand
   | PendingDeploy
-  | PendingSelectUnit;
+  | PendingSelectUnit
+  | PendingReposition;
 
 export interface NullPendingCommand {
   readonly kind: PendingCommandKind.None;
@@ -205,4 +207,20 @@ export interface PendingDeploy {
 
 export interface PendingSelectUnit {
   readonly kind: PendingCommandKind.SelectUnit;
+}
+
+export interface PendingReposition {
+  readonly kind: PendingCommandKind.Reposition;
+  originalGroundCursorPosition: Triple;
+  originalSoldierTransforms: SparseArray<[Triple, Orientation]>;
+  deltaYaw: number;
+  /**
+   * While the user is still adjusting the `deltaYaw`,
+   * `translation` will be `null`, and treated as a zero vector.
+   */
+  translation: null | Triple;
+}
+
+export interface SparseArray<T> {
+  [index: number]: T;
 }
