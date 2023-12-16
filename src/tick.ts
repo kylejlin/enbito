@@ -219,8 +219,6 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
   tickKingBoundaries(resources);
 
   if (azukiKing.health <= 0) {
-    alertOnceAfterDelay("Edamame wins!");
-
     if (!azukiKing.hasExploded) {
       const azukiExplosion = getSoldierExplosion(
         Allegiance.Azuki,
@@ -229,12 +227,11 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       );
       resources.battle.data.soldierExplosions.push(azukiExplosion);
       azukiKing.hasExploded = true;
+      alertOnceAfterDelay("Edamame wins!");
     }
   }
 
   if (edamameKing.health <= 0) {
-    alertOnceAfterDelay("Azuki wins!");
-
     if (!edamameKing.hasExploded) {
       const edamameExplosion = getSoldierExplosion(
         Allegiance.Edamame,
@@ -243,6 +240,7 @@ function tickKings(elapsedTimeInSeconds: number, resources: Resources): void {
       );
       resources.battle.data.soldierExplosions.push(edamameExplosion);
       edamameKing.hasExploded = true;
+      alertOnceAfterDelay("Azuki wins!");
     }
   }
 }
