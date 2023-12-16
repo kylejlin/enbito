@@ -1206,6 +1206,7 @@ function deployPlannedUnitIfItExistsAndCorrectKeyPressed(
     const selectedTower = battle.getBannerTower(selectedTowerId);
 
     const assemblingUnit: Unit = {
+      isSelected: false,
       order: { kind: UnitOrderKind.Assemble },
       soldierIds: [],
       forward: plannedDeployment.plannedUnit.forward,

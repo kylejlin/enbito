@@ -257,6 +257,7 @@ function getUnit(
     entities.push(soldiers[i]);
   }
   return {
+    isSelected: false,
     order: { kind: UnitOrderKind.Storm },
     soldierIds,
     forward,

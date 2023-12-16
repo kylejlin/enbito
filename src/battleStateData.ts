@@ -131,6 +131,7 @@ export interface AssembleOrder {
 }
 
 export interface Unit {
+  isSelected: boolean;
   order: UnitOrder;
   soldierIds: Ref[];
   forward: Triple;
