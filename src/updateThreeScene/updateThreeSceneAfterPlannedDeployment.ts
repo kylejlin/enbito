@@ -1,12 +1,20 @@
 import { Object3D, Vector3 } from "three";
 import { BattleState } from "../battleState";
 import { San } from "../san";
+import { PendingCommandKind } from "../battleStateData";
 
 export function updateThreeSceneAfterPlannedDeployment(
   battle: BattleState,
   san: San
 ): void {
-  const bPlannedUnit = battle.data.plannedDeployment.plannedUnit;
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Deploy) {
+    return;
+  }
+
+  const { plannedDeployment } = pendingCommand;
+
+  const bPlannedUnit = plannedDeployment.plannedUnit;
   if (bPlannedUnit === null) {
     return;
   }

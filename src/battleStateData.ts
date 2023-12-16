@@ -9,9 +9,8 @@ export interface BattleStateData {
   azukiHand: Hand;
   edamameHand: Hand;
 
-  plannedDeployment: PlannedDeployment;
   soldierExplosions: SoldierExplosion[];
-  isSelectingUnit: boolean;
+  pendingCommand: PendingCommand;
 }
 
 export enum UnitOrderKind {
@@ -41,6 +40,12 @@ export enum DragonflyFlightKind {
 export enum Allegiance {
   Azuki,
   Edamame,
+}
+
+export enum PendingCommandKind {
+  None,
+  Deploy,
+  SelectUnit,
 }
 
 export type Triple = [number, number, number];
@@ -182,4 +187,22 @@ export interface SoldierExplosion {
 
 export interface Hand {
   spearCount: number;
+}
+
+export type PendingCommand =
+  | NullPendingCommand
+  | PendingDeploy
+  | PendingSelectUnit;
+
+export interface NullPendingCommand {
+  readonly kind: PendingCommandKind.None;
+}
+
+export interface PendingDeploy {
+  readonly kind: PendingCommandKind.Deploy;
+  plannedDeployment: PlannedDeployment;
+}
+
+export interface PendingSelectUnit {
+  readonly kind: PendingCommandKind.SelectUnit;
 }

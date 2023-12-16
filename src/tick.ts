@@ -9,6 +9,7 @@ import {
   DragonflyAnimationKind,
   DragonflyFlightKind,
   Orientation,
+  PendingCommandKind,
   PlannedSoldier,
   PlannedUnit,
   Ref,
@@ -1158,7 +1159,7 @@ function getSoldierExplosion(
 export function updatePlannedDeploymentAfterUpdatingCamera(
   resources: Resources
 ): void {
-  deployPlannedUnitIfItExistsAndCorrectKeyPressed(resources);
+  deployPlannedUnitIfItExistsAndDeployKeyPressed(resources);
 
   const { battle, san } = resources;
   const groundCursorPosition = getGroundCursorPosition(san);
@@ -1166,7 +1167,12 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
     return;
   }
 
-  const { plannedDeployment } = battle.data;
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Deploy) {
+    return;
+  }
+
+  const { plannedDeployment } = pendingCommand;
 
   if (plannedDeployment.start === null) {
     return;
@@ -1192,11 +1198,16 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
   });
 }
 
-function deployPlannedUnitIfItExistsAndCorrectKeyPressed(
+function deployPlannedUnitIfItExistsAndDeployKeyPressed(
   resources: Resources
 ): void {
   const { keys, battle } = resources;
-  const { plannedDeployment } = resources.battle.data;
+  const { pendingCommand } = resources.battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Deploy) {
+    return;
+  }
+
+  const { plannedDeployment } = pendingCommand;
   const selectedTowerId = getAzukiBannerTowerIdNearestGroundCursor(resources);
   if (
     plannedDeployment.plannedUnit !== null &&
@@ -1222,7 +1233,7 @@ function deployPlannedUnitIfItExistsAndCorrectKeyPressed(
     });
     battle.data.activeUnitIds.push(assemblingUnitId);
 
-    plannedDeployment.plannedUnit = null;
+    battle.data.pendingCommand = { kind: PendingCommandKind.None };
   }
 }
 
@@ -1490,7 +1501,7 @@ export function getTentativelySelectedAzukiUnitId(
   battle: BattleState,
   san: San
 ): null | Ref {
-  if (!battle.data.isSelectingUnit) {
+  if (battle.data.pendingCommand.kind !== PendingCommandKind.SelectUnit) {
     return null;
   }
 

@@ -6,6 +6,7 @@ import {
   Dragonfly,
   DragonflyAnimationKind,
   King,
+  PendingCommandKind,
   Soldier,
   SoldierAnimationKind,
   SoldierAnimationState,
@@ -441,7 +442,12 @@ function updateTentativelySelectedDeploymentBannerTowerMarker(
   battle: BattleState,
   san: San
 ): void {
-  const { plannedDeployment } = battle.data;
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Deploy) {
+    return;
+  }
+
+  const { plannedDeployment } = pendingCommand;
   if (
     !(
       plannedDeployment.plannedUnit !== null && plannedDeployment.start === null

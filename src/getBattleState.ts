@@ -7,6 +7,7 @@ import {
   DragonflyAnimationKind,
   DragonflyFlightKind,
   King,
+  PendingCommandKind,
   Ref,
   Soldier,
   SoldierAnimationKind,
@@ -170,9 +171,8 @@ export function getDefaultBattleState(): BattleStateData {
     azukiHand: { spearCount: 0 },
     edamameHand: { spearCount: 0 },
 
-    plannedDeployment: { start: null, plannedUnit: null },
     soldierExplosions: [],
-    isSelectingUnit: false,
+    pendingCommand: { kind: PendingCommandKind.None },
   };
 }
 

@@ -17,7 +17,7 @@ import {
   updatePlannedDeploymentAfterUpdatingCamera,
 } from "./tick";
 import { MILLISECS_PER_TICK } from "./gameConsts";
-import { BattleStateData } from "./battleStateData";
+import { BattleStateData, PendingCommandKind } from "./battleStateData";
 
 const BATTLE_STATE_SAVE_PERIOD_IN_SECONDS = 1;
 const LOCAL_STORAGE_BATTLE_DATA_KEY = "enbito.battle_data";
@@ -81,7 +81,7 @@ export function main(assets: Assets): void {
       const wasKeyDown = keys.f;
       keys.f = true;
       if (!wasKeyDown) {
-        handleDeploymentKeyPress();
+        handleTroopSetKeyPress();
       }
     }
     if (e.key === "t") {
@@ -239,10 +239,14 @@ export function main(assets: Assets): void {
     san.data.scene.environment = assets.environment;
   }
 
-  function handleDeploymentKeyPress(): void {
-    if (resources.battle.data.plannedDeployment.start === null) {
+  function handleTroopSetKeyPress(): void {
+    const { pendingCommand } = resources.battle.data;
+    if (pendingCommand.kind === PendingCommandKind.None) {
       trySetDeploymentStart();
-    } else {
+    } else if (
+      pendingCommand.kind === PendingCommandKind.Deploy &&
+      pendingCommand.plannedDeployment.plannedUnit !== null
+    ) {
       trySetDeploymentEnd();
     }
   }
@@ -253,25 +257,37 @@ export function main(assets: Assets): void {
       return;
     }
 
-    if (resources.battle.data.plannedDeployment.plannedUnit === null) {
-      resources.battle.data.plannedDeployment.start =
-        geoUtils.fromThreeVec(groundCursorPosition);
-    } else {
-      // TODO: For now, this is a no-op.
-      // In the future, it might control the number of ranks of the legion.
+    const { pendingCommand } = resources.battle.data;
+    if (pendingCommand.kind === PendingCommandKind.None) {
+      resources.battle.data.pendingCommand = {
+        kind: PendingCommandKind.Deploy,
+        plannedDeployment: {
+          start: geoUtils.fromThreeVec(groundCursorPosition),
+          plannedUnit: null,
+        },
+      };
+      return;
     }
   }
 
   function trySetDeploymentEnd(): void {
-    resources.battle.data.plannedDeployment.start = null;
+    const { pendingCommand } = resources.battle.data;
+    if (pendingCommand.kind !== PendingCommandKind.Deploy) {
+      return;
+    }
+
+    pendingCommand.plannedDeployment.start = null;
   }
 
   function handleSelectionKeyPress(): void {
-    if (resources.battle.data.isSelectingUnit) {
+    const { pendingCommand } = resources.battle.data;
+    if (pendingCommand.kind === PendingCommandKind.SelectUnit) {
       toggleSelectionOfAzukiUnitNearestGroundCursor();
-      resources.battle.data.isSelectingUnit = false;
-    } else {
-      resources.battle.data.isSelectingUnit = true;
+      resources.battle.data.pendingCommand = { kind: PendingCommandKind.None };
+    } else if (pendingCommand.kind === PendingCommandKind.None) {
+      resources.battle.data.pendingCommand = {
+        kind: PendingCommandKind.SelectUnit,
+      };
     }
   }
 
