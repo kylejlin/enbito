@@ -16,6 +16,9 @@ export function resetThreeScene(san: San): void {
     azukiBannerTowers,
     edamameBannerTowers,
 
+    azukiSafezoneMarker,
+    edamameSafezoneMarker,
+
     dragonflies,
   } = san.data;
 
@@ -31,6 +34,9 @@ export function resetThreeScene(san: San): void {
 
   azukiBannerTowers.count = 0;
   edamameBannerTowers.count = 0;
+
+  azukiSafezoneMarker.count = 0;
+  edamameSafezoneMarker.count = 0;
 
   dragonflies.count = 0;
 }

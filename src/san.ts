@@ -15,6 +15,10 @@ import {
   Object3D,
   InstancedMesh,
   SkinnedMesh,
+  CylinderGeometry,
+  MeshLambertMaterial,
+  DoubleSide,
+  AmbientLight,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
@@ -22,8 +26,10 @@ import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Allegiance } from "./battleStateData";
 import { Tuple21, Tuple24, Tuple29 } from "./nTuple";
+import { BANNERTOWER_SAFEZONE_RANGE_SQUARED } from "./gameConsts";
 
 export const MAX_SOLDIER_LIMIT = 10e3;
+export const MAX_TOWER_LIMIT = 200;
 
 export class San {
   constructor(public readonly data: SanData) {}
@@ -36,6 +42,7 @@ export interface SanData {
 
   sky: Sky;
   grass: Mesh;
+  ambientLight: AmbientLight;
 
   groundCursor: GLTF;
 
@@ -50,6 +57,8 @@ export interface SanData {
   azukiBannerTowers: GltfCache;
   edamameBannerTowers: GltfCache;
   dragonflies: GltfCache;
+  azukiSafezoneMarker: InstancedMesh;
+  edamameSafezoneMarker: InstancedMesh;
 
   mcon: ModelConstants;
 }
@@ -111,6 +120,7 @@ export function getDefaultSanData(assets: Assets): SanData {
 
     sky: getDefaultSky(renderer, scene, camera),
     grass: getDefaultGrass(assets),
+    ambientLight: new AmbientLight(0xffffff, 0.5),
 
     groundCursor: getDefaultGroundCursor(assets),
 
@@ -127,6 +137,8 @@ export function getDefaultSanData(assets: Assets): SanData {
     azukiBannerTowers: getSingletonGltfCache(assets.azukiBannerTower),
     edamameBannerTowers: getSingletonGltfCache(assets.edamameBannerTower),
     dragonflies: getSingletonGltfCache(assets.dragonfly),
+    azukiSafezoneMarker: getDefaultAzukiSafezoneMarker(),
+    edamameSafezoneMarker: getDefaultEdamameSafezoneMarker(),
 
     mcon: assets.mcon,
   };
@@ -317,4 +329,44 @@ function getSingletonGltfCache(gltf: GLTF): GltfCache {
     gltfs: [cloneGltf(gltf)],
     count: 1,
   };
+}
+
+function getDefaultAzukiSafezoneMarker(): InstancedMesh {
+  const safezone = new InstancedMesh(
+    new CylinderGeometry(
+      Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+      Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+      1,
+      32,
+      4
+    ),
+    new MeshLambertMaterial({
+      emissive: 0xf76157,
+      transparent: true,
+      opacity: 0.5,
+    }),
+    MAX_TOWER_LIMIT
+  );
+  safezone.material.side = DoubleSide;
+  return safezone;
+}
+
+function getDefaultEdamameSafezoneMarker(): InstancedMesh {
+  const safezone = new InstancedMesh(
+    new CylinderGeometry(
+      Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+      Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+      1,
+      32,
+      4
+    ),
+    new MeshLambertMaterial({
+      emissive: 0xa2d02b,
+      transparent: true,
+      opacity: 0.5,
+    }),
+    MAX_TOWER_LIMIT
+  );
+  safezone.material.side = DoubleSide;
+  return safezone;
 }

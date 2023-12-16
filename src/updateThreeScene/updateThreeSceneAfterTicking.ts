@@ -3,7 +3,6 @@ import { GltfCache, San, SanKing } from "../san";
 import * as geoUtils from "../geoUtils";
 import {
   Allegiance,
-  BannerTower,
   Dragonfly,
   DragonflyAnimationKind,
   King,
@@ -12,23 +11,15 @@ import {
   SoldierExplosion,
 } from "../battleStateData";
 import {
-  AmbientLight,
   AnimationClip,
   AnimationMixer,
-  CircleGeometry,
-  CylinderGeometry,
-  DoubleSide,
   InstancedMesh,
-  Mesh,
-  MeshBasicMaterial,
-  MeshLambertMaterial,
   Object3D,
   Raycaster,
   Vector3,
 } from "three";
 import { cloneGltf } from "../cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { BANNERTOWER_SAFEZONE_RANGE_SQUARED } from "../gameConsts";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -37,12 +28,11 @@ export function updateThreeSceneAfterTicking(
   battle: BattleState,
   san: San
 ): void {
-  const { scene, sky, grass } = san.data;
+  const { scene, sky, grass, ambientLight } = san.data;
 
   scene.add(sky);
   scene.add(grass);
-
-  scene.add(new AmbientLight(0xffffff, 0.5));
+  scene.add(ambientLight);
 
   updateKings(battle, san);
   updateDragonflies(battle, san);
@@ -306,9 +296,6 @@ function getExplosionFrameInstancedMesh(
 }
 
 function updateBannerTowers(battle: BattleState, san: San): void {
-  const azukiKing = battle.getAzukiKing();
-  const safezoneMarkers: [BannerTower, Mesh][] = [];
-
   const bTowerIds = battle.data.activeTowerIds;
   for (const bTowerId of bTowerIds) {
     const bTower = battle.getBannerTower(bTowerId);
@@ -321,41 +308,66 @@ function updateBannerTowers(battle: BattleState, san: San): void {
       roll: 0,
     });
 
-    const safezone = new Mesh(
-      new CylinderGeometry(
-        Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
-        Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
-        1,
-        32,
-        4
-      ),
-      bTower.allegiance === Allegiance.Azuki
-        ? new MeshLambertMaterial({
-            emissive: 0xf76157,
-            transparent: true,
-            opacity: 0.5,
-          })
-        : new MeshLambertMaterial({
-            emissive: 0xa2d02b,
-            transparent: true,
-            opacity: 0.5,
-          })
-    );
-    safezone.position.set(bTower.position[0], 0, bTower.position[2]);
-    safezone.material.side = DoubleSide;
+    // const safezone = new Mesh(
+    //   new CylinderGeometry(
+    //     Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+    //     Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
+    //     1,
+    //     32,
+    //     4
+    //   ),
+    //   bTower.allegiance === Allegiance.Azuki
+    //     ? new MeshLambertMaterial({
+    //         emissive: 0xf76157,
+    //         transparent: true,
+    //         opacity: 0.5,
+    //       })
+    //     : new MeshLambertMaterial({
+    //         emissive: 0xa2d02b,
+    //         transparent: true,
+    //         opacity: 0.5,
+    //       })
+    // );
+    // safezone.position.set(bTower.position[0], 0, bTower.position[2]);
+    // safezone.material.side = DoubleSide;
 
-    safezoneMarkers.push([bTower, safezone]);
+    // safezoneMarkers.push([bTower, safezone]);
   }
 
-  safezoneMarkers.sort(([a], [b]) => {
-    const aDistSq = geoUtils.distanceToSquared(azukiKing.position, a.position);
-    const bDistSq = geoUtils.distanceToSquared(azukiKing.position, b.position);
-    return aDistSq - bDistSq;
-  });
-  for (let i = 0; i < safezoneMarkers.length; ++i) {
-    const marker = safezoneMarkers[i][1];
-    marker.position.setY(-0.3 + 0.05 * i);
-    san.data.scene.add(marker);
+  // safezoneMarkers.sort(([a], [b]) => {
+  //   const aDistSq = geoUtils.distanceToSquared(azukiKing.position, a.position);
+  //   const bDistSq = geoUtils.distanceToSquared(azukiKing.position, b.position);
+  //   return aDistSq - bDistSq;
+  // });
+  // for (let i = 0; i < safezoneMarkers.length; ++i) {
+  //   const marker = safezoneMarkers[i][1];
+  //   marker.position.setY(-0.3 + 0.05 * i);
+  //   san.data.scene.add(marker);
+  // }
+
+  const azukiKing = battle.getAzukiKing();
+  const sortedBannerTowers = bTowerIds
+    .map((id) => battle.getBannerTower(id))
+    .sort((a, b) => {
+      const aDistSq = geoUtils.distanceToSquared(
+        azukiKing.position,
+        a.position
+      );
+      const bDistSq = geoUtils.distanceToSquared(
+        azukiKing.position,
+        b.position
+      );
+      return aDistSq - bDistSq;
+    });
+  const temp = new Object3D();
+  for (let i = 0; i < sortedBannerTowers.length; ++i) {
+    const bTower = sortedBannerTowers[i];
+    const instancedMesh = getSafezoneInstancedMesh(bTower.allegiance, san);
+    temp.position.set(bTower.position[0], -0.3 + 0.05 * i, bTower.position[2]);
+
+    temp.updateMatrix();
+    instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
+    ++instancedMesh.count;
   }
 }
 
@@ -374,6 +386,15 @@ function getInstanceSceneFromGltfCache(cache: GltfCache): GLTF {
   const instance = gltfs[count];
   ++cache.count;
   return instance;
+}
+
+function getSafezoneInstancedMesh(
+  allegiance: Allegiance,
+  san: San
+): InstancedMesh {
+  return allegiance === Allegiance.Azuki
+    ? san.data.azukiSafezoneMarker
+    : san.data.edamameSafezoneMarker;
 }
 
 function updateCursor(battle: BattleState, san: San): void {

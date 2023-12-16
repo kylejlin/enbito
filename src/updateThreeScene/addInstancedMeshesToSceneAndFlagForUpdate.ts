@@ -16,6 +16,9 @@ export function addInstancedMeshesToSceneAndFlagForUpdate(san: San): void {
     azukiBannerTowers,
     edamameBannerTowers,
 
+    azukiSafezoneMarker,
+    edamameSafezoneMarker,
+
     dragonflies,
   } = san.data;
 
@@ -47,6 +50,11 @@ export function addInstancedMeshesToSceneAndFlagForUpdate(san: San): void {
 
   addGltfCacheToScene(azukiBannerTowers, scene);
   addGltfCacheToScene(edamameBannerTowers, scene);
+
+  addNonEmptyInstancedMeshesToSceneAndFlagForUpdate(
+    [azukiSafezoneMarker, edamameSafezoneMarker],
+    scene
+  );
 
   addGltfCacheToScene(dragonflies, scene);
 }
