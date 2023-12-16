@@ -1219,11 +1219,15 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
 ): void {
   const { battle, san, keys } = resources;
   const groundCursorPosition = getGroundCursorPosition(san);
-  if (groundCursorPosition === null || !keys.f) {
+  if (groundCursorPosition === null) {
     return;
   }
 
   const { plannedDeployment } = battle.data;
+
+  if (plannedDeployment.start === null) {
+    return;
+  }
 
   if (plannedDeployment.start !== null) {
     const temp_fromStartToCursor = groundCursorPosition

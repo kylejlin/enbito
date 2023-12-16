@@ -73,9 +73,11 @@ export function main(assets: Assets): void {
       keys.w = true;
     }
     if (e.key === "f") {
-      const wasKeyFDown = keys._1;
+      const wasKeyDown = keys._1;
       keys.f = true;
-      trySetDeploymentStart(wasKeyFDown);
+      if (!wasKeyDown) {
+        handleFKeyPress();
+      }
     }
     if (e.key === "t") {
       keys.t = true;
@@ -111,7 +113,6 @@ export function main(assets: Assets): void {
     }
     if (e.key === "f") {
       keys.f = false;
-      trySetDeploymentEnd();
     }
     if (e.key === "t") {
       keys.t = false;
@@ -223,9 +224,17 @@ export function main(assets: Assets): void {
     san.data.scene.environment = assets.environment;
   }
 
-  function trySetDeploymentStart(wasKey1Down: boolean): void {
+  function handleFKeyPress(): void {
+    if (resources.battle.data.plannedDeployment.start === null) {
+      trySetDeploymentStart();
+    } else {
+      trySetDeploymentEnd();
+    }
+  }
+
+  function trySetDeploymentStart(): void {
     const groundCursorPosition = getGroundCursorPosition(resources.san);
-    if (groundCursorPosition === null || wasKey1Down) {
+    if (groundCursorPosition === null) {
       return;
     }
 
