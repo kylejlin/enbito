@@ -470,7 +470,6 @@ function updateTentativelySelectedSoldierMarkers(
   const bUnit = battle.getUnit(nearestAzukiUnitId);
 
   const instancedMesh = san.data.tentativelySelectedSoldierMarker;
-  instancedMesh.material.opacity = 0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
   const temp = new Object3D();
 
   for (const soldierId of bUnit.soldierIds) {
@@ -486,4 +485,6 @@ function updateTentativelySelectedSoldierMarkers(
     instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
     ++instancedMesh.count;
   }
+
+  instancedMesh.material.opacity = 0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
 }
