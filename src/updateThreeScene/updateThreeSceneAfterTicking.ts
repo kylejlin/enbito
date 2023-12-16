@@ -326,7 +326,8 @@ function updateBannerTowers(battle: BattleState, san: San): void {
         Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
         Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
         1,
-        32
+        32,
+        4
       ),
       bTower.allegiance === Allegiance.Azuki
         ? new MeshLambertMaterial({
