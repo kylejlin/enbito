@@ -314,6 +314,28 @@ function updateBannerTowers(battle: BattleState, san: San): void {
     });
   }
 
+  updateBannerTowerSafezoneMarkers(battle, san);
+}
+
+function getBannerTowerGltfCache(allegiance: Allegiance, san: San): GltfCache {
+  return allegiance === Allegiance.Azuki
+    ? san.data.azukiBannerTowers
+    : san.data.edamameBannerTowers;
+}
+
+function getInstanceSceneFromGltfCache(cache: GltfCache): GLTF {
+  const { gltfs, count } = cache;
+  while (count >= gltfs.length) {
+    gltfs.push(cloneGltf(gltfs[0]));
+  }
+
+  const instance = gltfs[count];
+  ++cache.count;
+  return instance;
+}
+
+function updateBannerTowerSafezoneMarkers(battle: BattleState, san: San): void {
+  const bTowerIds = battle.data.activeTowerIds;
   const shouldWarnAzuki =
     getAzukiKingDistanceSquaredToNearestBannerTower(battle) >=
     BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED;
@@ -352,23 +374,6 @@ function updateBannerTowers(battle: BattleState, san: San): void {
     instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
     ++instancedMesh.count;
   }
-}
-
-function getBannerTowerGltfCache(allegiance: Allegiance, san: San): GltfCache {
-  return allegiance === Allegiance.Azuki
-    ? san.data.azukiBannerTowers
-    : san.data.edamameBannerTowers;
-}
-
-function getInstanceSceneFromGltfCache(cache: GltfCache): GLTF {
-  const { gltfs, count } = cache;
-  while (count >= gltfs.length) {
-    gltfs.push(cloneGltf(gltfs[0]));
-  }
-
-  const instance = gltfs[count];
-  ++cache.count;
-  return instance;
 }
 
 function getSafezoneInstancedMesh(
