@@ -136,7 +136,6 @@ export interface Unit {
   forward: Triple;
   isPreview: boolean;
   allegiance: Allegiance;
-  // TODO: Check if this is needed.
   areSoldiersStillBeingAdded: boolean;
 }
 
