@@ -26,7 +26,7 @@ import {
   getNearestBannerTowerId,
   getNearestUnitId,
   isAzukiBannerTower,
-  isAzukiUnit,
+  isAzukiNonAssemblingUnit,
 } from "../tick";
 import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
 import { getGroundCursorPosition } from "../groundCursor";
@@ -462,7 +462,7 @@ function updateTentativelySelectedSoldierMarkers(
   const nearestAzukiUnitId = getNearestUnitId(
     geoUtils.fromThreeVec(groundCursorPosition),
     battle,
-    isAzukiUnit
+    isAzukiNonAssemblingUnit
   );
   if (nearestAzukiUnitId === null) {
     return;

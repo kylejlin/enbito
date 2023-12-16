@@ -1485,6 +1485,12 @@ export function getNearestUnitId(
   return nearestUnitId;
 }
 
+export function isAzukiNonAssemblingUnit(u: Unit): boolean {
+  return (
+    u.allegiance === Allegiance.Azuki && u.order.kind !== UnitOrderKind.Assemble
+  );
+}
+
 export function isAzukiUnit(u: Unit): boolean {
   return u.allegiance === Allegiance.Azuki;
 }
