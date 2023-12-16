@@ -25,10 +25,8 @@ import {
   getAzukiKingDistanceSquaredToNearestBannerTower,
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
-  getNearestUnitId,
   getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
-  isAzukiNonAssemblingUnit,
 } from "../tick";
 import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
 import { getGroundCursorPosition } from "../groundCursor";

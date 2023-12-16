@@ -12,9 +12,7 @@ import { addInstancedMeshesToSceneAndFlagForUpdate } from "./updateThreeScene/ad
 import { getGroundCursorPosition } from "./groundCursor";
 import { KeySet, MouseState, Resources } from "./resourceBundle";
 import {
-  getNearestUnitId,
   getTentativelySelectedAzukiUnitId,
-  isAzukiNonAssemblingUnit,
   tick,
   updatePlannedDeploymentAfterUpdatingCamera,
 } from "./tick";
