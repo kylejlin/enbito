@@ -20,6 +20,8 @@ import {
   DoubleSide,
   AmbientLight,
   SphereGeometry,
+  BufferGeometry,
+  NormalBufferAttributes,
 } from "three";
 import { Sky } from "three/addons/objects/Sky.js";
 import { RepeatWrapping } from "three";
@@ -62,10 +64,15 @@ export interface SanData {
   edamameSafezoneMarker: InstancedMesh;
   tentativelySelectedDeploymentBannerTowerMarker: Mesh;
   selectedSoldierMarker: InstancedMesh;
-  tentativelySelectedSoldierMarker: InstancedMesh;
+  tentativelySelectedSoldierMarker: InstancedMeshWithLambertMaterial;
 
   mcon: ModelConstants;
 }
+
+export type InstancedMeshWithLambertMaterial = InstancedMesh<
+  BufferGeometry<NormalBufferAttributes>,
+  MeshLambertMaterial
+>;
 
 export interface SanSpear {
   gltf: GLTF;
@@ -396,7 +403,7 @@ function getDefaultSelectedDeploymentBannerTower(): Mesh {
 
 function getDefaultSelectedSoldierMarker(): InstancedMesh {
   const marker = new InstancedMesh(
-    new SphereGeometry(1, 16, 16),
+    new SphereGeometry(2, 16, 16),
     new MeshLambertMaterial({
       emissive: 0x57c7f7,
       transparent: true,
@@ -408,7 +415,7 @@ function getDefaultSelectedSoldierMarker(): InstancedMesh {
   return marker;
 }
 
-function getDefaultTentativelySelectedSoldierMarker(): InstancedMesh {
+function getDefaultTentativelySelectedSoldierMarker(): InstancedMeshWithLambertMaterial {
   const marker = new InstancedMesh(
     new SphereGeometry(2, 16, 16),
     new MeshLambertMaterial({
