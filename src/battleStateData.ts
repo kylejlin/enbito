@@ -163,8 +163,6 @@ export interface PlannedUnit {
   soldiers: PlannedSoldier[];
   forward: Triple;
   allegiance: Allegiance;
-  // TODO: Check if this is needed.
-  areSoldiersStillBeingAdded: boolean;
 }
 
 export interface PlannedSoldier {

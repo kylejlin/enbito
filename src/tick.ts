@@ -1284,7 +1284,6 @@ function getPlannedUnit({
     soldiers,
     forward,
     allegiance,
-    areSoldiersStillBeingAdded: false,
   };
 }
 
