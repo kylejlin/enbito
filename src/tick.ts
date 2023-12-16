@@ -530,7 +530,8 @@ function tickPlannedDeployment(
   if (
     plannedDeployment.plannedUnit !== null &&
     keys.d &&
-    selectedTowerId !== null
+    selectedTowerId !== null &&
+    plannedDeployment.start === null
   ) {
     const selectedTower = battle.getBannerTower(selectedTowerId);
 
