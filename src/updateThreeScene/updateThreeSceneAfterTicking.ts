@@ -6,6 +6,7 @@ import {
   Dragonfly,
   DragonflyAnimationKind,
   King,
+  Soldier,
   SoldierAnimationKind,
   SoldierAnimationState,
   SoldierExplosion,
@@ -25,6 +26,7 @@ import {
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
   getNearestUnitId,
+  getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
   isAzukiNonAssemblingUnit,
 } from "../tick";
@@ -175,6 +177,11 @@ function updateCamera(battle: BattleState, san: San): void {
 function updateUnits(battle: BattleState, san: San): void {
   const temp = new Object3D();
 
+  const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
+    battle,
+    san
+  );
+
   const { activeUnitIds } = battle.data;
   for (const unitId of activeUnitIds) {
     const bUnit = battle.getUnit(unitId);
@@ -199,6 +206,13 @@ function updateUnits(battle: BattleState, san: San): void {
       temp.updateMatrix();
       instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
       ++instancedMesh.count;
+    }
+
+    if (bUnit.isSelected && unitId !== tentativelySelectedUnitId) {
+      for (const soldierId of bUnit.soldierIds) {
+        const bSoldier = battle.getSoldier(soldierId);
+        updateSelectedSoldierMarker(bSoldier, san);
+      }
     }
   }
 }
@@ -266,6 +280,18 @@ function getSpearFrameInstancedMesh(
   // but it _does_ recognize that `bAnimation.kind` has type `never` in this branch.
   // So, as a workaround, we return `bAnimation.kind`.
   return bAnimation.kind;
+}
+
+function updateSelectedSoldierMarker(bSoldier: Soldier, san: San): void {
+  const instancedMesh = san.data.selectedSoldierMarker;
+  const temp = new Object3D();
+  temp.position.set(...bSoldier.position);
+  geoUtils.setQuaternionFromOrientation(temp.quaternion, bSoldier.orientation);
+  temp.translateY(1);
+
+  temp.updateMatrix();
+  instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
+  ++instancedMesh.count;
 }
 
 function updateSoldierExplosions(battle: BattleState, san: San): void {
@@ -450,24 +476,14 @@ function updateTentativelySelectedSoldierMarkers(
   battle: BattleState,
   san: San
 ): void {
-  if (!battle.data.isSelectingUnit) {
-    return;
-  }
-
-  const groundCursorPosition = getGroundCursorPosition(san);
-  if (groundCursorPosition === null) {
-    return;
-  }
-
-  const nearestAzukiUnitId = getNearestUnitId(
-    geoUtils.fromThreeVec(groundCursorPosition),
+  const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
     battle,
-    isAzukiNonAssemblingUnit
+    san
   );
-  if (nearestAzukiUnitId === null) {
+  if (tentativelySelectedUnitId === null) {
     return;
   }
-  const bUnit = battle.getUnit(nearestAzukiUnitId);
+  const bUnit = battle.getUnit(tentativelySelectedUnitId);
 
   const instancedMesh = san.data.tentativelySelectedSoldierMarker;
   const temp = new Object3D();

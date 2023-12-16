@@ -11,7 +11,13 @@ import { resetThreeScene } from "./updateThreeScene/resetThreeScene";
 import { addInstancedMeshesToSceneAndFlagForUpdate } from "./updateThreeScene/addInstancedMeshesToSceneAndFlagForUpdate";
 import { getGroundCursorPosition } from "./groundCursor";
 import { KeySet, MouseState, Resources } from "./resourceBundle";
-import { tick, updatePlannedDeploymentAfterUpdatingCamera } from "./tick";
+import {
+  getNearestUnitId,
+  getTentativelySelectedAzukiUnitId,
+  isAzukiNonAssemblingUnit,
+  tick,
+  updatePlannedDeploymentAfterUpdatingCamera,
+} from "./tick";
 import { MILLISECS_PER_TICK } from "./gameConsts";
 import { BattleStateData } from "./battleStateData";
 
@@ -264,11 +270,25 @@ export function main(assets: Assets): void {
 
   function handleSelectionKeyPress(): void {
     if (resources.battle.data.isSelectingUnit) {
-      // TODO
-      // selectAzukiUnitNearestGroundCursor();
+      toggleSelectionOfAzukiUnitNearestGroundCursor();
+      resources.battle.data.isSelectingUnit = false;
     } else {
       resources.battle.data.isSelectingUnit = true;
     }
+  }
+
+  function toggleSelectionOfAzukiUnitNearestGroundCursor(): void {
+    const { battle } = resources;
+    const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
+      battle,
+      san
+    );
+    if (tentativelySelectedUnitId === null) {
+      return;
+    }
+
+    const unit = battle.getUnit(tentativelySelectedUnitId);
+    unit.isSelected = !unit.isSelected;
   }
 }
 

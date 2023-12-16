@@ -45,6 +45,7 @@ import {
   BANNERTOWER_SAFEZONE_RANGE_SQUARED,
   KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND,
 } from "./gameConsts";
+import { San } from "./san";
 
 let hasAlerted = false;
 function alertOnceAfterDelay(message: string): void {
@@ -1483,6 +1484,26 @@ export function getNearestUnitId(
   }
 
   return nearestUnitId;
+}
+
+export function getTentativelySelectedAzukiUnitId(
+  battle: BattleState,
+  san: San
+): null | Ref {
+  if (!battle.data.isSelectingUnit) {
+    return null;
+  }
+
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return null;
+  }
+
+  return getNearestUnitId(
+    geoUtils.fromThreeVec(groundCursorPosition),
+    battle,
+    isAzukiNonAssemblingUnit
+  );
 }
 
 export function isAzukiNonAssemblingUnit(u: Unit): boolean {
