@@ -60,7 +60,6 @@ export function tick(resources: Resources): void {
 
   tickDragonflies(elapsedTimeInSeconds, resources);
   tickKings(elapsedTimeInSeconds, resources);
-  tickPlannedDeployment(elapsedTimeInSeconds, resources);
   tickUnits(elapsedTimeInSeconds, resources);
   tickBannerTowers(elapsedTimeInSeconds, resources);
   tickSoldierExplosions(elapsedTimeInSeconds, resources);
@@ -515,40 +514,6 @@ function tickDragonfly(
         dragonfly.speed * -elapsedTimeInSeconds
       );
     }
-  }
-}
-
-function tickPlannedDeployment(
-  elapsedTimeInSeconds: number,
-  resources: Resources
-): void {
-  const { keys, battle } = resources;
-  const { plannedDeployment } = resources.battle.data;
-  const selectedTowerId = getAzukiBannerTowerEnclosingGroundCursor(resources);
-  if (
-    plannedDeployment.plannedUnit !== null &&
-    keys.d &&
-    selectedTowerId !== null &&
-    plannedDeployment.start === null
-  ) {
-    const selectedTower = battle.getBannerTower(selectedTowerId);
-
-    const assemblingUnit: Unit = {
-      order: { kind: UnitOrderKind.Assemble },
-      soldierIds: [],
-      forward: plannedDeployment.plannedUnit.forward,
-      isPreview: false,
-      allegiance: plannedDeployment.plannedUnit.allegiance,
-      areSoldiersStillBeingAdded: true,
-    };
-    const assemblingUnitId = battle.addEntity(assemblingUnit);
-    selectedTower.pendingUnits.push({
-      unitId: assemblingUnitId,
-      soldiers: plannedDeployment.plannedUnit.soldiers,
-    });
-    battle.data.activeUnitIds.push(assemblingUnitId);
-
-    plannedDeployment.plannedUnit = null;
   }
 }
 
@@ -1189,33 +1154,11 @@ function getSoldierExplosion(
   };
 }
 
-function getAzukiBannerTowerEnclosingGroundCursor(
-  resources: Resources
-): null | Ref {
-  const groundCursorPosition = getGroundCursorPosition(resources.san);
-  if (groundCursorPosition === null) {
-    return null;
-  }
-
-  for (const towerId of resources.battle.data.activeTowerIds) {
-    const tower = resources.battle.getBannerTower(towerId);
-    if (
-      tower.allegiance === Allegiance.Azuki &&
-      inTowerTerritory(
-        geoUtils.fromThreeVec(groundCursorPosition),
-        tower.position
-      )
-    ) {
-      return towerId;
-    }
-  }
-
-  return null;
-}
-
 export function updatePlannedDeploymentAfterUpdatingCamera(
   resources: Resources
 ): void {
+  deployPlannedUnitIfItExistsAndCorrectKeyPressed(resources);
+
   const { battle, san } = resources;
   const groundCursorPosition = getGroundCursorPosition(san);
   if (groundCursorPosition === null) {
@@ -1246,6 +1189,53 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
     gap: [8, 8 * (Math.sqrt(3) / 2)],
     allegiance: Allegiance.Azuki,
   });
+}
+
+function deployPlannedUnitIfItExistsAndCorrectKeyPressed(
+  resources: Resources
+): void {
+  const { keys, battle } = resources;
+  const { plannedDeployment } = resources.battle.data;
+  const selectedTowerId = getAzukiBannerTowerIdNearestGroundCursor(resources);
+  if (
+    plannedDeployment.plannedUnit !== null &&
+    keys.d &&
+    selectedTowerId !== null &&
+    plannedDeployment.start === null
+  ) {
+    const selectedTower = battle.getBannerTower(selectedTowerId);
+
+    const assemblingUnit: Unit = {
+      order: { kind: UnitOrderKind.Assemble },
+      soldierIds: [],
+      forward: plannedDeployment.plannedUnit.forward,
+      isPreview: false,
+      allegiance: plannedDeployment.plannedUnit.allegiance,
+      areSoldiersStillBeingAdded: true,
+    };
+    const assemblingUnitId = battle.addEntity(assemblingUnit);
+    selectedTower.pendingUnits.push({
+      unitId: assemblingUnitId,
+      soldiers: plannedDeployment.plannedUnit.soldiers,
+    });
+    battle.data.activeUnitIds.push(assemblingUnitId);
+
+    plannedDeployment.plannedUnit = null;
+  }
+}
+
+function getAzukiBannerTowerIdNearestGroundCursor(
+  resources: Resources
+): null | Ref {
+  const groundCursorPosition = getGroundCursorPosition(resources.san);
+  if (groundCursorPosition === null) {
+    return null;
+  }
+  return getNearestBannerTowerId(
+    geoUtils.fromThreeVec(groundCursorPosition),
+    resources.battle,
+    isAzukiBannerTower
+  );
 }
 
 function getPlannedUnit({
