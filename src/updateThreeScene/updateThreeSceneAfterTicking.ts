@@ -20,6 +20,11 @@ import {
 } from "three";
 import { cloneGltf } from "../cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
+import {
+  getAzukiKingDistanceSquaredToNearestBannerTower,
+  getEdamameKingDistanceSquaredToNearestBannerTower,
+} from "../tick";
+import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
 
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
@@ -307,44 +312,14 @@ function updateBannerTowers(battle: BattleState, san: San): void {
       pitch: 0,
       roll: 0,
     });
-
-    // const safezone = new Mesh(
-    //   new CylinderGeometry(
-    //     Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
-    //     Math.sqrt(BANNERTOWER_SAFEZONE_RANGE_SQUARED),
-    //     1,
-    //     32,
-    //     4
-    //   ),
-    //   bTower.allegiance === Allegiance.Azuki
-    //     ? new MeshLambertMaterial({
-    //         emissive: 0xf76157,
-    //         transparent: true,
-    //         opacity: 0.5,
-    //       })
-    //     : new MeshLambertMaterial({
-    //         emissive: 0xa2d02b,
-    //         transparent: true,
-    //         opacity: 0.5,
-    //       })
-    // );
-    // safezone.position.set(bTower.position[0], 0, bTower.position[2]);
-    // safezone.material.side = DoubleSide;
-
-    // safezoneMarkers.push([bTower, safezone]);
   }
 
-  // safezoneMarkers.sort(([a], [b]) => {
-  //   const aDistSq = geoUtils.distanceToSquared(azukiKing.position, a.position);
-  //   const bDistSq = geoUtils.distanceToSquared(azukiKing.position, b.position);
-  //   return aDistSq - bDistSq;
-  // });
-  // for (let i = 0; i < safezoneMarkers.length; ++i) {
-  //   const marker = safezoneMarkers[i][1];
-  //   marker.position.setY(-0.3 + 0.05 * i);
-  //   san.data.scene.add(marker);
-  // }
-
+  const shouldWarnAzuki =
+    getAzukiKingDistanceSquaredToNearestBannerTower(battle) >=
+    BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED;
+  const shouldWarnEdamame =
+    getEdamameKingDistanceSquaredToNearestBannerTower(battle) >=
+    BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED;
   const azukiKing = battle.getAzukiKing();
   const sortedBannerTowers = bTowerIds
     .map((id) => battle.getBannerTower(id))
@@ -362,6 +337,14 @@ function updateBannerTowers(battle: BattleState, san: San): void {
   const temp = new Object3D();
   for (let i = 0; i < sortedBannerTowers.length; ++i) {
     const bTower = sortedBannerTowers[i];
+    const shouldShow =
+      bTower.allegiance === Allegiance.Azuki
+        ? shouldWarnAzuki
+        : shouldWarnEdamame;
+    if (!shouldShow) {
+      continue;
+    }
+
     const instancedMesh = getSafezoneInstancedMesh(bTower.allegiance, san);
     temp.position.set(bTower.position[0], -0.3 + 0.05 * i, bTower.position[2]);
 

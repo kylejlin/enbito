@@ -1370,21 +1370,31 @@ function isCollidingWithTower(
 function tickKingBoundaries(resources: Resources): void {
   const { battle } = resources;
 
-  if (!isAzukiKingBannerTowerSafezone(battle)) {
+  if (!isAzukiKingInBannerTowerSafezone(battle)) {
     const azukiKing = battle.getAzukiKing();
     azukiKing.health -=
       KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND * MILLISECS_PER_TICK * 1e-3;
     console.log("azuki king health: ", azukiKing.health);
   }
 
-  if (!isEdamameKingBannerTowerSafezone(battle)) {
+  if (!isEdamameKingInBannerTowerSafezone(battle)) {
     const edamameKing = battle.getEdamameKing();
     edamameKing.health -=
       KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND * MILLISECS_PER_TICK * 1e-3;
   }
 }
 
-function isAzukiKingBannerTowerSafezone(battle: BattleState): boolean {
+function isAzukiKingInBannerTowerSafezone(battle: BattleState): boolean {
+  return (
+    getAzukiKingDistanceSquaredToNearestBannerTower(battle) <=
+    BANNERTOWER_SAFEZONE_RANGE_SQUARED
+  );
+}
+
+/** Returns infinity if there are no azuki banner towers. */
+export function getAzukiKingDistanceSquaredToNearestBannerTower(
+  battle: BattleState
+): number {
   const azukiKing = battle.getAzukiKing();
 
   const nearestAzukiTowerId = getNearestBannerTowerId(
@@ -1392,12 +1402,12 @@ function isAzukiKingBannerTowerSafezone(battle: BattleState): boolean {
     battle,
     isAzukiBannerTower
   );
-  return (
-    nearestAzukiTowerId !== null &&
-    geoUtils.xzDistanceToSquared(
-      azukiKing.position,
-      battle.getBannerTower(nearestAzukiTowerId).position
-    ) <= BANNERTOWER_SAFEZONE_RANGE_SQUARED
+  if (nearestAzukiTowerId === null) {
+    return Infinity;
+  }
+  return geoUtils.xzDistanceToSquared(
+    azukiKing.position,
+    battle.getBannerTower(nearestAzukiTowerId).position
   );
 }
 
@@ -1405,7 +1415,16 @@ function isAzukiBannerTower(tower: BannerTower): boolean {
   return tower.allegiance === Allegiance.Azuki;
 }
 
-function isEdamameKingBannerTowerSafezone(battle: BattleState): boolean {
+function isEdamameKingInBannerTowerSafezone(battle: BattleState): boolean {
+  return (
+    getEdamameKingDistanceSquaredToNearestBannerTower(battle) <=
+    BANNERTOWER_SAFEZONE_RANGE_SQUARED
+  );
+}
+
+export function getEdamameKingDistanceSquaredToNearestBannerTower(
+  battle: BattleState
+): number {
   const edamameKing = battle.getEdamameKing();
 
   const nearestEdamameTowerId = getNearestBannerTowerId(
@@ -1413,12 +1432,12 @@ function isEdamameKingBannerTowerSafezone(battle: BattleState): boolean {
     battle,
     isEdamameBannerTower
   );
-  return (
-    nearestEdamameTowerId !== null &&
-    geoUtils.xzDistanceToSquared(
-      edamameKing.position,
-      battle.getBannerTower(nearestEdamameTowerId).position
-    ) <= BANNERTOWER_SAFEZONE_RANGE_SQUARED
+  if (nearestEdamameTowerId === null) {
+    return Infinity;
+  }
+  return geoUtils.xzDistanceToSquared(
+    edamameKing.position,
+    battle.getBannerTower(nearestEdamameTowerId).position
   );
 }
 
