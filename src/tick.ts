@@ -605,7 +605,7 @@ function tickUnitWithAdvanceOrder(
     (soldierId) => battle.getSoldier(soldierId).attackTargetId !== null
   );
   if (!wasAnySoldierFighting) {
-    const forwardAngle = Math.atan2(unit.forward[0], unit.forward[2]);
+    const unitYaw = unit.yaw;
     for (const soldierId of soldierIds) {
       const soldier = battle.getSoldier(soldierId);
       const nearestEnemy = getNearestEnemyId(
@@ -620,10 +620,10 @@ function tickUnitWithAdvanceOrder(
         const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
         soldier.orientation.yaw = limitTurn(
           soldier.orientation.yaw,
-          forwardAngle,
+          unitYaw,
           radiansPerTick
         );
-        if (soldier.orientation.yaw === forwardAngle) {
+        if (soldier.orientation.yaw === unitYaw) {
           startOrContinueWalkingAnimation(
             elapsedTimeInSeconds,
             soldier.animation,
@@ -804,17 +804,17 @@ function tickUnitWithStormOrder(
         soldier.animation.kind === SoldierAnimationKind.Idle ||
         soldier.animation.kind === SoldierAnimationKind.Walk
       ) {
-        const forwardAngle = Math.atan2(unit.forward[0], unit.forward[2]);
+        const unitYaw = unit.yaw;
         if (nearestEnemy !== null) {
           soldier.attackTargetId = nearestEnemy;
         } else {
           const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
           soldier.orientation.yaw = limitTurn(
             soldier.orientation.yaw,
-            forwardAngle,
+            unitYaw,
             radiansPerTick
           );
-          if (soldier.orientation.yaw === forwardAngle) {
+          if (soldier.orientation.yaw === unitYaw) {
             startOrContinueWalkingAnimation(
               elapsedTimeInSeconds,
               soldier.animation,
@@ -849,7 +849,7 @@ function tickUnitWithAssembleOrder(
 
     const difference = geoUtils.sub(soldier.assemblyPoint, soldier.position);
     if (geoUtils.lengthSquared(difference) < 0.1) {
-      const desiredYRot = Math.atan2(unit.forward[0], unit.forward[2]);
+      const desiredYRot = unit.yaw;
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
       soldier.orientation.yaw = limitTurn(
         soldier.orientation.yaw,
@@ -1188,14 +1188,15 @@ export function getPlannedDeploymentUnitBasedOnPlannedDeploymentStart(
   const fromStartToCursorLength = temp_fromStartToCursor.length();
   const RANK_GAP = 8;
   const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
+  const forward = geoUtils.fromThreeVec(
+    temp_fromStartToCursor
+      .clone()
+      .normalize()
+      .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2)
+  );
   return getPlannedUnit({
     start: plannedDeployment.start,
-    forward: geoUtils.fromThreeVec(
-      temp_fromStartToCursor
-        .clone()
-        .normalize()
-        .applyAxisAngle(new Vector3(0, 1, 0), -Math.PI / 2)
-    ),
+    yaw: Math.atan2(forward[0], forward[2]),
     dimensions: [width, 1],
     gap: [8, 8 * (Math.sqrt(3) / 2)],
     allegiance: Allegiance.Azuki,
@@ -1224,7 +1225,7 @@ export function deployPlannedUnitIfItExistsAndDeployKeyPressedAssumingCameraHasB
       isSelected: false,
       order: { kind: UnitOrderKind.Assemble },
       soldierIds: [],
-      forward: plannedDeployment.plannedUnit.forward,
+      yaw: plannedDeployment.plannedUnit.yaw,
       isPreview: false,
       allegiance: plannedDeployment.plannedUnit.allegiance,
       areSoldiersStillBeingAdded: true,
@@ -1256,25 +1257,21 @@ function getAzukiBannerTowerIdNearestGroundCursor(
 
 function getPlannedUnit({
   start,
-  forward,
+  yaw,
   dimensions: [width, height],
   gap: [rightGap, backGap],
   allegiance,
 }: {
   start: Triple;
-  forward: Triple;
+  yaw: number;
   dimensions: [number, number];
   gap: [number, number];
   allegiance: Allegiance;
 }): PlannedUnit {
-  const rightStep = geoUtils
-    .toThreeVec(forward)
-    .clone()
+  const rightStep = new Vector3(Math.sin(yaw), 0, Math.cos(yaw))
     .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2)
     .multiplyScalar(rightGap);
-  const backStep = geoUtils
-    .toThreeVec(forward)
-    .clone()
+  const backStep = new Vector3(Math.sin(yaw), 0, Math.cos(yaw))
     .applyAxisAngle(new Vector3(0, 1, 0), Math.PI)
     .multiplyScalar(backGap);
   const soldiers: PlannedSoldier[] = [];
@@ -1290,7 +1287,7 @@ function getPlannedUnit({
         soldierPosition.y,
         soldierPosition.z
       );
-      soldier.yRot = Math.atan2(forward[0], forward[2]);
+      soldier.yRot = yaw;
       soldiers.push(soldier);
     }
   }
@@ -1298,7 +1295,7 @@ function getPlannedUnit({
   return {
     order: { kind: UnitOrderKind.Advance },
     soldiers,
-    forward,
+    yaw,
     allegiance,
   };
 }
@@ -1585,7 +1582,7 @@ export function getTentativeRepositionedUnitAssumingTentativeRotation(
       continue;
     }
 
-    const originalUnitForward = unit.forward;
+    const originalUnitYaw = unit.yaw;
 
     const { soldierIds } = unit;
     for (const soldierId of soldierIds) {

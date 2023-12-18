@@ -42,7 +42,7 @@ export function getDefaultBattleState(): BattleStateData {
 
   const azukiLegion = getUnit(entities, {
     start: [-50, 0, 70],
-    forward: [0, 0, 1],
+    yaw: 0,
     dimensions: [10, 10],
     gap: [8, 8 * (Math.sqrt(3) / 2)],
     allegiance: Allegiance.Azuki,
@@ -51,7 +51,7 @@ export function getDefaultBattleState(): BattleStateData {
 
   const edamameLegion = getUnit(entities, {
     start: [50, 0, -70],
-    forward: [0, 0, -1],
+    yaw: Math.PI,
     dimensions: [10, 10],
     gap: [8, 8 * (Math.sqrt(3) / 2)],
     allegiance: Allegiance.Edamame,
@@ -216,23 +216,22 @@ function getUnit(
   entities: any[],
   {
     start,
-    forward,
+    yaw,
     dimensions: [width, height],
     gap: [rightGap, backGap],
     allegiance,
   }: {
     start: Triple;
-    forward: Triple;
+    yaw: number;
     dimensions: [number, number];
     gap: [number, number];
     allegiance: Allegiance;
   }
 ): Unit {
-  const rightStep = toThreeVec(forward)
-    .clone()
+  const rightStep = new Vector3(Math.sin(yaw), 0, Math.cos(yaw))
     .applyAxisAngle(new Vector3(0, 1, 0), Math.PI / 2)
     .multiplyScalar(rightGap);
-  const backStep = toThreeVec(forward)
+  const backStep = new Vector3(Math.sin(yaw), 0, Math.cos(yaw))
     .clone()
     .applyAxisAngle(new Vector3(0, 1, 0), Math.PI)
     .multiplyScalar(backGap);
@@ -248,7 +247,7 @@ function getUnit(
         soldierPosition.y,
         soldierPosition.z
       );
-      soldier.orientation.yaw = Math.atan2(forward[0], forward[2]);
+      soldier.orientation.yaw = yaw;
       soldiers.push(soldier);
     }
   }
@@ -261,7 +260,7 @@ function getUnit(
     isSelected: false,
     order: { kind: UnitOrderKind.Storm },
     soldierIds,
-    forward,
+    yaw,
     isPreview: false,
     allegiance,
     areSoldiersStillBeingAdded: false,

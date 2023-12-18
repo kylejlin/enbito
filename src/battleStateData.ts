@@ -151,7 +151,7 @@ export interface Unit {
   isSelected: boolean;
   order: UnitOrder;
   soldierIds: Ref[];
-  forward: Triple;
+  yaw: number;
   isPreview: boolean;
   allegiance: Allegiance;
   areSoldiersStillBeingAdded: boolean;
@@ -187,7 +187,7 @@ export interface PlannedDeploymentWithPlannedUnit {
 export interface PlannedUnit {
   order: UnitOrder;
   soldiers: PlannedSoldier[];
-  forward: Triple;
+  yaw: number;
   allegiance: Allegiance;
 }
 
