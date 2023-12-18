@@ -39,11 +39,15 @@ export function updateThreeSceneAfterTicking(
   battle: BattleState,
   san: San
 ): void {
-  const { scene, sky, grass, ambientLight } = san.data;
+  const { scene, sky, grass, ambientLight, tentativelySelectedSoldierMarker } =
+    san.data;
 
   scene.add(sky);
   scene.add(grass);
   scene.add(ambientLight);
+
+  tentativelySelectedSoldierMarker.material.opacity =
+    0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
 
   updateKings(battle, san);
   updateDragonflies(battle, san);
@@ -505,6 +509,4 @@ function updateTentativelySelectedSoldierMarkers(
     instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
     ++instancedMesh.count;
   }
-
-  instancedMesh.material.opacity = 0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
 }

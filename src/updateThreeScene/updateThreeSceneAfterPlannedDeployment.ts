@@ -30,10 +30,18 @@ export function updateThreeSceneAfterPlannedDeployment(
     temp.position.set(...bSoldier.position);
     temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), bSoldier.yRot);
 
-    const instancedMesh = san.data.azukiSpearWalkFrames[0];
+    const soldierInstancedMesh = san.data.azukiSpearWalkFrames[0];
 
     temp.updateMatrix();
-    instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
-    ++instancedMesh.count;
+    soldierInstancedMesh.setMatrixAt(soldierInstancedMesh.count, temp.matrix);
+    ++soldierInstancedMesh.count;
+
+    temp.translateY(1);
+
+    const markerInstancedMesh = san.data.tentativelySelectedSoldierMarker;
+
+    temp.updateMatrix();
+    markerInstancedMesh.setMatrixAt(markerInstancedMesh.count, temp.matrix);
+    ++markerInstancedMesh.count;
   }
 }
