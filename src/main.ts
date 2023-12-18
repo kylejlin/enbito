@@ -12,7 +12,7 @@ import { addInstancedMeshesToSceneAndFlagForUpdate } from "./updateThreeScene/ad
 import { getGroundCursorPosition } from "./groundCursor";
 import { KeySet, MouseState, Resources } from "./resourceBundle";
 import {
-  getTentativelySelectedAzukiUnitId,
+  getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending,
   tick,
   updatePlannedDeploymentAfterUpdatingCamera,
 } from "./tick";
@@ -304,10 +304,8 @@ export function main(assets: Assets): void {
 
   function toggleSelectionOfAzukiUnitNearestGroundCursor(): void {
     const { battle } = resources;
-    const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
-      battle,
-      san
-    );
+    const tentativelySelectedUnitId =
+      getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(battle, san);
     if (tentativelySelectedUnitId === null) {
       return;
     }

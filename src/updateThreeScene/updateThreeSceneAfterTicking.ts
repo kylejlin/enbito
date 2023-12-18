@@ -26,7 +26,7 @@ import {
   getAzukiKingDistanceSquaredToNearestBannerTower,
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
-  getTentativelySelectedAzukiUnitId,
+  getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending,
   isAzukiBannerTower,
 } from "../tick";
 import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
@@ -56,7 +56,7 @@ export function updateThreeSceneAfterTicking(
   updateBannerTowers(battle, san);
   updateSoldierExplosions(battle, san);
   updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
-  updateTentativelySelectedSoldierMarkers(battle, san);
+  updateTentativelySelectedSoldierMarkersIfSelectCommandIsPending(battle, san);
 
   updateCursor(battle, san);
 }
@@ -180,10 +180,8 @@ function updateCamera(battle: BattleState, san: San): void {
 function updateUnits(battle: BattleState, san: San): void {
   const temp = new Object3D();
 
-  const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
-    battle,
-    san
-  );
+  const tentativelySelectedUnitId =
+    getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(battle, san);
 
   const { activeUnitIds } = battle.data;
   for (const unitId of activeUnitIds) {
@@ -480,14 +478,12 @@ function updateTentativelySelectedDeploymentBannerTowerMarker(
   san.data.scene.add(sMarker);
 }
 
-function updateTentativelySelectedSoldierMarkers(
+function updateTentativelySelectedSoldierMarkersIfSelectCommandIsPending(
   battle: BattleState,
   san: San
 ): void {
-  const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
-    battle,
-    san
-  );
+  const tentativelySelectedUnitId =
+    getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(battle, san);
   if (tentativelySelectedUnitId === null) {
     return;
   }

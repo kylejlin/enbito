@@ -1497,7 +1497,7 @@ export function getNearestUnitId(
   return nearestUnitId;
 }
 
-export function getTentativelySelectedAzukiUnitId(
+export function getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(
   battle: BattleState,
   san: San
 ): null | Ref {
