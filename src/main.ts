@@ -5,16 +5,14 @@ import { San, getDefaultSanData } from "./san";
 import { BattleState } from "./battleState";
 import { getDefaultBattleState } from "./getBattleState";
 import * as geoUtils from "./geoUtils";
-import { updateThreeSceneAfterTicking } from "./updateThreeScene/updateThreeSceneAfterTicking";
-import { updateThreeSceneAfterPlannedDeployment } from "./updateThreeScene/updateThreeSceneAfterPlannedDeployment";
-import { resetThreeScene } from "./updateThreeScene/resetThreeScene";
-import { addInstancedMeshesToSceneAndFlagForUpdate } from "./updateThreeScene/addInstancedMeshesToSceneAndFlagForUpdate";
+import { updateThreeScene } from "./updateThreeScene";
 import { getGroundCursorPosition } from "./groundCursor";
 import { KeySet, MouseState, Resources } from "./resourceBundle";
 import {
-  getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending,
+  deployPlannedUnitIfItExistsAndDeployKeyPressedAssumingCameraHasBeenUpdated,
+  getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
+  getTentativelySelectedAzukiUnitId,
   tick,
-  updatePlannedDeploymentAfterUpdatingCamera,
 } from "./tick";
 import { MILLISECS_PER_TICK } from "./gameConsts";
 import {
@@ -22,6 +20,7 @@ import {
   BattleStateData,
   Orientation,
   PendingCommandKind,
+  PlannedDeploymentKind,
   SparseArray,
   Triple,
 } from "./battleStateData";
@@ -211,15 +210,11 @@ export function main(assets: Assets): void {
       resources.secondsUntilNextBattleStateSave -= MILLISECS_PER_TICK * 1e-3;
     }
 
-    resetThreeScene(resources.san);
+    updateThreeScene(resources.battle, resources.san);
 
-    updateThreeSceneAfterTicking(resources.battle, resources.san);
-
-    updatePlannedDeploymentAfterUpdatingCamera(resources);
-
-    updateThreeSceneAfterPlannedDeployment(resources.battle, resources.san);
-
-    addInstancedMeshesToSceneAndFlagForUpdate(resources.san);
+    deployPlannedUnitIfItExistsAndDeployKeyPressedAssumingCameraHasBeenUpdated(
+      resources
+    );
 
     render();
 
@@ -256,7 +251,7 @@ export function main(assets: Assets): void {
       trySetDeploymentStart();
     } else if (
       pendingCommand.kind === PendingCommandKind.Deploy &&
-      pendingCommand.plannedDeployment.plannedUnit !== null
+      pendingCommand.plannedDeployment.kind === PlannedDeploymentKind.WithStart
     ) {
       trySetDeploymentEnd();
     }
@@ -273,8 +268,8 @@ export function main(assets: Assets): void {
       resources.battle.data.pendingCommand = {
         kind: PendingCommandKind.Deploy,
         plannedDeployment: {
+          kind: PlannedDeploymentKind.WithStart,
           start: geoUtils.fromThreeVec(groundCursorPosition),
-          plannedUnit: null,
         },
       };
       return;
@@ -287,7 +282,18 @@ export function main(assets: Assets): void {
       return;
     }
 
-    pendingCommand.plannedDeployment.start = null;
+    const plannedUnit = getPlannedDeploymentUnitBasedOnPlannedDeploymentStart(
+      resources.battle,
+      san
+    );
+    if (plannedUnit === null) {
+      return;
+    }
+
+    pendingCommand.plannedDeployment = {
+      kind: PlannedDeploymentKind.WithPlannedUnit,
+      plannedUnit,
+    };
   }
 
   function handleSoldierSelectionKeyPress(): void {
@@ -304,8 +310,10 @@ export function main(assets: Assets): void {
 
   function toggleSelectionOfAzukiUnitNearestGroundCursor(): void {
     const { battle } = resources;
-    const tentativelySelectedUnitId =
-      getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(battle, san);
+    const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
+      battle,
+      san
+    );
     if (tentativelySelectedUnitId === null) {
       return;
     }

@@ -49,6 +49,11 @@ export enum PendingCommandKind {
   Reposition,
 }
 
+export enum PlannedDeploymentKind {
+  WithStart,
+  WithPlannedUnit,
+}
+
 export type Triple = [number, number, number];
 
 export interface Ref {
@@ -160,9 +165,18 @@ export interface BannerTowerPendingUnit {
   unitId: Ref;
 }
 
-export interface PlannedDeployment {
-  start: null | Triple;
-  plannedUnit: null | PlannedUnit;
+export type PlannedDeployment =
+  | PlannedDeploymentWithStart
+  | PlannedDeploymentWithPlannedUnit;
+
+export interface PlannedDeploymentWithStart {
+  kind: PlannedDeploymentKind.WithStart;
+  start: Triple;
+}
+
+export interface PlannedDeploymentWithPlannedUnit {
+  kind: PlannedDeploymentKind.WithPlannedUnit;
+  plannedUnit: PlannedUnit;
 }
 
 export interface PlannedUnit {

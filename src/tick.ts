@@ -10,6 +10,7 @@ import {
   DragonflyFlightKind,
   Orientation,
   PendingCommandKind,
+  PlannedDeploymentKind,
   PlannedSoldier,
   PlannedUnit,
   Ref,
@@ -1156,26 +1157,24 @@ function getSoldierExplosion(
   };
 }
 
-export function updatePlannedDeploymentAfterUpdatingCamera(
-  resources: Resources
-): void {
-  deployPlannedUnitIfItExistsAndDeployKeyPressed(resources);
-
-  const { battle, san } = resources;
+export function getPlannedDeploymentUnitBasedOnPlannedDeploymentStart(
+  battle: BattleState,
+  san: San
+): null | PlannedUnit {
   const groundCursorPosition = getGroundCursorPosition(san);
   if (groundCursorPosition === null) {
-    return;
+    return null;
   }
 
   const { pendingCommand } = battle.data;
   if (pendingCommand.kind !== PendingCommandKind.Deploy) {
-    return;
+    return null;
   }
 
   const { plannedDeployment } = pendingCommand;
 
-  if (plannedDeployment.start === null) {
-    return;
+  if (plannedDeployment.kind !== PlannedDeploymentKind.WithStart) {
+    return null;
   }
 
   const temp_fromStartToCursor = groundCursorPosition
@@ -1184,7 +1183,7 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
   const fromStartToCursorLength = temp_fromStartToCursor.length();
   const RANK_GAP = 8;
   const width = Math.max(1, Math.floor(fromStartToCursorLength / RANK_GAP));
-  plannedDeployment.plannedUnit = getPlannedUnit({
+  return getPlannedUnit({
     start: plannedDeployment.start,
     forward: geoUtils.fromThreeVec(
       temp_fromStartToCursor
@@ -1198,7 +1197,7 @@ export function updatePlannedDeploymentAfterUpdatingCamera(
   });
 }
 
-function deployPlannedUnitIfItExistsAndDeployKeyPressed(
+export function deployPlannedUnitIfItExistsAndDeployKeyPressedAssumingCameraHasBeenUpdated(
   resources: Resources
 ): void {
   const { keys, battle } = resources;
@@ -1210,10 +1209,9 @@ function deployPlannedUnitIfItExistsAndDeployKeyPressed(
   const { plannedDeployment } = pendingCommand;
   const selectedTowerId = getAzukiBannerTowerIdNearestGroundCursor(resources);
   if (
-    plannedDeployment.plannedUnit !== null &&
+    plannedDeployment.kind === PlannedDeploymentKind.WithPlannedUnit &&
     keys.d &&
-    selectedTowerId !== null &&
-    plannedDeployment.start === null
+    selectedTowerId !== null
   ) {
     const selectedTower = battle.getBannerTower(selectedTowerId);
 
@@ -1497,7 +1495,7 @@ export function getNearestUnitId(
   return nearestUnitId;
 }
 
-export function getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(
+export function getTentativelySelectedAzukiUnitId(
   battle: BattleState,
   san: San
 ): null | Ref {

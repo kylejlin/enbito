@@ -7,6 +7,7 @@ import {
   DragonflyAnimationKind,
   King,
   PendingCommandKind,
+  PlannedDeploymentKind,
   Soldier,
   SoldierAnimationKind,
   SoldierAnimationState,
@@ -26,7 +27,8 @@ import {
   getAzukiKingDistanceSquaredToNearestBannerTower,
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
-  getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending,
+  getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
+  getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
 } from "../tick";
 import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
@@ -35,10 +37,7 @@ import { getGroundCursorPosition } from "../groundCursor";
 // In this file, we use "b" and "s" prefixes to
 // differentiate between the BattleState and San.
 
-export function updateThreeSceneAfterTicking(
-  battle: BattleState,
-  san: San
-): void {
+export function main(battle: BattleState, san: San): void {
   const { scene, sky, grass, ambientLight, tentativelySelectedSoldierMarker } =
     san.data;
 
@@ -52,11 +51,12 @@ export function updateThreeSceneAfterTicking(
   updateKings(battle, san);
   updateDragonflies(battle, san);
   updateCamera(battle, san);
+  updatePlannedDeploymentUnit(battle, san);
   updateUnits(battle, san);
   updateBannerTowers(battle, san);
   updateSoldierExplosions(battle, san);
   updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
-  updateTentativelySelectedSoldierMarkersIfSelectCommandIsPending(battle, san);
+  updateTentativelySelectedUnitMarkers(battle, san);
 
   updateCursor(battle, san);
 }
@@ -180,8 +180,10 @@ function updateCamera(battle: BattleState, san: San): void {
 function updateUnits(battle: BattleState, san: San): void {
   const temp = new Object3D();
 
-  const tentativelySelectedUnitId =
-    getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(battle, san);
+  const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
+    battle,
+    san
+  );
 
   const { activeUnitIds } = battle.data;
   for (const unitId of activeUnitIds) {
@@ -450,11 +452,7 @@ function updateTentativelySelectedDeploymentBannerTowerMarker(
   }
 
   const { plannedDeployment } = pendingCommand;
-  if (
-    !(
-      plannedDeployment.plannedUnit !== null && plannedDeployment.start === null
-    )
-  ) {
+  if (plannedDeployment.kind !== PlannedDeploymentKind.WithPlannedUnit) {
     return;
   }
 
@@ -478,12 +476,14 @@ function updateTentativelySelectedDeploymentBannerTowerMarker(
   san.data.scene.add(sMarker);
 }
 
-function updateTentativelySelectedSoldierMarkersIfSelectCommandIsPending(
+function updateTentativelySelectedUnitMarkers(
   battle: BattleState,
   san: San
 ): void {
-  const tentativelySelectedUnitId =
-    getTentativelySelectedAzukiUnitIdIfSelectCommandIsPending(battle, san);
+  const tentativelySelectedUnitId = getTentativelySelectedAzukiUnitId(
+    battle,
+    san
+  );
   if (tentativelySelectedUnitId === null) {
     return;
   }
@@ -504,5 +504,43 @@ function updateTentativelySelectedSoldierMarkersIfSelectCommandIsPending(
     temp.updateMatrix();
     instancedMesh.setMatrixAt(instancedMesh.count, temp.matrix);
     ++instancedMesh.count;
+  }
+}
+
+/** You must only call this after you call `updateCamera()`. */
+function updatePlannedDeploymentUnit(battle: BattleState, san: San): void {
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Deploy) {
+    return;
+  }
+
+  const { plannedDeployment } = pendingCommand;
+
+  const bPlannedUnit =
+    plannedDeployment.kind === PlannedDeploymentKind.WithPlannedUnit
+      ? plannedDeployment.plannedUnit
+      : getPlannedDeploymentUnitBasedOnPlannedDeploymentStart(battle, san);
+  if (bPlannedUnit === null) {
+    return;
+  }
+
+  const temp = new Object3D();
+  for (const bSoldier of bPlannedUnit.soldiers) {
+    temp.position.set(...bSoldier.position);
+    temp.quaternion.setFromAxisAngle(new Vector3(0, 1, 0), bSoldier.yRot);
+
+    const soldierInstancedMesh = san.data.azukiSpearWalkFrames[0];
+
+    temp.updateMatrix();
+    soldierInstancedMesh.setMatrixAt(soldierInstancedMesh.count, temp.matrix);
+    ++soldierInstancedMesh.count;
+
+    temp.translateY(1);
+
+    const markerInstancedMesh = san.data.tentativelySelectedSoldierMarker;
+
+    temp.updateMatrix();
+    markerInstancedMesh.setMatrixAt(markerInstancedMesh.count, temp.matrix);
+    ++markerInstancedMesh.count;
   }
 }
