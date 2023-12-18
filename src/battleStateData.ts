@@ -54,6 +54,11 @@ export enum PlannedDeploymentKind {
   WithPlannedUnit,
 }
 
+export enum PendingUnitTransformKind {
+  ChoosingRotation,
+  ChoosingTranslation,
+}
+
 export type Triple = [number, number, number];
 
 export interface Ref {
@@ -225,14 +230,23 @@ export interface PendingSelectUnit {
 
 export interface PendingReposition {
   readonly kind: PendingCommandKind.Reposition;
-  originalGroundCursorPosition: Triple;
   originalSoldierTransforms: SparseArray<[Triple, Orientation]>;
+  pendingTransform: PendingUnitTransform;
+}
+
+export type PendingUnitTransform =
+  | PendingUnitTransformChoosingRotation
+  | PendingUnitTransformChoosingTranslation;
+
+export interface PendingUnitTransformChoosingRotation {
+  kind: PendingUnitTransformKind.ChoosingRotation;
+  originalGroundCursorPosition: Triple;
+}
+
+export interface PendingUnitTransformChoosingTranslation {
+  kind: PendingUnitTransformKind.ChoosingTranslation;
   deltaYaw: number;
-  /**
-   * While the user is still adjusting the `deltaYaw`,
-   * `translation` will be `null`, and treated as a zero vector.
-   */
-  translation: null | Triple;
+  originalGroundCursorPosition: Triple;
 }
 
 export interface SparseArray<T> {

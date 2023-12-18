@@ -28,6 +28,7 @@ import {
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
   getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
+  getTentativeRepositionedUnitSoldiers,
   getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
 } from "../tick";
@@ -57,6 +58,7 @@ export function main(battle: BattleState, san: San): void {
   updateSoldierExplosions(battle, san);
   updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
   updateTentativelySelectedUnitMarkers(battle, san);
+  updateTentativeRepositionDestinationMarker(battle, san);
 
   updateCursor(battle, san);
 }
@@ -543,4 +545,19 @@ function updatePlannedDeploymentUnit(battle: BattleState, san: San): void {
     markerInstancedMesh.setMatrixAt(markerInstancedMesh.count, temp.matrix);
     ++markerInstancedMesh.count;
   }
+}
+
+function updateTentativeRepositionDestinationMarker(
+  battle: BattleState,
+  san: San
+): void {
+  const repositionedSoldiers = getTentativeRepositionedUnitSoldiers(
+    battle,
+    san
+  );
+  if (repositionedSoldiers === null) {
+    return;
+  }
+
+  // TODO
 }

@@ -20,6 +20,7 @@ import {
   BattleStateData,
   Orientation,
   PendingCommandKind,
+  PendingUnitTransformKind,
   PlannedDeploymentKind,
   SparseArray,
   Triple,
@@ -372,19 +373,23 @@ function handleRepositionSelectionKeyPress(resources: Resources): void {
 
     resources.battle.data.pendingCommand = {
       kind: PendingCommandKind.Reposition,
-      originalGroundCursorPosition: geoUtils.fromThreeVec(groundCursorPosition),
       originalSoldierTransforms,
-      deltaYaw: 0,
-      translation: null,
+      pendingTransform: {
+        kind: PendingUnitTransformKind.ChoosingRotation,
+        originalGroundCursorPosition:
+          geoUtils.fromThreeVec(groundCursorPosition),
+      },
     };
   } else if (
     pendingCommand.kind === PendingCommandKind.Reposition &&
-    pendingCommand.translation === null
+    pendingCommand.pendingTransform.kind ===
+      PendingUnitTransformKind.ChoosingRotation
   ) {
     // TODO
   } else if (
     pendingCommand.kind === PendingCommandKind.Reposition &&
-    pendingCommand.translation !== null
+    pendingCommand.pendingTransform.kind ===
+      PendingUnitTransformKind.ChoosingTranslation
   ) {
     // TODO
   }

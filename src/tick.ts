@@ -10,6 +10,10 @@ import {
   DragonflyFlightKind,
   Orientation,
   PendingCommandKind,
+  PendingReposition,
+  PendingUnitTransformChoosingRotation,
+  PendingUnitTransformChoosingTranslation,
+  PendingUnitTransformKind,
   PlannedDeploymentKind,
   PlannedSoldier,
   PlannedUnit,
@@ -18,6 +22,7 @@ import {
   SoldierAnimationKind,
   SoldierAnimationState,
   SoldierExplosion,
+  SparseArray,
   StormOrder,
   Triple,
   Unit,
@@ -1523,4 +1528,83 @@ export function isAzukiNonAssemblingUnit(u: Unit): boolean {
 
 export function isAzukiUnit(u: Unit): boolean {
   return u.allegiance === Allegiance.Azuki;
+}
+
+export function getTentativeRepositionedUnitSoldiers(
+  battle: BattleState,
+  san: San
+): null | SparseArray<PlannedSoldier> {
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Reposition) {
+    return null;
+  }
+
+  const { pendingTransform } = pendingCommand;
+
+  if (pendingTransform.kind === PendingUnitTransformKind.ChoosingRotation) {
+    return getTentativeRepositionedUnitAssumingTentativeRotation(
+      battle,
+      san,
+      pendingCommand,
+      pendingTransform
+    );
+  }
+
+  if (pendingTransform.kind === PendingUnitTransformKind.ChoosingTranslation) {
+    return getTentativeRepositionedUnitAssumingTentativeTranslation(
+      battle,
+      san,
+      pendingCommand,
+      pendingTransform
+    );
+  }
+
+  // Unreachable. This line is just to satisfy the type checker.
+  return pendingTransform;
+}
+
+export function getTentativeRepositionedUnitAssumingTentativeRotation(
+  battle: BattleState,
+  san: San,
+  pendingCommand: PendingReposition,
+  pendingTransform: PendingUnitTransformChoosingRotation
+): null | SparseArray<PlannedSoldier> {
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return null;
+  }
+
+  const { originalSoldierTransforms } = pendingCommand;
+  const { originalGroundCursorPosition } = pendingTransform;
+  const out: SparseArray<PlannedSoldier> = {};
+
+  const { activeUnitIds } = battle.data;
+  for (const unitId of activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (!(unit.allegiance === Allegiance.Azuki && unit.isSelected)) {
+      continue;
+    }
+
+    const originalUnitForward = unit.forward;
+
+    const { soldierIds } = unit;
+    for (const soldierId of soldierIds) {
+      const soldier = battle.getSoldier(soldierId);
+      const [originalSoldierPosition, originalSoldierOrientation] =
+        originalSoldierTransforms[soldierId.value];
+    }
+  }
+
+  // TODO
+  return null;
+}
+
+export function getTentativeRepositionedUnitAssumingTentativeTranslation(
+  battle: BattleState,
+  san: San,
+  pendingCommand: PendingReposition,
+  pendingTransform: PendingUnitTransformChoosingTranslation
+): null | SparseArray<PlannedSoldier> {
+  // TODO
+  return null;
 }
