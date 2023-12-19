@@ -62,9 +62,9 @@ export interface SanData {
   dragonflies: GltfCache;
   azukiSafezoneMarker: InstancedMesh;
   edamameSafezoneMarker: InstancedMesh;
-  tentativelySelectedDeploymentBannerTowerMarker: Mesh;
-  selectedSoldierMarker: InstancedMesh;
-  tentativelySelectedSoldierMarker: InstancedMeshWithLambertMaterial;
+  blueCylinder: Mesh;
+  blueSphere: InstancedMesh;
+  flashingBlueSphere: InstancedMeshWithLambertMaterial;
 
   mcon: ModelConstants;
 }
@@ -150,11 +150,9 @@ export function getDefaultSanData(assets: Assets): SanData {
     dragonflies: getSingletonGltfCache(assets.dragonfly),
     azukiSafezoneMarker: getDefaultAzukiSafezoneMarker(),
     edamameSafezoneMarker: getDefaultEdamameSafezoneMarker(),
-    tentativelySelectedDeploymentBannerTowerMarker:
-      getDefaultSelectedDeploymentBannerTower(),
-    selectedSoldierMarker: getDefaultSelectedSoldierMarker(),
-    tentativelySelectedSoldierMarker:
-      getDefaultTentativelySelectedSoldierMarker(),
+    blueCylinder: getDefaultBlueCylinder(),
+    blueSphere: getDefaultBlueSphere(),
+    flashingBlueSphere: getDefaultFlashingBlueSphere(),
 
     mcon: assets.mcon,
   };
@@ -387,7 +385,7 @@ function getDefaultEdamameSafezoneMarker(): InstancedMesh {
   return marker;
 }
 
-function getDefaultSelectedDeploymentBannerTower(): Mesh {
+function getDefaultBlueCylinder(): Mesh {
   const radius = 20;
   const marker = new Mesh(
     new CylinderGeometry(radius, radius, 2 * 35, 32, 4),
@@ -401,7 +399,7 @@ function getDefaultSelectedDeploymentBannerTower(): Mesh {
   return marker;
 }
 
-function getDefaultSelectedSoldierMarker(): InstancedMesh {
+function getDefaultBlueSphere(): InstancedMesh {
   const marker = new InstancedMesh(
     new SphereGeometry(2, 16, 16),
     new MeshLambertMaterial({
@@ -415,7 +413,7 @@ function getDefaultSelectedSoldierMarker(): InstancedMesh {
   return marker;
 }
 
-function getDefaultTentativelySelectedSoldierMarker(): InstancedMeshWithLambertMaterial {
+function getDefaultFlashingBlueSphere(): InstancedMeshWithLambertMaterial {
   const marker = new InstancedMesh(
     new SphereGeometry(2, 16, 16),
     new MeshLambertMaterial({

@@ -39,8 +39,13 @@ import { getGroundCursorPosition } from "../groundCursor";
 // differentiate between the BattleState and San.
 
 export function main(battle: BattleState, san: San): void {
-  const { scene, sky, grass, ambientLight, tentativelySelectedSoldierMarker } =
-    san.data;
+  const {
+    scene,
+    sky,
+    grass,
+    ambientLight,
+    flashingBlueSphere: tentativelySelectedSoldierMarker,
+  } = san.data;
 
   scene.add(sky);
   scene.add(grass);
@@ -288,7 +293,7 @@ function getSpearFrameInstancedMesh(
 }
 
 function updateSelectedSoldierMarker(bSoldier: Soldier, san: San): void {
-  const instancedMesh = san.data.selectedSoldierMarker;
+  const instancedMesh = san.data.blueSphere;
   const temp = new Object3D();
   temp.position.set(...bSoldier.position);
   geoUtils.setQuaternionFromOrientation(temp.quaternion, bSoldier.orientation);
@@ -473,7 +478,7 @@ function updateTentativelySelectedDeploymentBannerTowerMarker(
   }
   const bNearestAzukiTower = battle.getBannerTower(nearestAzukiTowerId);
 
-  const sMarker = san.data.tentativelySelectedDeploymentBannerTowerMarker;
+  const sMarker = san.data.blueCylinder;
   sMarker.position.set(...bNearestAzukiTower.position);
   san.data.scene.add(sMarker);
 }
@@ -491,7 +496,7 @@ function updateTentativelySelectedUnitMarkers(
   }
   const bUnit = battle.getUnit(tentativelySelectedUnitId);
 
-  const instancedMesh = san.data.tentativelySelectedSoldierMarker;
+  const instancedMesh = san.data.flashingBlueSphere;
   const temp = new Object3D();
 
   for (const soldierId of bUnit.soldierIds) {
@@ -539,7 +544,7 @@ function updatePlannedDeploymentUnit(battle: BattleState, san: San): void {
 
     temp.translateY(1);
 
-    const markerInstancedMesh = san.data.tentativelySelectedSoldierMarker;
+    const markerInstancedMesh = san.data.flashingBlueSphere;
 
     temp.updateMatrix();
     markerInstancedMesh.setMatrixAt(markerInstancedMesh.count, temp.matrix);
@@ -559,7 +564,7 @@ function updateTentativeRepositionDestinationMarker(
     return;
   }
 
-  const blueSpheres = san.data.tentativelySelectedSoldierMarker;
+  const flashingBlueSphere = san.data.flashingBlueSphere;
   const temp = new Object3D();
 
   const { activeUnitIds } = battle.data;
@@ -580,8 +585,8 @@ function updateTentativeRepositionDestinationMarker(
       );
 
       temp.updateMatrix();
-      blueSpheres.setMatrixAt(blueSpheres.count, temp.matrix);
-      ++blueSpheres.count;
+      flashingBlueSphere.setMatrixAt(flashingBlueSphere.count, temp.matrix);
+      ++flashingBlueSphere.count;
     }
   }
 

@@ -19,8 +19,8 @@ export function resetThreeScene(san: San): void {
     azukiSafezoneMarker,
     edamameSafezoneMarker,
 
-    selectedSoldierMarker,
-    tentativelySelectedSoldierMarker,
+    blueSphere: selectedSoldierMarker,
+    flashingBlueSphere: tentativelySelectedSoldierMarker,
 
     dragonflies,
   } = san.data;

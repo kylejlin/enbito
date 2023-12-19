@@ -19,8 +19,8 @@ export function addInstancedMeshesToSceneAndFlagForUpdate(san: San): void {
     azukiSafezoneMarker,
     edamameSafezoneMarker,
 
-    selectedSoldierMarker,
-    tentativelySelectedSoldierMarker,
+    blueSphere: selectedSoldierMarker,
+    flashingBlueSphere: tentativelySelectedSoldierMarker,
 
     dragonflies,
   } = san.data;
