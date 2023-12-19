@@ -1580,7 +1580,14 @@ export function getTentativeRepositionedUnitAssumingTentativeRotation(
     geoUtils.fromThreeVec(groundCursorPosition),
     originalGroundCursorPosition
   );
-  const deltaYaw = Math.atan2(cursorDiff[0], cursorDiff[2]);
+  const cameraDiff = geoUtils.sub(
+    battle.getAzukiKing().position,
+    originalGroundCursorPosition
+  );
+  const deltaYaw =
+    Math.atan2(cursorDiff[0], cursorDiff[2]) -
+    Math.atan2(cameraDiff[0], cameraDiff[2]) +
+    Math.PI;
 
   const { activeUnitIds } = battle.data;
   for (const unitId of activeUnitIds) {
