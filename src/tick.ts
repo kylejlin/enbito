@@ -10,10 +10,6 @@ import {
   DragonflyFlightKind,
   Orientation,
   PendingCommandKind,
-  PendingReposition,
-  PendingUnitTransformChoosingRotation,
-  PendingUnitTransformChoosingTranslation,
-  PendingUnitTransformKind,
   PlannedDeploymentKind,
   PlannedSoldier,
   PlannedUnit,
@@ -1528,52 +1524,22 @@ export function isAzukiUnit(u: Unit): boolean {
   return u.allegiance === Allegiance.Azuki;
 }
 
-export function getTentativeRepositionedUnitSoldiers(
+export function getTentativeWheeledSoldiers(
   battle: BattleState,
   san: San
 ): null | SparseArray<PosRot> {
   const { pendingCommand } = battle.data;
-  if (pendingCommand.kind !== PendingCommandKind.Reposition) {
+  if (pendingCommand.kind !== PendingCommandKind.Wheel) {
     return null;
   }
 
-  const { pendingTransform } = pendingCommand;
-
-  if (pendingTransform.kind === PendingUnitTransformKind.ChoosingRotation) {
-    return getTentativeRepositionedUnitAssumingTentativeRotation(
-      battle,
-      san,
-      pendingCommand,
-      pendingTransform
-    );
-  }
-
-  if (pendingTransform.kind === PendingUnitTransformKind.ChoosingTranslation) {
-    return getTentativeRepositionedUnitAssumingTentativeTranslation(
-      battle,
-      san,
-      pendingCommand,
-      pendingTransform
-    );
-  }
-
-  // Unreachable. This line is just to satisfy the type checker.
-  return pendingTransform;
-}
-
-export function getTentativeRepositionedUnitAssumingTentativeRotation(
-  battle: BattleState,
-  san: San,
-  pendingCommand: PendingReposition,
-  pendingTransform: PendingUnitTransformChoosingRotation
-): null | SparseArray<PosRot> {
   const groundCursorPosition = getGroundCursorPosition(san);
   if (groundCursorPosition === null) {
     return null;
   }
 
-  const { originalSoldierTransforms } = pendingCommand;
-  const { originalGroundCursorPosition } = pendingTransform;
+  const { originalSoldierTransforms, originalGroundCursorPosition } =
+    pendingCommand;
   const out: SparseArray<PosRot> = {};
 
   const cursorDiff = geoUtils.sub(
@@ -1624,14 +1590,4 @@ export function getTentativeRepositionedUnitAssumingTentativeRotation(
   }
 
   return out;
-}
-
-export function getTentativeRepositionedUnitAssumingTentativeTranslation(
-  battle: BattleState,
-  san: San,
-  pendingCommand: PendingReposition,
-  pendingTransform: PendingUnitTransformChoosingTranslation
-): null | SparseArray<PosRot> {
-  // TODO
-  return null;
 }

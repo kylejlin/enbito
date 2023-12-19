@@ -28,7 +28,7 @@ import {
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
   getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
-  getTentativeRepositionedUnitSoldiers,
+  getTentativeWheeledSoldiers,
   getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
 } from "../tick";
@@ -63,7 +63,7 @@ export function main(battle: BattleState, san: San): void {
   updateSoldierExplosions(battle, san);
   updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
   updateTentativelySelectedUnitMarkers(battle, san);
-  updateTentativeRepositionDestination(battle, san);
+  updateTentativeWheelDestination(battle, san);
 
   updateCursor(battle, san);
 }
@@ -552,15 +552,9 @@ function updatePlannedDeploymentUnit(battle: BattleState, san: San): void {
   }
 }
 
-function updateTentativeRepositionDestination(
-  battle: BattleState,
-  san: San
-): void {
-  const repositionedSoldierPosRots = getTentativeRepositionedUnitSoldiers(
-    battle,
-    san
-  );
-  if (repositionedSoldierPosRots === null) {
+function updateTentativeWheelDestination(battle: BattleState, san: San): void {
+  const wheeledSoldierPosRots = getTentativeWheeledSoldiers(battle, san);
+  if (wheeledSoldierPosRots === null) {
     return;
   }
 
@@ -578,7 +572,7 @@ function updateTentativeRepositionDestination(
     const { soldierIds } = bUnit;
     for (const soldierId of soldierIds) {
       const [tentativePosition, tentativeOrientation] =
-        repositionedSoldierPosRots[soldierId.value];
+        wheeledSoldierPosRots[soldierId.value];
       temp.position.set(...tentativePosition);
       geoUtils.setQuaternionFromOrientation(
         temp.quaternion,

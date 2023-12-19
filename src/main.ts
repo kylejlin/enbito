@@ -20,7 +20,6 @@ import {
   BattleStateData,
   Orientation,
   PendingCommandKind,
-  PendingUnitTransformKind,
   PlannedDeploymentKind,
   SparseArray,
   Triple,
@@ -120,7 +119,7 @@ export function main(assets: Assets): void {
       const wasKeyDown = keys._1;
       keys._1 = true;
       if (!wasKeyDown) {
-        handleRepositionSelectionKeyPress(resources);
+        handleWheelCommandKeyPress(resources);
       }
     }
 
@@ -342,7 +341,7 @@ function saveBattleData(data: BattleStateData): void {
   localStorage.setItem(LOCAL_STORAGE_BATTLE_DATA_KEY, s);
 }
 
-function handleRepositionSelectionKeyPress(resources: Resources): void {
+function handleWheelCommandKeyPress(resources: Resources): void {
   const groundCursorPosition = getGroundCursorPosition(resources.san);
   if (groundCursorPosition === null) {
     return;
@@ -372,25 +371,11 @@ function handleRepositionSelectionKeyPress(resources: Resources): void {
     }
 
     resources.battle.data.pendingCommand = {
-      kind: PendingCommandKind.Reposition,
+      kind: PendingCommandKind.Wheel,
       originalSoldierTransforms,
-      pendingTransform: {
-        kind: PendingUnitTransformKind.ChoosingRotation,
-        originalGroundCursorPosition:
-          geoUtils.fromThreeVec(groundCursorPosition),
-      },
+      originalGroundCursorPosition: geoUtils.fromThreeVec(groundCursorPosition),
     };
-  } else if (
-    pendingCommand.kind === PendingCommandKind.Reposition &&
-    pendingCommand.pendingTransform.kind ===
-      PendingUnitTransformKind.ChoosingRotation
-  ) {
-    // TODO
-  } else if (
-    pendingCommand.kind === PendingCommandKind.Reposition &&
-    pendingCommand.pendingTransform.kind ===
-      PendingUnitTransformKind.ChoosingTranslation
-  ) {
+  } else if (pendingCommand.kind === PendingCommandKind.Wheel) {
     // TODO
   }
 }

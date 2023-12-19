@@ -46,17 +46,12 @@ export enum PendingCommandKind {
   None,
   Deploy,
   SelectUnit,
-  Reposition,
+  Wheel,
 }
 
 export enum PlannedDeploymentKind {
   WithStart,
   WithPlannedUnit,
-}
-
-export enum PendingUnitTransformKind {
-  ChoosingRotation,
-  ChoosingTranslation,
 }
 
 export type Triple = [number, number, number];
@@ -213,7 +208,7 @@ export type PendingCommand =
   | NullPendingCommand
   | PendingDeploy
   | PendingSelectUnit
-  | PendingReposition;
+  | PendingWheel;
 
 export interface NullPendingCommand {
   readonly kind: PendingCommandKind.None;
@@ -228,28 +223,13 @@ export interface PendingSelectUnit {
   readonly kind: PendingCommandKind.SelectUnit;
 }
 
-export interface PendingReposition {
-  readonly kind: PendingCommandKind.Reposition;
+export interface PendingWheel {
+  readonly kind: PendingCommandKind.Wheel;
   originalSoldierTransforms: SparseArray<PosRot>;
-  pendingTransform: PendingUnitTransform;
+  originalGroundCursorPosition: Triple;
 }
 
 export type PosRot = [Triple, Orientation];
-
-export type PendingUnitTransform =
-  | PendingUnitTransformChoosingRotation
-  | PendingUnitTransformChoosingTranslation;
-
-export interface PendingUnitTransformChoosingRotation {
-  kind: PendingUnitTransformKind.ChoosingRotation;
-  originalGroundCursorPosition: Triple;
-}
-
-export interface PendingUnitTransformChoosingTranslation {
-  kind: PendingUnitTransformKind.ChoosingTranslation;
-  deltaYaw: number;
-  originalGroundCursorPosition: Triple;
-}
 
 export interface SparseArray<T> {
   [index: number]: T;
