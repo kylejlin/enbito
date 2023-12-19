@@ -559,8 +559,6 @@ function updateTentativeRepositionDestinationMarker(
     return;
   }
 
-  console.log({ repositionedSoldierPosRots });
-
   const blueSpheres = san.data.tentativelySelectedSoldierMarker;
   const temp = new Object3D();
 
