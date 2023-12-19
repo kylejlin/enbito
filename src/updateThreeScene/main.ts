@@ -63,7 +63,7 @@ export function main(battle: BattleState, san: San): void {
   updateSoldierExplosions(battle, san);
   updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
   updateTentativelySelectedUnitMarkers(battle, san);
-  updateTentativeRepositionDestinationMarker(battle, san);
+  updateTentativeRepositionDestination(battle, san);
 
   updateCursor(battle, san);
 }
@@ -552,7 +552,7 @@ function updatePlannedDeploymentUnit(battle: BattleState, san: San): void {
   }
 }
 
-function updateTentativeRepositionDestinationMarker(
+function updateTentativeRepositionDestination(
   battle: BattleState,
   san: San
 ): void {
@@ -565,6 +565,7 @@ function updateTentativeRepositionDestinationMarker(
   }
 
   const flashingBlueSphere = san.data.flashingBlueSphere;
+  const tentativeSoldier = san.data.azukiSpearStabFrames[0];
   const temp = new Object3D();
 
   const { activeUnitIds } = battle.data;
@@ -583,6 +584,12 @@ function updateTentativeRepositionDestinationMarker(
         temp.quaternion,
         tentativeOrientation
       );
+
+      temp.updateMatrix();
+      tentativeSoldier.setMatrixAt(tentativeSoldier.count, temp.matrix);
+      ++tentativeSoldier.count;
+
+      temp.translateY(1);
 
       temp.updateMatrix();
       flashingBlueSphere.setMatrixAt(flashingBlueSphere.count, temp.matrix);
