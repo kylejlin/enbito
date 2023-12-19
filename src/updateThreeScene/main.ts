@@ -551,12 +551,40 @@ function updateTentativeRepositionDestinationMarker(
   battle: BattleState,
   san: San
 ): void {
-  const repositionedSoldiers = getTentativeRepositionedUnitSoldiers(
+  const repositionedSoldierPosRots = getTentativeRepositionedUnitSoldiers(
     battle,
     san
   );
-  if (repositionedSoldiers === null) {
+  if (repositionedSoldierPosRots === null) {
     return;
+  }
+
+  console.log({ repositionedSoldierPosRots });
+
+  const blueSpheres = san.data.tentativelySelectedSoldierMarker;
+  const temp = new Object3D();
+
+  const { activeUnitIds } = battle.data;
+  for (const unitId of activeUnitIds) {
+    const bUnit = battle.getUnit(unitId);
+    if (!(bUnit.allegiance === Allegiance.Azuki && bUnit.isSelected)) {
+      continue;
+    }
+
+    const { soldierIds } = bUnit;
+    for (const soldierId of soldierIds) {
+      const [tentativePosition, tentativeOrientation] =
+        repositionedSoldierPosRots[soldierId.value];
+      temp.position.set(...tentativePosition);
+      geoUtils.setQuaternionFromOrientation(
+        temp.quaternion,
+        tentativeOrientation
+      );
+
+      temp.updateMatrix();
+      blueSpheres.setMatrixAt(blueSpheres.count, temp.matrix);
+      ++blueSpheres.count;
+    }
   }
 
   // TODO

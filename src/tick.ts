@@ -17,6 +17,7 @@ import {
   PlannedDeploymentKind,
   PlannedSoldier,
   PlannedUnit,
+  PosRot,
   Ref,
   Soldier,
   SoldierAnimationKind,
@@ -1530,7 +1531,7 @@ export function isAzukiUnit(u: Unit): boolean {
 export function getTentativeRepositionedUnitSoldiers(
   battle: BattleState,
   san: San
-): null | SparseArray<PlannedSoldier> {
+): null | SparseArray<PosRot> {
   const { pendingCommand } = battle.data;
   if (pendingCommand.kind !== PendingCommandKind.Reposition) {
     return null;
@@ -1565,7 +1566,7 @@ export function getTentativeRepositionedUnitAssumingTentativeRotation(
   san: San,
   pendingCommand: PendingReposition,
   pendingTransform: PendingUnitTransformChoosingRotation
-): null | SparseArray<PlannedSoldier> {
+): null | SparseArray<PosRot> {
   const groundCursorPosition = getGroundCursorPosition(san);
   if (groundCursorPosition === null) {
     return null;
@@ -1573,7 +1574,13 @@ export function getTentativeRepositionedUnitAssumingTentativeRotation(
 
   const { originalSoldierTransforms } = pendingCommand;
   const { originalGroundCursorPosition } = pendingTransform;
-  const out: SparseArray<PlannedSoldier> = {};
+  const out: SparseArray<PosRot> = {};
+
+  const cursorDiff = geoUtils.sub(
+    geoUtils.fromThreeVec(groundCursorPosition),
+    originalGroundCursorPosition
+  );
+  const deltaYaw = Math.atan2(cursorDiff[0], cursorDiff[2]);
 
   const { activeUnitIds } = battle.data;
   for (const unitId of activeUnitIds) {
@@ -1583,17 +1590,33 @@ export function getTentativeRepositionedUnitAssumingTentativeRotation(
     }
 
     const originalUnitYaw = unit.yaw;
+    const newUnitYaw = originalUnitYaw + deltaYaw;
 
     const { soldierIds } = unit;
     for (const soldierId of soldierIds) {
-      const soldier = battle.getSoldier(soldierId);
       const [originalSoldierPosition, originalSoldierOrientation] =
         originalSoldierTransforms[soldierId.value];
+
+      const soldierDiff = geoUtils.sub(
+        originalSoldierPosition,
+        originalGroundCursorPosition
+      );
+      const newSoldierPosition = geoUtils.add(
+        originalGroundCursorPosition,
+        geoUtils.rotateAboutYAxis(soldierDiff, deltaYaw)
+      );
+
+      const newSoldierOrientation = {
+        yaw: newUnitYaw,
+        pitch: originalSoldierOrientation.pitch,
+        roll: originalSoldierOrientation.roll,
+      };
+
+      out[soldierId.value] = [newSoldierPosition, newSoldierOrientation];
     }
   }
 
-  // TODO
-  return null;
+  return out;
 }
 
 export function getTentativeRepositionedUnitAssumingTentativeTranslation(
@@ -1601,7 +1624,7 @@ export function getTentativeRepositionedUnitAssumingTentativeTranslation(
   san: San,
   pendingCommand: PendingReposition,
   pendingTransform: PendingUnitTransformChoosingTranslation
-): null | SparseArray<PlannedSoldier> {
+): null | SparseArray<PosRot> {
   // TODO
   return null;
 }

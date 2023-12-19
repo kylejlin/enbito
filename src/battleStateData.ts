@@ -230,9 +230,11 @@ export interface PendingSelectUnit {
 
 export interface PendingReposition {
   readonly kind: PendingCommandKind.Reposition;
-  originalSoldierTransforms: SparseArray<[Triple, Orientation]>;
+  originalSoldierTransforms: SparseArray<PosRot>;
   pendingTransform: PendingUnitTransform;
 }
+
+export type PosRot = [Triple, Orientation];
 
 export type PendingUnitTransform =
   | PendingUnitTransformChoosingRotation

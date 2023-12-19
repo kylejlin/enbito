@@ -64,6 +64,10 @@ export function cloneTriple(x: Triple): Triple {
   return [x[0], x[1], x[2]];
 }
 
+export function add(a: Triple, b: Triple): Triple {
+  return [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
+}
+
 export function sub(minuend: Triple, subtrahend: Triple): Triple {
   return [
     minuend[0] - subtrahend[0],
@@ -95,4 +99,10 @@ export function cloneOrientation(source: Orientation): Orientation {
     pitch: source.pitch,
     roll: source.roll,
   };
+}
+
+export function rotateAboutYAxis(source: Triple, angle: number): Triple {
+  const temp = toThreeVec(source);
+  temp.applyAxisAngle(new Vector3(0, 1, 0), angle);
+  return fromThreeVec(temp);
 }
