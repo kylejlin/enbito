@@ -17,6 +17,7 @@ export enum UnitOrderKind {
   Advance,
   Storm,
   Assemble,
+  Wheel,
 }
 
 export enum SoldierAnimationKind {
@@ -128,7 +129,7 @@ export interface Orientation {
   roll: number;
 }
 
-export type UnitOrder = AdvanceOrder | StormOrder | AssembleOrder;
+export type UnitOrder = AdvanceOrder | StormOrder | AssembleOrder | WheelOrder;
 
 export interface AdvanceOrder {
   kind: UnitOrderKind.Advance;
@@ -140,6 +141,12 @@ export interface StormOrder {
 
 export interface AssembleOrder {
   kind: UnitOrderKind.Assemble;
+}
+
+export interface WheelOrder {
+  kind: UnitOrderKind.Wheel;
+  destYaw: number;
+  soldierDestPositions: SparseArray<Triple>;
 }
 
 export interface Unit {

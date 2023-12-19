@@ -11,6 +11,8 @@ import { KeySet, MouseState, Resources } from "./resourceBundle";
 import {
   deployPlannedUnitIfItExistsAndDeployKeyPressedAssumingCameraHasBeenUpdated,
   getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
+  getTentativeWheelInfo,
+  getTentativeWheeledSoldiers,
   getTentativelySelectedAzukiUnitId,
   tick,
 } from "./tick";
@@ -23,6 +25,7 @@ import {
   PlannedDeploymentKind,
   SparseArray,
   Triple,
+  UnitOrderKind,
 } from "./battleStateData";
 
 const BATTLE_STATE_SAVE_PERIOD_IN_SECONDS = 1;
@@ -347,7 +350,7 @@ function handleWheelCommandKeyPress(resources: Resources): void {
     return;
   }
 
-  const { battle } = resources;
+  const { battle, san } = resources;
   const { pendingCommand } = battle.data;
   if (pendingCommand.kind === PendingCommandKind.None) {
     const selectedAzukiUnitIds = battle.data.activeUnitIds.filter((id) => {
@@ -376,6 +379,31 @@ function handleWheelCommandKeyPress(resources: Resources): void {
       originalGroundCursorPosition: geoUtils.fromThreeVec(groundCursorPosition),
     };
   } else if (pendingCommand.kind === PendingCommandKind.Wheel) {
-    // TODO
+    const wheelInfo = getTentativeWheelInfo(battle, san);
+    if (wheelInfo === null) {
+      return;
+    }
+
+    const { activeUnitIds } = battle.data;
+    for (const unitId of activeUnitIds) {
+      const unit = battle.getUnit(unitId);
+      if (!(unit.allegiance === Allegiance.Azuki && unit.isSelected)) {
+        continue;
+      }
+
+      const soldierDestPositions: SparseArray<Triple> = {};
+      for (const soldierId of unit.soldierIds) {
+        soldierDestPositions[soldierId.value] =
+          wheelInfo.soldierTransforms[soldierId.value][0];
+      }
+
+      unit.order = {
+        kind: UnitOrderKind.Wheel,
+        destYaw: unit.yaw + wheelInfo.deltaYaw,
+        soldierDestPositions,
+      };
+    }
+
+    resources.battle.data.pendingCommand = { kind: PendingCommandKind.None };
   }
 }
