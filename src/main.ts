@@ -10,9 +10,11 @@ import { getGroundCursorPosition } from "./groundCursor";
 import { KeySet, MouseState, Resources } from "./resourceBundle";
 import {
   deployPlannedUnitIfItExistsAndDeployKeyPressedAssumingCameraHasBeenUpdated,
+  getNearestBannerTowerId,
   getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
   getTentativeWheelInfo,
   getTentativelySelectedAzukiUnitId,
+  isAzukiBannerTower,
   tick,
 } from "./tick";
 import { MILLISECS_PER_TICK } from "./gameConsts";
@@ -83,6 +85,7 @@ export function main(assets: Assets): void {
     _1: false,
     _2: false,
     _3: false,
+    _4: false,
     _0: false,
   };
   window.addEventListener("keydown", (e) => {
@@ -149,6 +152,13 @@ export function main(assets: Assets): void {
         handleStormCommandKeyPress(resources);
       }
     }
+    if (e.key === "4") {
+      const wasKeyDown = keys._4;
+      keys._4 = true;
+      if (!wasKeyDown) {
+        handleRetreatCommandKeyPress(resources);
+      }
+    }
     if (e.key === "0") {
       const wasKeyDown = keys._0;
       keys._0 = true;
@@ -204,6 +214,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "3") {
       keys._3 = false;
+    }
+    if (e.key === "4") {
+      keys._4 = false;
     }
     if (e.key === "0") {
       keys._0 = false;
@@ -503,4 +516,47 @@ function handleStormCommandKeyPress(resources: Resources): void {
 
     unit.order = { kind: UnitOrderKind.Storm };
   }
+}
+
+function handleRetreatCommandKeyPress(resources: Resources): void {
+  const { battle } = resources;
+  const { pendingCommand } = battle.data;
+
+  if (pendingCommand.kind === PendingCommandKind.None) {
+    battle.data.pendingCommand = { kind: PendingCommandKind.Retreat };
+  } else if (pendingCommand.kind === PendingCommandKind.Retreat) {
+    trySetRetreatDestination(resources);
+  }
+}
+
+function trySetRetreatDestination(resources: Resources): void {
+  const { battle, san } = resources;
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  const towerId = getNearestBannerTowerId(
+    geoUtils.fromThreeVec(groundCursorPosition),
+    battle,
+    isAzukiBannerTower
+  );
+  if (towerId === null) {
+    return;
+  }
+  const tower = battle.getBannerTower(towerId);
+
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (!(unit.allegiance === Allegiance.Azuki && unit.isSelected)) {
+      continue;
+    }
+
+    unit.order = {
+      kind: UnitOrderKind.Retreat,
+      idealRetreatPosition: geoUtils.cloneTriple(tower.position),
+    };
+  }
+
+  battle.data.pendingCommand = { kind: PendingCommandKind.None };
 }

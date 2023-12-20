@@ -15,6 +15,7 @@ import {
   PlannedUnit,
   PosRot,
   Ref,
+  RetreatOrder,
   Soldier,
   SoldierAnimationKind,
   SoldierAnimationState,
@@ -594,6 +595,14 @@ function tickUnit(
         resources
       );
       return;
+    case UnitOrderKind.Retreat:
+      tickUnitWithRetreatOrder(
+        elapsedTimeInSeconds,
+        unit,
+        unit.order,
+        resources
+      );
+      return;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1096,6 +1105,90 @@ function tickUnitWithStandbyOrder(
         }
       }
     }
+  }
+}
+
+function tickUnitWithRetreatOrder(
+  elapsedTimeInSeconds: number,
+  unit: Unit,
+  order: RetreatOrder,
+  resources: Resources
+): void {
+  const { battle } = resources;
+  const retreatDestTowerId = getNearestBannerTowerId(
+    order.idealRetreatPosition,
+    battle,
+    isAzukiBannerTower
+  );
+  if (retreatDestTowerId === null) {
+    tickUnitWithStormOrder(
+      elapsedTimeInSeconds,
+      unit,
+      { kind: UnitOrderKind.Storm },
+      resources
+    );
+    return;
+  }
+  const retreatDestTower = battle.getBannerTower(retreatDestTowerId);
+
+  let isUnitStillAssembling = false;
+
+  for (const soldierId of unit.soldierIds) {
+    const soldier = battle.getSoldier(soldierId);
+
+    let isReadyForCombat = false;
+
+    const difference = geoUtils.sub(
+      retreatDestTower.position,
+      soldier.position
+    );
+    if (geoUtils.lengthSquared(difference) < 0.1) {
+      const desiredYRot = unit.yaw;
+      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+      soldier.orientation.yaw = limitTurn(
+        soldier.orientation.yaw,
+        desiredYRot,
+        radiansPerTick
+      );
+      stopWalkingAnimation(
+        ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
+        soldier.animation,
+        resources.assets.mcon
+      );
+
+      if (
+        soldier.animation.kind === SoldierAnimationKind.Idle &&
+        soldier.orientation.yaw === desiredYRot
+      ) {
+        isReadyForCombat = true;
+      }
+    } else {
+      const desiredYRot = Math.atan2(difference[0], difference[2]) + Math.PI;
+      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+      soldier.orientation.yaw = limitTurn(
+        soldier.orientation.yaw,
+        desiredYRot,
+        radiansPerTick
+      );
+      startOrContinueWalkingAnimation(
+        ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
+        soldier.animation,
+        resources.assets.mcon
+      );
+      geoUtils.translateZ(
+        soldier.position,
+        soldier.orientation,
+        ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
+      );
+    }
+
+    if (soldier.health > 0 && !isReadyForCombat) {
+      isUnitStillAssembling = true;
+    }
+  }
+
+  if (!unit.areSoldiersStillBeingAdded && !isUnitStillAssembling) {
+    unit.order = { kind: UnitOrderKind.Storm };
   }
 }
 

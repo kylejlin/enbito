@@ -19,6 +19,7 @@ export enum UnitOrderKind {
   Assemble,
   Wheel,
   Standby,
+  Retreat,
 }
 
 export enum SoldierAnimationKind {
@@ -49,6 +50,7 @@ export enum PendingCommandKind {
   Deploy,
   SelectUnit,
   Wheel,
+  Retreat,
 }
 
 export enum PlannedDeploymentKind {
@@ -135,28 +137,34 @@ export type UnitOrder =
   | StormOrder
   | AssembleOrder
   | WheelOrder
-  | StandbyOrder;
+  | StandbyOrder
+  | RetreatOrder;
 
 export interface AdvanceOrder {
-  kind: UnitOrderKind.Advance;
+  readonly kind: UnitOrderKind.Advance;
 }
 
 export interface StormOrder {
-  kind: UnitOrderKind.Storm;
+  readonly kind: UnitOrderKind.Storm;
 }
 
 export interface AssembleOrder {
-  kind: UnitOrderKind.Assemble;
+  readonly kind: UnitOrderKind.Assemble;
 }
 
 export interface WheelOrder {
-  kind: UnitOrderKind.Wheel;
+  readonly kind: UnitOrderKind.Wheel;
   destYaw: number;
   soldierDestPositions: SparseArray<Triple>;
 }
 
 export interface StandbyOrder {
-  kind: UnitOrderKind.Standby;
+  readonly kind: UnitOrderKind.Standby;
+}
+
+export interface RetreatOrder {
+  readonly kind: UnitOrderKind.Retreat;
+  idealRetreatPosition: Triple;
 }
 
 export interface Unit {
@@ -225,7 +233,8 @@ export type PendingCommand =
   | NullPendingCommand
   | PendingDeploy
   | PendingSelectUnit
-  | PendingWheel;
+  | PendingWheel
+  | PendingRetreat;
 
 export interface NullPendingCommand {
   readonly kind: PendingCommandKind.None;
@@ -244,6 +253,10 @@ export interface PendingWheel {
   readonly kind: PendingCommandKind.Wheel;
   originalSoldierTransforms: SparseArray<PosRot>;
   originalGroundCursorPosition: Triple;
+}
+
+export interface PendingRetreat {
+  readonly kind: PendingCommandKind.Retreat;
 }
 
 export type PosRot = [Triple, Orientation];
