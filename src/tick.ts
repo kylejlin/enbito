@@ -1133,7 +1133,13 @@ function tickUnitWithRetreatOrder(
 
   let isUnitStillAssembling = false;
 
-  for (const soldierId of unit.soldierIds) {
+  const { soldierIds } = unit;
+  for (
+    let soldierIdIndex = 0;
+    soldierIdIndex < soldierIds.length;
+    ++soldierIdIndex
+  ) {
+    const soldierId = soldierIds[soldierIdIndex];
     const soldier = battle.getSoldier(soldierId);
 
     let isReadyForCombat = false;
@@ -1143,25 +1149,9 @@ function tickUnitWithRetreatOrder(
       soldier.position
     );
     if (geoUtils.lengthSquared(difference) < 0.1) {
-      const desiredYRot = unit.yaw;
-      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
-      soldier.orientation.yaw = limitTurn(
-        soldier.orientation.yaw,
-        desiredYRot,
-        radiansPerTick
-      );
-      stopWalkingAnimation(
-        ASSEMBLING_TROOP_SPEEDUP_FACTOR * elapsedTimeInSeconds,
-        soldier.animation,
-        resources.assets.mcon
-      );
-
-      if (
-        soldier.animation.kind === SoldierAnimationKind.Idle &&
-        soldier.orientation.yaw === desiredYRot
-      ) {
-        isReadyForCombat = true;
-      }
+      soldierIds.splice(soldierIdIndex, 1);
+      --soldierIdIndex;
+      continue;
     } else {
       const desiredYRot = Math.atan2(difference[0], difference[2]) + Math.PI;
       const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
