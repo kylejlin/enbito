@@ -81,6 +81,7 @@ export function main(assets: Assets): void {
     s: false,
     space: false,
     _1: false,
+    _0: false,
   };
   window.addEventListener("keydown", (e) => {
     if (e.key === "w") {
@@ -125,6 +126,10 @@ export function main(assets: Assets): void {
         handleWheelCommandKeyPress(resources);
       }
     }
+    if (e.key === "0") {
+      keys._0 = true;
+      resources.battle.data.pendingCommand = { kind: PendingCommandKind.None };
+    }
 
     if (e.key === "{") {
       isAboutToReloadPage = true;
@@ -162,6 +167,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "1") {
       keys._1 = false;
+    }
+    if (e.key === "0") {
+      keys._0 = false;
     }
   });
 

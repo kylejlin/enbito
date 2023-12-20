@@ -34,4 +34,5 @@ export interface KeySet {
   s: boolean;
   space: boolean;
   _1: boolean;
+  _0: boolean;
 }
