@@ -29,7 +29,6 @@ import {
   getNearestBannerTowerId,
   getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
   getTentativeWheelInfo,
-  getTentativeWheeledSoldiers,
   getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
 } from "../tick";
