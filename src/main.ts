@@ -79,6 +79,7 @@ export function main(assets: Assets): void {
     v: false,
     d: false,
     s: false,
+    a: false,
     space: false,
     _1: false,
     _0: false,
@@ -115,6 +116,10 @@ export function main(assets: Assets): void {
       if (!wasKeyDown) {
         handleSoldierSelectionKeyPress();
       }
+    }
+    if (e.key === "a") {
+      keys.a = true;
+      handleDeselectAllKeyPress(resources);
     }
     if (e.key === " ") {
       keys.space = true;
@@ -161,6 +166,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "s") {
       keys.s = false;
+    }
+    if (e.key === "a") {
+      keys.a = false;
     }
     if (e.key === " ") {
       keys.space = false;
@@ -413,5 +421,21 @@ function handleWheelCommandKeyPress(resources: Resources): void {
     }
 
     resources.battle.data.pendingCommand = { kind: PendingCommandKind.None };
+  }
+}
+
+function handleDeselectAllKeyPress(resources: Resources): void {
+  const { battle } = resources;
+  const { pendingCommand, activeUnitIds } = battle.data;
+
+  if (pendingCommand.kind !== PendingCommandKind.None) {
+    return;
+  }
+
+  for (const unitId of activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (unit.allegiance === Allegiance.Azuki) {
+      unit.isSelected = false;
+    }
   }
 }

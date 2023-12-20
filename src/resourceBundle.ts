@@ -32,6 +32,7 @@ export interface KeySet {
   v: boolean;
   d: boolean;
   s: boolean;
+  a: boolean;
   space: boolean;
   _1: boolean;
   _0: boolean;
