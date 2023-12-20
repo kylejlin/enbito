@@ -55,7 +55,7 @@ export function main(battle: BattleState, san: San): void {
   updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
   updateTentativelySelectedUnitMarkers(battle, san);
   updateTentativeWheelDestination(battle, san);
-  updateFlashingMaterials(battle, san);
+  updateFlashingMaterialOpacity(battle, san);
 
   updateCursor(battle, san);
 }
@@ -586,7 +586,7 @@ function updateTentativeWheelDestination(battle: BattleState, san: San): void {
   // TODO
 }
 
-function updateFlashingMaterials(_battle: BattleState, san: San): void {
+function updateFlashingMaterialOpacity(_battle: BattleState, san: San): void {
   const { flashingBlueCylinder, flashingBlueSphere } = san.data;
   const flashingOpacity = 0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
   flashingBlueCylinder.material.opacity = flashingOpacity;
