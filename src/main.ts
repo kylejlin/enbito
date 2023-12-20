@@ -82,6 +82,7 @@ export function main(assets: Assets): void {
     space: false,
     _1: false,
     _2: false,
+    _3: false,
     _0: false,
   };
   window.addEventListener("keydown", (e) => {
@@ -141,6 +142,13 @@ export function main(assets: Assets): void {
         handleStandbyCommandKeyPress(resources);
       }
     }
+    if (e.key === "3") {
+      const wasKeyDown = keys._3;
+      keys._3 = true;
+      if (!wasKeyDown) {
+        handleStormCommandKeyPress(resources);
+      }
+    }
     if (e.key === "0") {
       const wasKeyDown = keys._0;
       keys._0 = true;
@@ -193,6 +201,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "2") {
       keys._2 = false;
+    }
+    if (e.key === "3") {
+      keys._3 = false;
     }
     if (e.key === "0") {
       keys._0 = false;
@@ -473,5 +484,23 @@ function handleStandbyCommandKeyPress(resources: Resources): void {
     }
 
     unit.order = { kind: UnitOrderKind.Standby };
+  }
+}
+
+function handleStormCommandKeyPress(resources: Resources): void {
+  const { battle } = resources;
+  const { pendingCommand, activeUnitIds } = battle.data;
+
+  if (pendingCommand.kind !== PendingCommandKind.None) {
+    return;
+  }
+
+  for (const unitId of activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (!(unit.allegiance === Allegiance.Azuki && unit.isSelected)) {
+      continue;
+    }
+
+    unit.order = { kind: UnitOrderKind.Storm };
   }
 }

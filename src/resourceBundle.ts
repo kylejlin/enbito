@@ -36,5 +36,6 @@ export interface KeySet {
   space: boolean;
   _1: boolean;
   _2: boolean;
+  _3: boolean;
   _0: boolean;
 }
