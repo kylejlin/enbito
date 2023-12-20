@@ -949,11 +949,21 @@ function tickUnitWithWheelOrder(
         soldier.animation,
         resources.assets.mcon
       );
-      geoUtils.translateZ(
-        soldier.position,
-        soldier.orientation,
-        ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
-      );
+      if (
+        // We perform this check to avoid
+        // infinitely running in circles.
+        !(
+          geoUtils.lengthSquared(difference) <
+            (ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5) ** 2 &&
+          soldier.orientation.yaw !== desiredYRot
+        )
+      ) {
+        geoUtils.translateZ(
+          soldier.position,
+          soldier.orientation,
+          ASSEMBLING_TROOP_SPEEDUP_FACTOR * -1.5 * elapsedTimeInSeconds
+        );
+      }
     }
 
     if (soldier.health > 0 && !isReadyForCombat) {
