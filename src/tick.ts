@@ -20,6 +20,7 @@ import {
   SoldierAnimationState,
   SoldierExplosion,
   SparseArray,
+  StandbyOrder,
   StormOrder,
   Triple,
   Unit,
@@ -585,6 +586,14 @@ function tickUnit(
     case UnitOrderKind.Wheel:
       tickUnitWithWheelOrder(elapsedTimeInSeconds, unit, unit.order, resources);
       return;
+    case UnitOrderKind.Standby:
+      tickUnitWithStandbyOrder(
+        elapsedTimeInSeconds,
+        unit,
+        unit.order,
+        resources
+      );
+      return;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -974,6 +983,119 @@ function tickUnitWithWheelOrder(
   if (!isUnitStillAssembling) {
     unit.yaw = order.destYaw;
     unit.order = { kind: UnitOrderKind.Storm };
+  }
+}
+
+function tickUnitWithStandbyOrder(
+  elapsedTimeInSeconds: number,
+  unit: Unit,
+  order: StandbyOrder,
+  resources: Resources
+): void {
+  const { assets, battle } = resources;
+
+  const { soldierIds } = unit;
+
+  for (const soldierId of soldierIds) {
+    const soldier = battle.getSoldier(soldierId);
+    if (
+      soldier.attackTargetId !== null &&
+      (battle.getSoldier(soldier.attackTargetId).health <= 0 ||
+        geoUtils.distanceToSquared(
+          soldier.position,
+          battle.getSoldier(soldier.attackTargetId).position
+        ) > SPEAR_ATTACK_RANGE_SQUARED)
+    ) {
+      soldier.attackTargetId = null;
+    }
+
+    const nearestEnemy = getNearestEnemyId(
+      soldier,
+      unit,
+      SPEAR_ATTACK_RANGE_SQUARED,
+      resources
+    );
+
+    if (soldier.attackTargetId === null) {
+      soldier.attackTargetId = nearestEnemy;
+    }
+
+    if (soldier.attackTargetId !== null) {
+      if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+        stopWalkingAndStartStabAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          1,
+          assets.mcon
+        );
+      }
+
+      const attackTarget = battle.getSoldier(soldier.attackTargetId);
+      const difference = geoUtils.sub(attackTarget.position, soldier.position);
+      const desiredYRot =
+        Math.atan2(difference[0], difference[2]) + Math.PI + 0.05;
+      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+      soldier.orientation.yaw = limitTurn(
+        soldier.orientation.yaw,
+        desiredYRot,
+        radiansPerTick
+      );
+
+      if (soldier.animation.kind === SoldierAnimationKind.Idle) {
+        if (desiredYRot === soldier.orientation.yaw) {
+          // We only progress the idle timer if we're pointing the correct direction.
+          const dealsDamageThisTick = continueIdleThenStabAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            assets.mcon
+          );
+          if (dealsDamageThisTick) {
+            attackTarget.health -= STAB_DAMAGE;
+          }
+        }
+      }
+
+      if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+        // We progress the stab animation regardless of whether we're pointing the correct direction.
+        const dealsDamageThisTick = continueStabThenIdleAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          assets.mcon
+        );
+        // However, we only deal damage if
+        // we're pointing the correct direction.
+        if (desiredYRot === soldier.orientation.yaw) {
+          if (dealsDamageThisTick) {
+            attackTarget.health -= STAB_DAMAGE;
+          }
+        }
+      }
+    } else {
+      // `else` condition: `soldier.attackTargetId === null`
+
+      if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+        continueStabThenIdleAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          assets.mcon
+        );
+      } else if (
+        soldier.animation.kind === SoldierAnimationKind.Idle ||
+        soldier.animation.kind === SoldierAnimationKind.Walk
+      ) {
+        const unitYaw = unit.yaw;
+        if (nearestEnemy !== null) {
+          soldier.attackTargetId = nearestEnemy;
+        } else {
+          const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+          soldier.orientation.yaw = limitTurn(
+            soldier.orientation.yaw,
+            unitYaw,
+            radiansPerTick
+          );
+        }
+      }
+    }
   }
 }
 

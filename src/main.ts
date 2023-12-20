@@ -81,6 +81,7 @@ export function main(assets: Assets): void {
     a: false,
     space: false,
     _1: false,
+    _2: false,
     _0: false,
   };
   window.addEventListener("keydown", (e) => {
@@ -133,6 +134,13 @@ export function main(assets: Assets): void {
         handleWheelCommandKeyPress(resources);
       }
     }
+    if (e.key === "2") {
+      const wasKeyDown = keys._2;
+      keys._2 = true;
+      if (!wasKeyDown) {
+        handleStandbyCommandKeyPress(resources);
+      }
+    }
     if (e.key === "0") {
       const wasKeyDown = keys._0;
       keys._0 = true;
@@ -182,6 +190,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "1") {
       keys._1 = false;
+    }
+    if (e.key === "2") {
+      keys._2 = false;
     }
     if (e.key === "0") {
       keys._0 = false;
@@ -444,5 +455,23 @@ function handleDeselectAllKeyPress(resources: Resources): void {
     if (unit.allegiance === Allegiance.Azuki) {
       unit.isSelected = false;
     }
+  }
+}
+
+function handleStandbyCommandKeyPress(resources: Resources): void {
+  const { battle } = resources;
+  const { pendingCommand, activeUnitIds } = battle.data;
+
+  if (pendingCommand.kind !== PendingCommandKind.None) {
+    return;
+  }
+
+  for (const unitId of activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (!(unit.allegiance === Allegiance.Azuki && unit.isSelected)) {
+      continue;
+    }
+
+    unit.order = { kind: UnitOrderKind.Standby };
   }
 }
