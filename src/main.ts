@@ -12,7 +12,6 @@ import {
   deployPlannedUnitIfItExistsAndDeployKeyPressedAssumingCameraHasBeenUpdated,
   getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
   getTentativeWheelInfo,
-  getTentativeWheeledSoldiers,
   getTentativelySelectedAzukiUnitId,
   tick,
 } from "./tick";
