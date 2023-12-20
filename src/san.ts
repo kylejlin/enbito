@@ -62,7 +62,7 @@ export interface SanData {
   dragonflies: GltfCache;
   azukiSafezoneMarker: InstancedMesh;
   edamameSafezoneMarker: InstancedMesh;
-  blueCylinder: Mesh;
+  flashingBlueCylinder: MeshWithLambertMaterial;
   blueSphere: InstancedMesh;
   flashingBlueSphere: InstancedMeshWithLambertMaterial;
 
@@ -70,6 +70,11 @@ export interface SanData {
 }
 
 export type InstancedMeshWithLambertMaterial = InstancedMesh<
+  BufferGeometry<NormalBufferAttributes>,
+  MeshLambertMaterial
+>;
+
+export type MeshWithLambertMaterial = Mesh<
   BufferGeometry<NormalBufferAttributes>,
   MeshLambertMaterial
 >;
@@ -150,7 +155,7 @@ export function getDefaultSanData(assets: Assets): SanData {
     dragonflies: getSingletonGltfCache(assets.dragonfly),
     azukiSafezoneMarker: getDefaultAzukiSafezoneMarker(),
     edamameSafezoneMarker: getDefaultEdamameSafezoneMarker(),
-    blueCylinder: getDefaultBlueCylinder(),
+    flashingBlueCylinder: getDefaultBlueCylinder(),
     blueSphere: getDefaultBlueSphere(),
     flashingBlueSphere: getDefaultFlashingBlueSphere(),
 
@@ -385,7 +390,7 @@ function getDefaultEdamameSafezoneMarker(): InstancedMesh {
   return marker;
 }
 
-function getDefaultBlueCylinder(): Mesh {
+function getDefaultBlueCylinder(): MeshWithLambertMaterial {
   const radius = 20;
   const marker = new Mesh(
     new CylinderGeometry(radius, radius, 2 * 35, 32, 4),

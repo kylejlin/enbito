@@ -39,20 +39,11 @@ import { getGroundCursorPosition } from "../groundCursor";
 // differentiate between the BattleState and San.
 
 export function main(battle: BattleState, san: San): void {
-  const {
-    scene,
-    sky,
-    grass,
-    ambientLight,
-    flashingBlueSphere: tentativelySelectedSoldierMarker,
-  } = san.data;
+  const { scene, sky, grass, ambientLight } = san.data;
 
   scene.add(sky);
   scene.add(grass);
   scene.add(ambientLight);
-
-  tentativelySelectedSoldierMarker.material.opacity =
-    0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
 
   updateKings(battle, san);
   updateDragonflies(battle, san);
@@ -64,6 +55,7 @@ export function main(battle: BattleState, san: San): void {
   updateTentativelySelectedDeploymentBannerTowerMarker(battle, san);
   updateTentativelySelectedUnitMarkers(battle, san);
   updateTentativeWheelDestination(battle, san);
+  updateFlashingMaterials(battle, san);
 
   updateCursor(battle, san);
 }
@@ -478,7 +470,7 @@ function updateTentativelySelectedDeploymentBannerTowerMarker(
   }
   const bNearestAzukiTower = battle.getBannerTower(nearestAzukiTowerId);
 
-  const sMarker = san.data.blueCylinder;
+  const sMarker = san.data.flashingBlueCylinder;
   sMarker.position.set(...bNearestAzukiTower.position);
   san.data.scene.add(sMarker);
 }
@@ -592,4 +584,11 @@ function updateTentativeWheelDestination(battle: BattleState, san: San): void {
   }
 
   // TODO
+}
+
+function updateFlashingMaterials(_battle: BattleState, san: San): void {
+  const { flashingBlueCylinder, flashingBlueSphere } = san.data;
+  const flashingOpacity = 0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
+  flashingBlueCylinder.material.opacity = flashingOpacity;
+  flashingBlueSphere.material.opacity = flashingOpacity;
 }
