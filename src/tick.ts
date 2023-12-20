@@ -1620,7 +1620,11 @@ export function getTentativeWheeledSoldiers(
 export function getTentativeWheelInfo(
   battle: BattleState,
   san: San
-): null | { deltaYaw: number; soldierTransforms: SparseArray<PosRot> } {
+): null | {
+  deltaYaw: number;
+  soldierTransforms: SparseArray<PosRot>;
+  originalGroundCursorPosition: Triple;
+} {
   const { pendingCommand } = battle.data;
   if (pendingCommand.kind !== PendingCommandKind.Wheel) {
     return null;
@@ -1682,5 +1686,11 @@ export function getTentativeWheelInfo(
     }
   }
 
-  return { deltaYaw, soldierTransforms: out };
+  return {
+    deltaYaw,
+    soldierTransforms: out,
+    originalGroundCursorPosition: geoUtils.cloneTriple(
+      originalGroundCursorPosition
+    ),
+  };
 }

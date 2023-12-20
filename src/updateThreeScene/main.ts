@@ -28,6 +28,7 @@ import {
   getEdamameKingDistanceSquaredToNearestBannerTower,
   getNearestBannerTowerId,
   getPlannedDeploymentUnitBasedOnPlannedDeploymentStart,
+  getTentativeWheelInfo,
   getTentativeWheeledSoldiers,
   getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
@@ -472,6 +473,7 @@ function updateTentativelySelectedDeploymentBannerTowerMarker(
 
   const sMarker = san.data.flashingBlueCylinder;
   sMarker.position.set(...bNearestAzukiTower.position);
+  sMarker.scale.setScalar(1);
   san.data.scene.add(sMarker);
 }
 
@@ -545,11 +547,22 @@ function updatePlannedDeploymentUnit(battle: BattleState, san: San): void {
 }
 
 function updateTentativeWheelDestination(battle: BattleState, san: San): void {
-  const wheeledSoldierPosRots = getTentativeWheeledSoldiers(battle, san);
-  if (wheeledSoldierPosRots === null) {
+  const info = getTentativeWheelInfo(battle, san);
+  if (info === null) {
     return;
   }
 
+  const { originalGroundCursorPosition } = info;
+  const { flashingBlueCylinder, scene } = san.data;
+  flashingBlueCylinder.position.set(
+    originalGroundCursorPosition[0],
+    0,
+    originalGroundCursorPosition[2]
+  );
+  flashingBlueCylinder.scale.set(0.1, 1, 0.1);
+  scene.add(flashingBlueCylinder);
+
+  const wheeledSoldierPosRots = info.soldierTransforms;
   const flashingBlueSphere = san.data.flashingBlueSphere;
   const tentativeSoldier = san.data.azukiSpearStabFrames[0];
   const temp = new Object3D();
