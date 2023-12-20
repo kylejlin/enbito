@@ -117,8 +117,11 @@ export function main(assets: Assets): void {
       }
     }
     if (e.key === "a") {
+      const wasKeyDown = keys.a;
       keys.a = true;
-      handleDeselectAllKeyPress(resources);
+      if (!wasKeyDown) {
+        handleDeselectAllKeyPress(resources);
+      }
     }
     if (e.key === " ") {
       keys.space = true;
@@ -131,8 +134,13 @@ export function main(assets: Assets): void {
       }
     }
     if (e.key === "0") {
+      const wasKeyDown = keys._0;
       keys._0 = true;
-      resources.battle.data.pendingCommand = { kind: PendingCommandKind.None };
+      if (!wasKeyDown) {
+        resources.battle.data.pendingCommand = {
+          kind: PendingCommandKind.None,
+        };
+      }
     }
 
     if (e.key === "{") {
