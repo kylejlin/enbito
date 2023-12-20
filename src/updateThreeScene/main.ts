@@ -421,7 +421,8 @@ function getSafezoneInstancedMesh(
 }
 
 function updateCursor(battle: BattleState, san: San): void {
-  const { camera, grass, groundCursor, scene } = san.data;
+  const { camera, grass, scene } = san.data;
+  const sGroundCursor = san.data.groundCursor;
   const raycaster = new Raycaster();
   raycaster.set(
     camera.position,
@@ -433,12 +434,22 @@ function updateCursor(battle: BattleState, san: San): void {
   }
 
   const groundCursorPosition = hits[0].point;
-  groundCursor.scene.position.copy(groundCursorPosition);
-  groundCursor.scene.quaternion.setFromAxisAngle(
+  sGroundCursor.scene.position.copy(groundCursorPosition);
+  sGroundCursor.scene.quaternion.setFromAxisAngle(
     new Vector3(0, 1, 0),
     battle.getAzukiKing().orientation.yaw
   );
-  scene.add(groundCursor.scene);
+  scene.add(sGroundCursor.scene);
+
+  const { flashingBlueSphere } = san.data;
+  const temp = new Object3D();
+  temp.position.copy(sGroundCursor.scene.position);
+  temp.quaternion.copy(sGroundCursor.scene.quaternion);
+  temp.translateY(1);
+
+  temp.updateMatrix();
+  flashingBlueSphere.setMatrixAt(flashingBlueSphere.count, temp.matrix);
+  ++flashingBlueSphere.count;
 }
 
 function updateTentativelySelectedDeploymentBannerTowerMarker(
