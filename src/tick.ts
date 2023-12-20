@@ -1148,7 +1148,7 @@ function tickUnitWithRetreatOrder(
       retreatDestTower.position,
       soldier.position
     );
-    if (geoUtils.lengthSquared(difference) < 0.1) {
+    if (inTowerTerritory(soldier.position, retreatDestTower.position)) {
       soldierIds.splice(soldierIdIndex, 1);
       --soldierIdIndex;
       continue;
