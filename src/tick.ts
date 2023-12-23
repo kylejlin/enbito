@@ -52,6 +52,7 @@ import {
   MILLISECS_PER_TICK,
   BANNERTOWER_SAFEZONE_RANGE_SQUARED,
   KING_OUT_OF_SAFEZONE_DAMAGE_PER_SECOND,
+  SPEAR_ATTACK_RANGE,
 } from "./gameConsts";
 import { San } from "./san";
 
@@ -1221,7 +1222,7 @@ function tickUnitWithPatrolOrder(
       unit,
       Infinity,
       order.center,
-      radiusSquared,
+      order.radius + SPEAR_ATTACK_RANGE,
       resources
     );
     const nearestEnemyIdInAttackRange =
@@ -1405,14 +1406,21 @@ function getNearestEnemyId(
   return nearestEnemyId;
 }
 
+/**
+ * @param rangeFromSoldier CAUTION: This is the raw range; not the square range.
+ * @param circleRadius CAUTION: This is the raw radius; not the square radius.
+ */
 function getNearestEnemyIdInCircle(
   soldier: Soldier,
   soldierUnit: Unit,
-  rangeFromSoldierSquared: number,
+  rangeFromSoldier: number,
   circleCenter: Triple,
-  circleRadiusSquared: number,
+  circleRadius: number,
   { battle }: Resources
 ): null | Ref {
+  const rangeFromSoldierSquared = rangeFromSoldier * rangeFromSoldier;
+  const circleRadiusSquared = circleRadius * circleRadius;
+
   const azukiKing = battle.getAzukiKing();
   const edamameKing = battle.getEdamameKing();
 

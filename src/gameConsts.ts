@@ -1,7 +1,8 @@
 export const MILLISECS_PER_TICK = 10;
 
 export const TURN_SPEED_RAD_PER_SEC = Math.PI * 0.5;
-export const SPEAR_ATTACK_RANGE_SQUARED = 8 ** 2;
+export const SPEAR_ATTACK_RANGE = 8;
+export const SPEAR_ATTACK_RANGE_SQUARED = SPEAR_ATTACK_RANGE ** 2;
 export const STAB_DAMAGE = 60;
 export const STAB_COOLDOWN = 1;
 export const SLASH_DAMAGE = 40;
