@@ -1215,10 +1215,12 @@ function tickUnitWithPatrolOrder(
       soldier.attackTargetId = null;
     }
 
-    const nearestEnemy = getNearestEnemyId(
+    const nearestEnemy = getNearestEnemyIdInCircle(
       soldier,
       unit,
       SPEAR_ATTACK_RANGE_SQUARED,
+      order.center,
+      radiusSquared,
       resources
     );
 
@@ -1389,6 +1391,90 @@ function getNearestEnemyId(
   }
 
   if (nearestDistanceSquared > rangeSquared) {
+    return null;
+  }
+
+  return nearestEnemyId;
+}
+
+function getNearestEnemyIdInCircle(
+  soldier: Soldier,
+  soldierUnit: Unit,
+  rangeFromSoldierSquared: number,
+  circleCenter: Triple,
+  circleRadiusSquared: number,
+  { battle }: Resources
+): null | Ref {
+  const azukiKing = battle.getAzukiKing();
+  const edamameKing = battle.getEdamameKing();
+
+  let nearestEnemyId: Ref | null = null;
+  let nearestDistanceSquared = Infinity;
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (unit.allegiance === soldierUnit.allegiance || unit.isPreview) {
+      continue;
+    }
+
+    for (const enemyId of unit.soldierIds) {
+      const enemy = battle.getSoldier(enemyId);
+      const distToSoldierSquared = geoUtils.distanceToSquared(
+        soldier.position,
+        enemy.position
+      );
+      const distToCircleCenterSquared = geoUtils.distanceToSquared(
+        circleCenter,
+        enemy.position
+      );
+      if (
+        distToSoldierSquared < nearestDistanceSquared &&
+        distToCircleCenterSquared <= circleRadiusSquared
+      ) {
+        nearestEnemyId = enemyId;
+        nearestDistanceSquared = distToSoldierSquared;
+      }
+    }
+  }
+
+  if (soldierUnit.allegiance !== Allegiance.Azuki) {
+    const distToSoldierSquared = geoUtils.distanceToSquared(
+      soldier.position,
+      azukiKing.position
+    );
+    const distToCircleCenterSquared = geoUtils.distanceToSquared(
+      circleCenter,
+      azukiKing.position
+    );
+    if (
+      distToSoldierSquared < nearestDistanceSquared &&
+      distToCircleCenterSquared <= circleRadiusSquared &&
+      azukiKing.health > 0
+    ) {
+      nearestEnemyId = battle.data.azukiKingId;
+      nearestDistanceSquared = distToSoldierSquared;
+    }
+  }
+
+  if (soldierUnit.allegiance !== Allegiance.Edamame) {
+    const distToSoldierSquared = geoUtils.distanceToSquared(
+      soldier.position,
+      edamameKing.position
+    );
+    const distToCircleCenterSquared = geoUtils.distanceToSquared(
+      circleCenter,
+      edamameKing.position
+    );
+    if (
+      distToSoldierSquared < nearestDistanceSquared &&
+      distToCircleCenterSquared <= circleRadiusSquared &&
+      edamameKing.health > 0
+    ) {
+      nearestEnemyId = battle.data.edamameKingId;
+      nearestDistanceSquared = distToSoldierSquared;
+    }
+  }
+
+  if (nearestDistanceSquared > rangeFromSoldierSquared) {
     return null;
   }
 
