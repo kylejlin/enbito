@@ -615,6 +615,18 @@ function trySetPatrolRadius(resources: Resources): void {
       continue;
     }
 
+    // If we are already patrolling, we must reset the soldiers' assembly points.
+    // This is because if the old patrol area is inside the new one, many soldiers
+    // may continue heading toward their original assembly points, resulting in a
+    // very imbalanced distribution of soldiers.
+    if (unit.order.kind === UnitOrderKind.Patrol) {
+      for (const soldierId of unit.soldierIds) {
+        const soldier = battle.getSoldier(soldierId);
+        // This will force the soldier to choose a new assembly point.
+        soldier.assemblyPoint = geoUtils.cloneTriple(soldier.position);
+      }
+    }
+
     unit.order = {
       kind: UnitOrderKind.Patrol,
       center,
