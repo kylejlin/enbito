@@ -56,6 +56,7 @@ export function main(battle: BattleState, san: San): void {
   updateTentativelySelectedUnitMarkers(battle, san);
   updateTentativeWheelDestination(battle, san);
   updateFlashingMaterialOpacity(battle, san);
+  updateTentativelySelectedRetreatDestinationBannerTowerMarker(battle, san);
 
   updateCursor(battle, san);
 }
@@ -614,4 +615,34 @@ function updateFlashingMaterialOpacity(_battle: BattleState, san: San): void {
   const flashingOpacity = 0.25 + 0.1 * Math.sin(Date.now() * 8e-3);
   flashingBlueCylinder.material.opacity = flashingOpacity;
   flashingBlueSphere.material.opacity = flashingOpacity;
+}
+
+function updateTentativelySelectedRetreatDestinationBannerTowerMarker(
+  battle: BattleState,
+  san: San
+): void {
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Retreat) {
+    return;
+  }
+
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  const nearestAzukiTowerId = getNearestBannerTowerId(
+    geoUtils.fromThreeVec(groundCursorPosition),
+    battle,
+    isAzukiBannerTower
+  );
+  if (nearestAzukiTowerId === null) {
+    return;
+  }
+  const bNearestAzukiTower = battle.getBannerTower(nearestAzukiTowerId);
+
+  const sMarker = san.data.flashingBlueCylinder;
+  sMarker.position.set(...bNearestAzukiTower.position);
+  sMarker.scale.setScalar(1);
+  san.data.scene.add(sMarker);
 }
