@@ -9,6 +9,7 @@ import {
   DragonflyAnimationKind,
   DragonflyFlightKind,
   Orientation,
+  PatrolOrder,
   PendingCommandKind,
   PlannedDeploymentKind,
   PlannedSoldier,
@@ -603,6 +604,14 @@ function tickUnit(
         resources
       );
       return;
+    case UnitOrderKind.Patrol:
+      tickUnitWithPatrolOrder(
+        elapsedTimeInSeconds,
+        unit,
+        unit.order,
+        resources
+      );
+      return;
   }
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -1179,6 +1188,151 @@ function tickUnitWithRetreatOrder(
 
   if (!unit.areSoldiersStillBeingAdded && !isUnitStillAssembling) {
     unit.order = { kind: UnitOrderKind.Storm };
+  }
+}
+
+function tickUnitWithPatrolOrder(
+  elapsedTimeInSeconds: number,
+  unit: Unit,
+  order: PatrolOrder,
+  resources: Resources
+): void {
+  const { assets, battle } = resources;
+  const radiusSquared = order.radius * order.radius;
+
+  const { soldierIds } = unit;
+
+  for (const soldierId of soldierIds) {
+    const soldier = battle.getSoldier(soldierId);
+    if (
+      soldier.attackTargetId !== null &&
+      (battle.getSoldier(soldier.attackTargetId).health <= 0 ||
+        geoUtils.distanceToSquared(
+          soldier.position,
+          battle.getSoldier(soldier.attackTargetId).position
+        ) > SPEAR_ATTACK_RANGE_SQUARED)
+    ) {
+      soldier.attackTargetId = null;
+    }
+
+    const nearestEnemy = getNearestEnemyId(
+      soldier,
+      unit,
+      SPEAR_ATTACK_RANGE_SQUARED,
+      resources
+    );
+
+    if (soldier.attackTargetId === null) {
+      soldier.attackTargetId = nearestEnemy;
+    }
+
+    if (soldier.attackTargetId !== null) {
+      if (soldier.animation.kind === SoldierAnimationKind.Walk) {
+        stopWalkingAndStartStabAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          1,
+          assets.mcon
+        );
+      }
+
+      const attackTarget = battle.getSoldier(soldier.attackTargetId);
+      const difference = geoUtils.sub(attackTarget.position, soldier.position);
+      const desiredYRot =
+        Math.atan2(difference[0], difference[2]) + Math.PI + 0.05;
+      const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+      soldier.orientation.yaw = limitTurn(
+        soldier.orientation.yaw,
+        desiredYRot,
+        radiansPerTick
+      );
+
+      if (soldier.animation.kind === SoldierAnimationKind.Idle) {
+        if (desiredYRot === soldier.orientation.yaw) {
+          // We only progress the idle timer if we're pointing the correct direction.
+          const dealsDamageThisTick = continueIdleThenStabAnimation(
+            elapsedTimeInSeconds,
+            soldier.animation,
+            assets.mcon
+          );
+          if (dealsDamageThisTick) {
+            attackTarget.health -= STAB_DAMAGE;
+          }
+        }
+      }
+
+      if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+        // We progress the stab animation regardless of whether we're pointing the correct direction.
+        const dealsDamageThisTick = continueStabThenIdleAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          assets.mcon
+        );
+        // However, we only deal damage if
+        // we're pointing the correct direction.
+        if (desiredYRot === soldier.orientation.yaw) {
+          if (dealsDamageThisTick) {
+            attackTarget.health -= STAB_DAMAGE;
+          }
+        }
+      }
+    } else {
+      // `else` condition: `soldier.attackTargetId === null`
+
+      if (soldier.animation.kind === SoldierAnimationKind.Stab) {
+        continueStabThenIdleAnimation(
+          elapsedTimeInSeconds,
+          soldier.animation,
+          assets.mcon
+        );
+      } else if (
+        soldier.animation.kind === SoldierAnimationKind.Idle ||
+        soldier.animation.kind === SoldierAnimationKind.Walk
+      ) {
+        const magnitudeOfMovementThisTick = 1.5 * elapsedTimeInSeconds;
+        const needsNewAssemblyPoint =
+          geoUtils.distanceToSquared(soldier.assemblyPoint, order.center) >
+            radiusSquared ||
+          geoUtils.distanceToSquared(soldier.assemblyPoint, soldier.position) <=
+            magnitudeOfMovementThisTick * magnitudeOfMovementThisTick;
+        if (needsNewAssemblyPoint) {
+          const r = Math.random() * order.radius;
+          const theta = Math.random() * 2 * Math.PI;
+          const x = order.center[0] + r * Math.cos(theta);
+          const z = order.center[2] + r * Math.sin(theta);
+          soldier.assemblyPoint = [x, 0, z];
+        }
+
+        const desiredYaw =
+          Math.atan2(
+            soldier.assemblyPoint[0] - soldier.position[0],
+            soldier.assemblyPoint[2] - soldier.position[2]
+          ) + Math.PI;
+
+        if (nearestEnemy !== null) {
+          soldier.attackTargetId = nearestEnemy;
+        } else {
+          const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
+          soldier.orientation.yaw = limitTurn(
+            soldier.orientation.yaw,
+            desiredYaw,
+            radiansPerTick
+          );
+          if (soldier.orientation.yaw === desiredYaw) {
+            startOrContinueWalkingAnimation(
+              elapsedTimeInSeconds,
+              soldier.animation,
+              assets.mcon
+            );
+            geoUtils.translateZ(
+              soldier.position,
+              soldier.orientation,
+              -magnitudeOfMovementThisTick
+            );
+          }
+        }
+      }
+    }
   }
 }
 

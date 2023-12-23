@@ -86,6 +86,7 @@ export function main(assets: Assets): void {
     _2: false,
     _3: false,
     _4: false,
+    _5: false,
     _0: false,
   };
   window.addEventListener("keydown", (e) => {
@@ -159,6 +160,13 @@ export function main(assets: Assets): void {
         handleRetreatCommandKeyPress(resources);
       }
     }
+    if (e.key === "5") {
+      const wasKeyDown = keys._5;
+      keys._5 = true;
+      if (!wasKeyDown) {
+        handlePatrolCommandKeyPress(resources);
+      }
+    }
     if (e.key === "0") {
       const wasKeyDown = keys._0;
       keys._0 = true;
@@ -217,6 +225,9 @@ export function main(assets: Assets): void {
     }
     if (e.key === "4") {
       keys._4 = false;
+    }
+    if (e.key === "5") {
+      keys._5 = false;
     }
     if (e.key === "0") {
       keys._0 = false;
@@ -555,6 +566,59 @@ function trySetRetreatDestination(resources: Resources): void {
     unit.order = {
       kind: UnitOrderKind.Retreat,
       idealRetreatPosition: geoUtils.cloneTriple(tower.position),
+    };
+  }
+
+  battle.data.pendingCommand = { kind: PendingCommandKind.None };
+}
+
+function handlePatrolCommandKeyPress(resources: Resources): void {
+  const { battle, san } = resources;
+  const { pendingCommand } = battle.data;
+
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  if (pendingCommand.kind === PendingCommandKind.None) {
+    battle.data.pendingCommand = {
+      kind: PendingCommandKind.Patrol,
+      center: geoUtils.fromThreeVec(groundCursorPosition),
+    };
+  } else if (pendingCommand.kind === PendingCommandKind.Patrol) {
+    trySetPatrolRadius(resources);
+  }
+}
+
+function trySetPatrolRadius(resources: Resources): void {
+  const { battle, san } = resources;
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Patrol) {
+    return;
+  }
+  const { center } = pendingCommand;
+
+  const radius = geoUtils.distance(
+    center,
+    geoUtils.fromThreeVec(groundCursorPosition)
+  );
+
+  for (const unitId of battle.data.activeUnitIds) {
+    const unit = battle.getUnit(unitId);
+    if (!(unit.allegiance === Allegiance.Azuki && unit.isSelected)) {
+      continue;
+    }
+
+    unit.order = {
+      kind: UnitOrderKind.Patrol,
+      center,
+      radius,
     };
   }
 

@@ -40,6 +40,10 @@ export function translateZ(
   out[2] = temp.position.z;
 }
 
+export function distance(self: Triple, other: Triple): number {
+  return Math.sqrt(distanceToSquared(self, other));
+}
+
 export function distanceToSquared(self: Triple, other: Triple): number {
   const [x1, y1, z1] = self;
   const [x2, y2, z2] = other;

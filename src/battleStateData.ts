@@ -20,6 +20,7 @@ export enum UnitOrderKind {
   Wheel,
   Standby,
   Retreat,
+  Patrol,
 }
 
 export enum SoldierAnimationKind {
@@ -51,6 +52,7 @@ export enum PendingCommandKind {
   SelectUnit,
   Wheel,
   Retreat,
+  Patrol,
 }
 
 export enum PlannedDeploymentKind {
@@ -138,7 +140,8 @@ export type UnitOrder =
   | AssembleOrder
   | WheelOrder
   | StandbyOrder
-  | RetreatOrder;
+  | RetreatOrder
+  | PatrolOrder;
 
 export interface AdvanceOrder {
   readonly kind: UnitOrderKind.Advance;
@@ -165,6 +168,12 @@ export interface StandbyOrder {
 export interface RetreatOrder {
   readonly kind: UnitOrderKind.Retreat;
   idealRetreatPosition: Triple;
+}
+
+export interface PatrolOrder {
+  readonly kind: UnitOrderKind.Patrol;
+  center: Triple;
+  radius: number;
 }
 
 export interface Unit {
@@ -234,7 +243,8 @@ export type PendingCommand =
   | PendingDeploy
   | PendingSelectUnit
   | PendingWheel
-  | PendingRetreat;
+  | PendingRetreat
+  | PendingPatrol;
 
 export interface NullPendingCommand {
   readonly kind: PendingCommandKind.None;
@@ -257,6 +267,11 @@ export interface PendingWheel {
 
 export interface PendingRetreat {
   readonly kind: PendingCommandKind.Retreat;
+}
+
+export interface PendingPatrol {
+  readonly kind: PendingCommandKind.Patrol;
+  center: Triple;
 }
 
 export type PosRot = [Triple, Orientation];
