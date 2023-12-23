@@ -17,7 +17,7 @@ import {
   isAzukiBannerTower,
   tick,
 } from "./tick";
-import { MILLISECS_PER_TICK } from "./gameConsts";
+import { MILLISECS_PER_TICK, MIN_PATROL_RADIUS } from "./gameConsts";
 import {
   Allegiance,
   BattleStateData,
@@ -604,9 +604,9 @@ function trySetPatrolRadius(resources: Resources): void {
   }
   const { center } = pendingCommand;
 
-  const radius = geoUtils.distance(
-    center,
-    geoUtils.fromThreeVec(groundCursorPosition)
+  const radius = Math.max(
+    MIN_PATROL_RADIUS,
+    geoUtils.distance(center, geoUtils.fromThreeVec(groundCursorPosition))
   );
 
   for (const unitId of battle.data.activeUnitIds) {
