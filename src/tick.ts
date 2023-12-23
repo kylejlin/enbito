@@ -1199,6 +1199,7 @@ function tickUnitWithPatrolOrder(
 ): void {
   const { assets, battle } = resources;
   const radiusSquared = order.radius * order.radius;
+  const magnitudeOfMovementThisTick = 1.5 * elapsedTimeInSeconds;
 
   const { soldierIds } = unit;
 
@@ -1215,7 +1216,7 @@ function tickUnitWithPatrolOrder(
       soldier.attackTargetId = null;
     }
 
-    const nearestEnemyId = getNearestEnemyIdInCircle(
+    const nearestEnemyIdInCircle = getNearestEnemyIdInCircle(
       soldier,
       unit,
       Infinity,
@@ -1224,12 +1225,12 @@ function tickUnitWithPatrolOrder(
       resources
     );
     const nearestEnemyIdInAttackRange =
-      nearestEnemyId !== null &&
+      nearestEnemyIdInCircle !== null &&
       geoUtils.distanceToSquared(
-        battle.getSoldier(nearestEnemyId).position,
+        battle.getSoldier(nearestEnemyIdInCircle).position,
         soldier.position
       ) <= SPEAR_ATTACK_RANGE_SQUARED
-        ? nearestEnemyId
+        ? nearestEnemyIdInCircle
         : null;
 
     if (soldier.attackTargetId === null) {
@@ -1299,32 +1300,24 @@ function tickUnitWithPatrolOrder(
         soldier.animation.kind === SoldierAnimationKind.Idle ||
         soldier.animation.kind === SoldierAnimationKind.Walk
       ) {
-        const magnitudeOfMovementThisTick = 1.5 * elapsedTimeInSeconds;
         const needsNewAssemblyPoint =
           geoUtils.distanceToSquared(soldier.assemblyPoint, order.center) >
             radiusSquared ||
           geoUtils.distanceToSquared(soldier.assemblyPoint, soldier.position) <=
-            magnitudeOfMovementThisTick * magnitudeOfMovementThisTick ||
-          nearestEnemyId !== null;
+            magnitudeOfMovementThisTick * magnitudeOfMovementThisTick;
         if (needsNewAssemblyPoint) {
-          if (nearestEnemyId !== null) {
-            soldier.assemblyPoint = geoUtils.cloneTriple(
-              battle.getSoldier(nearestEnemyId).position
-            );
-          } else {
-            const r = Math.random() * order.radius;
-            const theta = Math.random() * 2 * Math.PI;
-            const x = order.center[0] + r * Math.cos(theta);
-            const z = order.center[2] + r * Math.sin(theta);
-            soldier.assemblyPoint = [x, 0, z];
-          }
+          const r = Math.random() * order.radius;
+          const theta = Math.random() * 2 * Math.PI;
+          const x = order.center[0] + r * Math.cos(theta);
+          const z = order.center[2] + r * Math.sin(theta);
+          soldier.assemblyPoint = [x, 0, z];
         }
 
-        const desiredYaw =
-          Math.atan2(
-            soldier.assemblyPoint[0] - soldier.position[0],
-            soldier.assemblyPoint[2] - soldier.position[2]
-          ) + Math.PI;
+        const desiredYaw = getDesiredYawOfPatrollingNonAttackingSoldier(
+          soldier,
+          nearestEnemyIdInCircle,
+          battle
+        );
 
         if (nearestEnemyIdInAttackRange !== null) {
           soldier.attackTargetId = nearestEnemyIdInAttackRange;
@@ -1514,6 +1507,31 @@ function limitTurn(
     return desiredAngle;
   }
   return currentAngle + maxChange * Math.sign(difference);
+}
+
+function getDesiredYawOfPatrollingNonAttackingSoldier(
+  soldier: Soldier,
+  nearestEnemyIdInCircle: null | Ref,
+  battle: BattleState
+): number {
+  if (nearestEnemyIdInCircle !== null) {
+    const destination = geoUtils.cloneTriple(
+      battle.getSoldier(nearestEnemyIdInCircle).position
+    );
+    return (
+      Math.atan2(
+        destination[0] - soldier.position[0],
+        destination[2] - soldier.position[2]
+      ) + Math.PI
+    );
+  }
+
+  return (
+    Math.atan2(
+      soldier.assemblyPoint[0] - soldier.position[0],
+      soldier.assemblyPoint[2] - soldier.position[2]
+    ) + Math.PI
+  );
 }
 
 const UNOCCUPIED = Symbol();
