@@ -606,7 +606,7 @@ function trySetPatrolRadius(resources: Resources): void {
 
   const radius = Math.max(
     MIN_PATROL_RADIUS,
-    geoUtils.distance(center, geoUtils.fromThreeVec(groundCursorPosition))
+    geoUtils.distanceTo(center, geoUtils.fromThreeVec(groundCursorPosition))
   );
 
   for (const unitId of battle.data.activeUnitIds) {

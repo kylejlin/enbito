@@ -32,7 +32,11 @@ import {
   getTentativelySelectedAzukiUnitId,
   isAzukiBannerTower,
 } from "../tick";
-import { BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED } from "../gameConsts";
+import {
+  BANNERTOWER_SAFEZONE_WARNING_RANGE_SQUARED,
+  FLASHING_BLUE_CYLINDER_RADIUS,
+  MIN_PATROL_RADIUS,
+} from "../gameConsts";
 import { getGroundCursorPosition } from "../groundCursor";
 
 // In this file, we use "b" and "s" prefixes to
@@ -57,6 +61,7 @@ export function main(battle: BattleState, san: San): void {
   updateTentativeWheelDestination(battle, san);
   updateFlashingMaterialOpacity(battle, san);
   updateTentativelySelectedRetreatDestinationBannerTowerMarker(battle, san);
+  updateTentativePatrolAreaMarker(battle, san);
 
   updateCursor(battle, san);
 }
@@ -644,5 +649,32 @@ function updateTentativelySelectedRetreatDestinationBannerTowerMarker(
   const sMarker = san.data.flashingBlueCylinder;
   sMarker.position.set(...bNearestAzukiTower.position);
   sMarker.scale.setScalar(1);
+  san.data.scene.add(sMarker);
+}
+
+function updateTentativePatrolAreaMarker(battle: BattleState, san: San): void {
+  const { pendingCommand } = battle.data;
+  if (pendingCommand.kind !== PendingCommandKind.Patrol) {
+    return;
+  }
+
+  const groundCursorPosition = getGroundCursorPosition(san);
+  if (groundCursorPosition === null) {
+    return;
+  }
+
+  const center = pendingCommand.center;
+  const radius = Math.max(
+    MIN_PATROL_RADIUS,
+    geoUtils.distanceTo(geoUtils.fromThreeVec(groundCursorPosition), center)
+  );
+
+  const sMarker = san.data.flashingBlueCylinder;
+  sMarker.position.set(...center);
+  sMarker.scale.set(
+    radius / FLASHING_BLUE_CYLINDER_RADIUS,
+    1,
+    radius / FLASHING_BLUE_CYLINDER_RADIUS
+  );
   san.data.scene.add(sMarker);
 }

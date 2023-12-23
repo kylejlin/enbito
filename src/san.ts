@@ -29,7 +29,10 @@ import { cloneGltf } from "./cloneGltf";
 import { GLTF } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { Allegiance } from "./battleStateData";
 import { Tuple21, Tuple24, Tuple29 } from "./nTuple";
-import { BANNERTOWER_SAFEZONE_RANGE_SQUARED } from "./gameConsts";
+import {
+  BANNERTOWER_SAFEZONE_RANGE_SQUARED,
+  FLASHING_BLUE_CYLINDER_RADIUS,
+} from "./gameConsts";
 
 export const MAX_SOLDIER_LIMIT = 10e3;
 export const MAX_TOWER_LIMIT = 200;
@@ -391,7 +394,7 @@ function getDefaultEdamameSafezoneMarker(): InstancedMesh {
 }
 
 function getDefaultBlueCylinder(): MeshWithLambertMaterial {
-  const radius = 20;
+  const radius = FLASHING_BLUE_CYLINDER_RADIUS;
   const marker = new Mesh(
     new CylinderGeometry(radius, radius, 2 * 35, 32, 4),
     new MeshLambertMaterial({
