@@ -1215,17 +1215,25 @@ function tickUnitWithPatrolOrder(
       soldier.attackTargetId = null;
     }
 
-    const nearestEnemy = getNearestEnemyIdInCircle(
+    const nearestEnemyId = getNearestEnemyIdInCircle(
       soldier,
       unit,
-      SPEAR_ATTACK_RANGE_SQUARED,
+      Infinity,
       order.center,
       radiusSquared,
       resources
     );
+    const nearestEnemyIdInAttackRange =
+      nearestEnemyId !== null &&
+      geoUtils.distanceToSquared(
+        battle.getSoldier(nearestEnemyId).position,
+        soldier.position
+      ) <= SPEAR_ATTACK_RANGE_SQUARED
+        ? nearestEnemyId
+        : null;
 
     if (soldier.attackTargetId === null) {
-      soldier.attackTargetId = nearestEnemy;
+      soldier.attackTargetId = nearestEnemyIdInAttackRange;
     }
 
     if (soldier.attackTargetId !== null) {
@@ -1296,13 +1304,20 @@ function tickUnitWithPatrolOrder(
           geoUtils.distanceToSquared(soldier.assemblyPoint, order.center) >
             radiusSquared ||
           geoUtils.distanceToSquared(soldier.assemblyPoint, soldier.position) <=
-            magnitudeOfMovementThisTick * magnitudeOfMovementThisTick;
+            magnitudeOfMovementThisTick * magnitudeOfMovementThisTick ||
+          nearestEnemyId !== null;
         if (needsNewAssemblyPoint) {
-          const r = Math.random() * order.radius;
-          const theta = Math.random() * 2 * Math.PI;
-          const x = order.center[0] + r * Math.cos(theta);
-          const z = order.center[2] + r * Math.sin(theta);
-          soldier.assemblyPoint = [x, 0, z];
+          if (nearestEnemyId !== null) {
+            soldier.assemblyPoint = geoUtils.cloneTriple(
+              battle.getSoldier(nearestEnemyId).position
+            );
+          } else {
+            const r = Math.random() * order.radius;
+            const theta = Math.random() * 2 * Math.PI;
+            const x = order.center[0] + r * Math.cos(theta);
+            const z = order.center[2] + r * Math.sin(theta);
+            soldier.assemblyPoint = [x, 0, z];
+          }
         }
 
         const desiredYaw =
@@ -1311,8 +1326,8 @@ function tickUnitWithPatrolOrder(
             soldier.assemblyPoint[2] - soldier.position[2]
           ) + Math.PI;
 
-        if (nearestEnemy !== null) {
-          soldier.attackTargetId = nearestEnemy;
+        if (nearestEnemyIdInAttackRange !== null) {
+          soldier.attackTargetId = nearestEnemyIdInAttackRange;
         } else {
           const radiansPerTick = elapsedTimeInSeconds * TURN_SPEED_RAD_PER_SEC;
           soldier.orientation.yaw = limitTurn(
